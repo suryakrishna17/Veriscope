@@ -1,0 +1,55 @@
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: backend } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: sudo apt-get update && sudo apt-get install -y tesseract-ocr
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check app scripts tests
+      - run: pytest -q
+      - run: pip install pip-audit && pip-audit -r requirements.txt || true
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: frontend } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - run: npm install
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm audit --audit-level=high || true
+
+  e2e:
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - run: sudo apt-get update && sudo apt-get install -y tesseract-ocr
+      - run: pip install -r backend/requirements.txt
+      - run: cd frontend && npm install && npm run build && npx playwright install --with-deps chromium
+      - run: cd backend && python -m scripts.seed && (python wsgi.py &) && sleep 4
+      - run: cd frontend && npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: e2e-screenshots, path: frontend/e2e/screenshots }
+
+  docker:
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t veriscope:ci .

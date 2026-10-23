@@ -1,0 +1,19 @@
+services:
+  veriscope:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      SEED_DEMO: ${SEED_DEMO:-true}
+      DATABASE_PATH: /data/veriscope.db
+      STORAGE_PATH: /data/storage
+    volumes:
+      - veriscope-data:/data
+    restart: unless-stopped
+
+volumes:
+  veriscope-data:

@@ -1,0 +1,82 @@
+{
+  "SIH-DEMO-013": {
+    "applicant": "Ananya Rao",
+    "institution": "Northstar Technical Institute",
+    "expected_rules": [],
+    "files": {
+      "APPLICATION_FORM": "application_form.pdf",
+      "INSTITUTION_AUTHORIZATION_LETTER": "authorization_letter.pdf",
+      "ENROLMENT_OR_IDENTITY_PROOF": "enrolment_certificate.pdf"
+    },
+    "expected_fields": {
+      "APPLICATION_FORM": {
+        "applicant_name": "Ananya Rao",
+        "total_amount": "133500.00",
+        "application_date": "2026-10-05",
+        "contact_phone": "9845012345",
+        "signature_present": "yes",
+        "declaration_checked": "yes"
+      },
+      "INSTITUTION_AUTHORIZATION_LETTER": {
+        "valid_until": "2027-03-31",
+        "seal_present": "yes",
+        "letterhead_present": "yes",
+        "signature_present": "yes"
+      },
+      "ENROLMENT_OR_IDENTITY_PROOF": {
+        "enrolment_number": "NTI-2025-CSE-0417",
+        "person_name": "Ananya Rao"
+      }
+    }
+  },
+  "SIH-DEMO-014": {
+    "applicant": "Rahul Verma",
+    "institution": "Northstar Technical Institute",
+    "expected_rules": [
+      "ARI-001",
+      "CMP-001",
+      "CON-001",
+      "CON-002",
+      "SIG-001",
+      "SIG-002"
+    ],
+    "files": {
+      "APPLICATION_FORM": "application_form.pdf",
+      "INSTITUTION_AUTHORIZATION_LETTER": "authorization_letter.pdf",
+      "ENROLMENT_OR_IDENTITY_PROOF": "enrolment_certificate.pdf"
+    },
+    "expected_fields": {
+      "APPLICATION_FORM": {
+        "signature_present": "no",
+        "total_amount": "148500.00"
+      }
+    }
+  },
+  "SIH-DEMO-015": {
+    "applicant": "Priya Nair",
+    "institution": "Northstar Technical Institute",
+    "expected_rules": [
+      "DAT-002",
+      "SIG-003"
+    ],
+    "files": {
+      "APPLICATION_FORM": "application_form.pdf",
+      "INSTITUTION_AUTHORIZATION_LETTER": "authorization_letter.pdf",
+      "ENROLMENT_OR_IDENTITY_PROOF": "enrolment_certificate_scan.png"
+    },
+    "expected_fields": {
+      "ENROLMENT_OR_IDENTITY_PROOF": {
+        "enrolment_number": "NTI-2024-ECE-0211"
+      },
+      "INSTITUTION_AUTHORIZATION_LETTER": {
+        "valid_until": "2026-06-30"
+      }
+    }
+  },
+  "SIH-DEMO-016": {
+    "applicant": "Karan Mehta",
+    "institution": "Northstar Technical Institute",
+    "expected_rules": [],
+    "files": {}
+  }
+}

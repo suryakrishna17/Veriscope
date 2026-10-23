@@ -1,0 +1,165 @@
+# PROTOTYPE RULEBOOK — illustrative only. These rules have NOT been verified against official
+# AICTE requirements. Before production use, a named policy reviewer must attach a source
+# citation and effective date to each rule.
+ruleset: student_support_lite
+version: 1.0.0
+is_provisional: true
+effective_date: 2026-10-01
+source_note: Prototype rulebook for SIH26261 demo. Not official AICTE policy.
+
+rules:
+  - id: CMP-001
+    category: completeness
+    severity: high
+    summary: Applicant signature not detected on the application form
+    operator: field_equals
+    params: {doc_type: APPLICATION_FORM, field: signature_present, expected: "yes",
+             detail: "No signature ink was detected beside the signature label ({excerpt})."}
+    next_action: Look at the highlighted area. If unsigned, request a signed copy from the applicant.
+
+  - id: CMP-002
+    category: completeness
+    severity: high
+    summary: Required documents are missing
+    operator: required_doc_types
+    params: {doc_types: [APPLICATION_FORM, INSTITUTION_AUTHORIZATION_LETTER, ENROLMENT_OR_IDENTITY_PROOF]}
+    next_action: Request the missing documents from the applicant.
+
+  - id: CMP-003
+    category: completeness
+    severity: medium
+    summary: Required fields are missing on the application form
+    operator: required_fields
+    params:
+      doc_type: APPLICATION_FORM
+      fields: [applicant_name, institution_name, institution_id, application_date, programme_name, total_amount]
+    next_action: Check the page; correct the field if OCR missed it, otherwise request clarification.
+
+  - id: CMP-004
+    category: completeness
+    severity: medium
+    summary: Declaration is not ticked on the application form
+    operator: field_equals
+    params: {doc_type: APPLICATION_FORM, field: declaration_checked, expected: "yes"}
+    next_action: Request the applicant to confirm the declaration.
+
+  - id: CMP-005
+    category: completeness
+    severity: medium
+    summary: Required fields are missing on the enrolment proof
+    operator: required_fields
+    params: {doc_type: ENROLMENT_OR_IDENTITY_PROOF, fields: [person_name, enrolment_number, institution_name]}
+    next_action: Check the page; correct the field if OCR missed it, otherwise request a clearer copy.
+
+  - id: FMT-001
+    category: compliance
+    severity: medium
+    summary: Institution ID is not in the expected format
+    operator: regex
+    params: {doc_types: [APPLICATION_FORM, INSTITUTION_AUTHORIZATION_LETTER], fields: [institution_id], pattern: "^\\d-\\d{9,10}$"}
+    next_action: Confirm the AICTE institution ID with the institution.
+
+  - id: FMT-002
+    category: compliance
+    severity: low
+    summary: Contact details are not in a valid format
+    operator: regex
+    params: {doc_types: [APPLICATION_FORM], fields: [contact_phone], pattern: "^[6-9]\\d{9}$"}
+    next_action: Ask the applicant for a valid 10-digit mobile number.
+
+  - id: DAT-001
+    category: compliance
+    severity: medium
+    summary: Application date is in the future
+    operator: date_not_future
+    params: {doc_type: APPLICATION_FORM, field: application_date}
+    next_action: Confirm the application date with the applicant.
+
+  - id: DAT-002
+    category: compliance
+    severity: high
+    summary: Institution authorization had expired before the application date
+    operator: date_order
+    params:
+      earlier: {doc_type: APPLICATION_FORM, field: application_date}
+      later: {doc_type: INSTITUTION_AUTHORIZATION_LETTER, field: valid_until}
+    next_action: Request a current authorization letter from the institution.
+
+  - id: ARI-001
+    category: compliance
+    severity: medium
+    summary: Fee components do not add up to the total claimed
+    operator: arithmetic_sum
+    params: {doc_type: APPLICATION_FORM, parts: [tuition_fee, hostel_fee, exam_fee], total: total_amount, tolerance: "0.01"}
+    next_action: Ask the applicant to correct the fee breakdown or the total.
+
+  - id: CON-001
+    category: consistency
+    severity: medium
+    summary: Institution name differs between documents
+    operator: cross_doc_match
+    params:
+      kind: org
+      threshold: 90
+      refs:
+        - {doc_type: APPLICATION_FORM, field: institution_name}
+        - {doc_type: INSTITUTION_AUTHORIZATION_LETTER, field: institution_name}
+        - {doc_type: ENROLMENT_OR_IDENTITY_PROOF, field: institution_name}
+    next_action: Confirm the institution's registered name; correct the field if it is an OCR error.
+
+  - id: CON-002
+    category: consistency
+    severity: high
+    summary: Student name differs between documents
+    operator: cross_doc_match
+    params:
+      kind: name
+      threshold: 88
+      refs:
+        - {doc_type: APPLICATION_FORM, field: applicant_name}
+        - {doc_type: INSTITUTION_AUTHORIZATION_LETTER, field: student_name}
+        - {doc_type: ENROLMENT_OR_IDENTITY_PROOF, field: person_name}
+    next_action: Check that every document belongs to the same applicant.
+
+  - id: CON-003
+    category: consistency
+    severity: medium
+    summary: Institution ID differs between documents
+    operator: cross_doc_match
+    params:
+      kind: org
+      threshold: 100
+      refs:
+        - {doc_type: APPLICATION_FORM, field: institution_id}
+        - {doc_type: INSTITUTION_AUTHORIZATION_LETTER, field: institution_id}
+    next_action: Confirm the correct institution ID.
+
+  - id: SIG-001
+    category: document_signal
+    severity: medium
+    summary: Identical file already submitted elsewhere — review required
+    operator: duplicate_hash
+    next_action: Confirm this is the intended document. A duplicate is a review signal, not proof of misuse.
+
+  - id: SIG-002
+    category: document_signal
+    severity: low
+    summary: File metadata shows later edits — review required
+    operator: metadata_notes
+    next_action: Compare the document with the expected issuer format; ask for the original if in doubt.
+
+  - id: SIG-003
+    category: document_signal
+    severity: low
+    summary: Scanned document — read values carefully
+    operator: scan_quality
+    params: {min_confidence: 80, flag_any_ocr: true}
+    next_action: Compare each extracted value with the page and correct any recognition errors.
+
+  - id: SIG-004
+    category: document_signal
+    severity: low
+    summary: Institution seal not detected on the authorization letter
+    operator: field_equals
+    params: {doc_type: INSTITUTION_AUTHORIZATION_LETTER, field: seal_present, expected: "yes"}
+    next_action: Check the letter for an institution seal or stamp.

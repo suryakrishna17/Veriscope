@@ -1,0 +1,8 @@
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+backend/var
+frontend/dist
+frontend/e2e/screenshots
+.git
+.env
