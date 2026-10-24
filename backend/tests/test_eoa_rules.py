@@ -6,8 +6,8 @@ import unittest
 from datetime import date
 from pathlib import Path
 
-from app.rules.engine import CATEGORIES, SEVERITIES, evaluate, load_ruleset
-from app.rules.model import CaseContext, DocView, FieldView
+from app.rules.engine import CATEGORIES, SEVERITIES, Ruleset, evaluate, evaluate_ruleset, load_ruleset
+from app.rules.model import CaseContext, DocView, FieldView, RuleOutcome
 from app.rules.operators import OPERATORS
 
 RULESET_FILE = "aicte_eoa_chapter2.v1.yaml"
@@ -307,3 +307,153 @@ class EoaRuleEvaluationTests(unittest.TestCase):
         ]
         ctx = build_ctx(docs=docs)
         self.assertIn("EOA-SIG-002", finding_ids(ctx))
+
+
+
+class EoaFoundationTests(unittest.TestCase):
+    """Tests for Step 3A: AICTE EoA Ruleset Foundation, outcomes, configurability, and source verification."""
+
+    def test_evaluate_ruleset_returns_pass_on_clean_context(self) -> None:
+        """When clean documents and values are provided, all 24 rules evaluate to PASS."""
+        ctx = build_ctx()
+        evaluations = evaluate_ruleset(RS, ctx)
+        self.assertEqual(len(evaluations), 24)
+
+        for ev in evaluations:
+            self.assertEqual(ev.outcome, RuleOutcome.PASS.value, f"Rule {ev.rule_id} did not pass: {ev.detail}")
+            self.assertEqual(len(ev.findings), 0)
+            self.assertTrue(ev.rule_id.startswith("EOA-"))
+            self.assertTrue(ev.clause_citation)
+            self.assertTrue(ev.is_verified)
+            self.assertEqual(ev.verification_status, "VERIFIED_OFFICIAL")
+
+    def test_evaluate_ruleset_distinguishes_fail_and_review_required(self) -> None:
+        """Strict non-compliance yields FAIL, while conditions requiring human inspection yield REVIEW_REQUIRED."""
+        # 1. Strict deterministic non-compliance: invalid permanent ID format
+        ctx_fail = build_ctx(with_val(FORM, "institution_id", "INVALID-ID-XYZ"))
+        evals_fail = {ev.rule_id: ev for ev in evaluate_ruleset(RS, ctx_fail)}
+        self.assertEqual(evals_fail["EOA-FMT-001"].outcome, RuleOutcome.FAIL.value)
+        self.assertEqual(len(evals_fail["EOA-FMT-001"].findings), 1)
+
+        # 2. Strict non-compliance: application date in the future
+        ctx_future = build_ctx(with_val(FORM, "application_date", "2025-12-31"))
+        evals_future = {ev.rule_id: ev for ev in evaluate_ruleset(RS, ctx_future)}
+        self.assertEqual(evals_future["EOA-DAT-001"].outcome, RuleOutcome.FAIL.value)
+
+        # 3. Human inspection required: fire safety validity date (may have pending renewal challan)
+        ctx_fire_exp = build_ctx(with_val(FIRE, "valid_until", "2024-01-01"))
+        evals_fire = {ev.rule_id: ev for ev in evaluate_ruleset(RS, ctx_fire_exp)}
+        self.assertEqual(evals_fire["EOA-DAT-002"].outcome, RuleOutcome.REVIEW_REQUIRED.value)
+        self.assertIn("refer to the human reviewer", evals_fire["EOA-DAT-002"].next_action or "")
+
+        # 4. Human inspection required: structural stability certificate validity
+        ctx_bld_exp = build_ctx(with_val(BUILDING, "valid_until", "2024-01-01"))
+        evals_bld = {ev.rule_id: ev for ev in evaluate_ruleset(RS, ctx_bld_exp)}
+        self.assertEqual(evals_bld["EOA-DAT-003"].outcome, RuleOutcome.REVIEW_REQUIRED.value)
+
+        # 5. Human inspection required: barrier-free environment self-disclosure
+        ctx_ramp = build_ctx(with_val(FORM, "barrier_free_environment_available", "no"))
+        evals_ramp = {ev.rule_id: ev for ev in evaluate_ruleset(RS, ctx_ramp)}
+        self.assertEqual(evals_ramp["EOA-INF-001"].outcome, RuleOutcome.REVIEW_REQUIRED.value)
+
+        # 6. Document signals always yield REVIEW_REQUIRED
+        docs_dupe = [
+            DocView(f"doc-{dt}", dt, f"{dt.lower()}.pdf", "sha123", "processed", duplicates=[{"case_ref": "CASE-OLD-99"}] if dt == FIRE else [])
+            for dt in CLEAN_VALUES
+        ]
+        evals_dupe = {ev.rule_id: ev for ev in evaluate_ruleset(RS, build_ctx(docs=docs_dupe))}
+        self.assertEqual(evals_dupe["EOA-SIG-001"].outcome, RuleOutcome.REVIEW_REQUIRED.value)
+
+    def test_evaluate_ruleset_supports_not_applicable(self) -> None:
+        """Disabled rules or rules with unmet applicability conditions evaluate to NOT_APPLICABLE."""
+        # Create a mock rule with an unmet condition
+        test_rule = {
+            "id": "EOA-TEST-001",
+            "category": "compliance",
+            "severity": "medium",
+            "summary": "Expansion land requirement for new campuses",
+            "description": "Applies only to expansion dossiers",
+            "operator": "required_fields",
+            "params": {"doc_type": "NON_EXISTENT_DOC", "fields": ["dummy_field"]},
+            "condition": {"doc_present": "NON_EXISTENT_DOC"},
+            "applicable_condition": "Applicable when NON_EXISTENT_DOC is submitted",
+            "is_verified": False,
+            "verification_status": "ILLUSTRATIVE",
+        }
+        custom_rs = Ruleset(
+            name="custom_test",
+            version="1.0.0",
+            checksum="abc",
+            is_provisional=True,
+            source_note="Test ruleset",
+            effective_date=None,
+            rules=[test_rule],
+        )
+        ctx = build_ctx()
+        evals = evaluate_ruleset(custom_rs, ctx)
+        self.assertEqual(len(evals), 1)
+        self.assertEqual(evals[0].outcome, RuleOutcome.NOT_APPLICABLE.value)
+        self.assertIn("not in dossier", evals[0].detail)
+
+        # Disabled rule evaluates to NOT_APPLICABLE
+        test_rule_disabled = {**test_rule, "enabled": False}
+        custom_rs_disabled = Ruleset(
+            name="custom_disabled",
+            version="1.0.0",
+            checksum="def",
+            is_provisional=True,
+            source_note="Test ruleset",
+            effective_date=None,
+            rules=[test_rule_disabled],
+        )
+        evals_disabled = evaluate_ruleset(custom_rs_disabled, ctx)
+        self.assertEqual(evals_disabled[0].outcome, RuleOutcome.NOT_APPLICABLE.value)
+        self.assertIn("disabled", evals_disabled[0].detail)
+
+    def test_verified_official_vs_illustrative_ruleset_distinction(self) -> None:
+        """Ruleset loader cleanly distinguishes verified official AICTE rules from illustrative prototypes."""
+        self.assertTrue(RS.is_provisional)
+        self.assertEqual(len(RS.verified_rules), 24)
+        self.assertEqual(len(RS.illustrative_rules), 0)
+
+        for r in RS.verified_rules:
+            self.assertTrue(r["is_verified"])
+            self.assertEqual(r["verification_status"], "VERIFIED_OFFICIAL")
+            self.assertTrue(r["clause_citation"])
+            self.assertIn("AICTE", r["clause_citation"])
+
+        # Load prototype student support ruleset to verify illustrative tagging
+        ssl_rs = load_ruleset("student_support_lite.v1.yaml")
+        self.assertEqual(len(ssl_rs.illustrative_rules), len(ssl_rs.rules))
+        for r in ssl_rs.rules:
+            self.assertFalse(r.get("is_verified", True))
+            self.assertEqual(r.get("verification_status"), "ILLUSTRATIVE")
+
+    def test_ruleset_helper_methods_and_grouping(self) -> None:
+        """Ruleset methods allow convenient access by ID and grouping by category."""
+        r_cmp = RS.get_rule("EOA-CMP-001")
+        self.assertIsNotNone(r_cmp)
+        self.assertEqual(r_cmp["category"], "completeness")  # type: ignore[index]
+
+        r_none = RS.get_rule("NON-EXISTENT-ID")
+        self.assertIsNone(r_none)
+
+        by_cat = RS.rules_by_category
+        self.assertIn("completeness", by_cat)
+        self.assertIn("compliance", by_cat)
+        self.assertIn("consistency", by_cat)
+        self.assertIn("document_signal", by_cat)
+        self.assertEqual(sum(len(v) for v in by_cat.values()), 24)
+
+    def test_backward_compatibility_evaluate_findings_only(self) -> None:
+        """Calling evaluate() returns findings for non-passing rules while returning empty list on clean context."""
+        ctx_clean = build_ctx()
+        self.assertEqual(evaluate(RS, ctx_clean), [])
+
+        ctx_mismatch = build_ctx(with_val(AFFILIATION, "academic_year", "2023-24"))
+        findings = evaluate(RS, ctx_mismatch)
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0].rule_id, "EOA-CON-002")
+        self.assertEqual(findings[0].outcome, RuleOutcome.FAIL.value)
+        self.assertTrue(findings[0].clause_citation)
+        self.assertTrue(findings[0].is_verified)

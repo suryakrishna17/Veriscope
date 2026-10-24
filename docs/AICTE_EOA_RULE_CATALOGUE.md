@@ -155,10 +155,24 @@ Complex numerical thresholds that vary by geographical classification, course ve
 
 ---
 
-## 5. Verification & Test Evidence
+## 5. Ruleset Foundation & Outcome Model
+
+Under Step 3A, the AICTE EoA catalogue is executed through the unified ruleset foundation (`backend/app/rules/engine.py`):
+- **Structured Outcome Model**: Every rule evaluation returns a typed `RuleEvaluation` record with an explicit outcome:
+  - `PASS`: Requirement fully satisfied against submitted dossier.
+  - `FAIL`: Unambiguous violation or missing statutory document/field.
+  - `REVIEW_REQUIRED`: Discrepancy detected where official handbook provisions mandate human reviewer verification (e.g., safety renewal receipts, structural engineer endorsements, or document signals).
+  - `NOT_APPLICABLE`: Rule condition was not met for this institution type or dossier.
+- **Human Verification Boundaries**: Rules `EOA-CMP-002`, `EOA-DAT-002`, `EOA-DAT-003`, `EOA-INF-001`, `EOA-SIG-001`, and `EOA-SIG-002` are explicitly configured with `outcome_on_fail: REVIEW_REQUIRED` to preserve human discretion.
+- **Rulebook Reference**: Complete guide for extending rules, operator mappings, and configuration fields is available in [docs/RULEBOOK.md](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/docs/RULEBOOK.md).
+
+---
+
+## 6. Verification & Test Evidence
 
 The catalogue is comprehensively tested and verified in [`backend/tests/test_eoa_rules.py`](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/backend/tests/test_eoa_rules.py):
 * **Schema Integrity**: Verifies loader compatibility, checksum calculation, versioning, unique rule IDs, and valid category/severity definitions.
 * **Statutory Traceability**: Confirms that 100% of rules possess valid `clause_citation`, `applicability`, `limitations`, and `next_action` properties.
 * **Evaluator Coverage**: Tests passing evaluations against a complete reference case, boundary conditions (equal date expiration, name similarity threshold margins), and isolated failure evaluations for every individual rule.
+* **Foundation Tests (`EoaFoundationTests`)**: Tests the 4-outcome evaluation model (`PASS`, `FAIL`, `REVIEW_REQUIRED`, `NOT_APPLICABLE`), applicability filtering, verified vs. illustrative rule partition, and backward-compatible active findings extraction.
 * **Trust Language Audit**: Asserts that zero prohibited verdict terms appear within the catalogue content.
