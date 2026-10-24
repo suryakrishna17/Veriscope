@@ -7,9 +7,15 @@ import unittest
 from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
+
 from app import create_app
 from app.core.config import Settings
 from scripts.seed import DEMO_PASSWORD, ensure_users
+
+env_path = Path(__file__).resolve().parents[2] / ".env"
+if env_path.exists():
+    load_dotenv(env_path)
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 EXPECTED = json.loads((FIXTURES / "expected_results.json").read_text())

@@ -60,11 +60,20 @@ class Settings:
             if not api_key:
                 api_key = groq_key
 
+        def _resolve_repo_path(raw: str | None, default: Path) -> Path:
+            if not raw:
+                return default
+            p = Path(raw)
+            if p.is_absolute():
+                return p
+            parts = [pt for pt in p.parts if pt not in (".", "backend")]
+            return (BACKEND_ROOT / Path(*parts)).resolve()
+
         s = cls(
             app_env=env.get("APP_ENV", cls.app_env),
             secret_key=env.get("SECRET_KEY", cls.secret_key),
-            database_path=Path(env.get("DATABASE_PATH", str(cls.database_path))),
-            storage_path=Path(env.get("STORAGE_PATH", str(cls.storage_path))),
+            database_path=_resolve_repo_path(env.get("DATABASE_PATH"), cls.database_path),
+            storage_path=_resolve_repo_path(env.get("STORAGE_PATH"), cls.storage_path),
             max_upload_mb=int(env.get("MAX_UPLOAD_MB", cls.max_upload_mb)),
             max_pages=int(env.get("MAX_PAGES", cls.max_pages)),
             ocr_enabled=_bool(env.get("OCR_ENABLED"), True),

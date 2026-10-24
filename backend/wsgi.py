@@ -1,4 +1,12 @@
-from app import create_app
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+env_file = Path(__file__).resolve().parent.parent / ".env"
+if env_file.exists():
+    load_dotenv(env_file)
+
+from app import create_app  # noqa: E402
 
 app = create_app()
 
