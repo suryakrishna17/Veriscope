@@ -75,3 +75,4 @@ class RuleResult:
     next_action: str
     subject: str  # stable identity of *what* failed, used for idempotent fingerprints
     trust_label: str = "ANOMALY_DETECTED"
+    clause_citation: str | None = None

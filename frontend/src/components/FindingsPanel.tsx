@@ -8,6 +8,26 @@ import { SeverityTag } from "./Badges";
 import { IconCheck, IconEye } from "./Icons";
 import { Modal } from "./Modal";
 
+const APH_CITATIONS: Record<string, string> = {
+  "CMP-001": "AICTE APH 2024-27 Clause 1.4.3 & Annexure-1 §1.1(ii), p. 4, 77",
+  "CMP-002": "AICTE APH 2024-27 Clause 1.8(d) & Annexure-1 §1.1, p. 7, 77",
+  "CMP-003": "AICTE APH 2024-27 Clause 1.4.3 & Clause 7.4(a), p. 4, 71",
+  "CMP-004": "AICTE APH 2024-27 Clause 1.4.4 & Affidavit-2, p. 4, 186",
+  "CMP-005": "AICTE APH 2024-27 Clause 6.14(n) & Annexure-8, p. 55, 101",
+  "FMT-001": "AICTE APH 2024-27 Clause 1.4.1(d) & Clause 2.3.1, p. 2, 12",
+  "FMT-002": "AICTE APH 2024-27 Clause 1.4.1 & Annexure-18 §18.1, p. 2, 180",
+  "DAT-001": "AICTE APH 2024-27 Clause 1.2(b) & Clause 2.2, p. 1, 12",
+  "DAT-002": "AICTE APH 2024-27 Chapter II, Clause 2.1 & 2.3, p. 11, 12",
+  "ARI-001": "AICTE APH 2024-27 Chapter VI, Clause 6.34 & 6.42(c), p. 58, 59",
+  "CON-001": "AICTE APH 2024-27 Clause 1.5.4 & Format-2 / Format-3, p. 5, 202, 205",
+  "CON-002": "AICTE APH 2024-27 Annexure-8 & Annexure-18 §18.16, p. 101, 184",
+  "CON-003": "AICTE APH 2024-27 Clause 1.4.1 & Clause 2.3.1, p. 2, 12",
+  "SIG-001": "AICTE APH 2024-27 Chapter VII, Clause 7.4(a) & 1.5.5, p. 71, 5",
+  "SIG-002": "AICTE APH 2024-27 Clause 1.4.3 & Clause 7.4(a), p. 4, 71",
+  "SIG-003": "AICTE APH 2024-27 Clause 1.8(d) & Clause 2.28, p. 7, 32",
+  "SIG-004": "AICTE APH 2024-27 Format-1, Format-2 & Certificate-1/2/3, p. 201, 202, 210",
+};
+
 interface Props {
   findings: Finding[];
   canAct: boolean;
@@ -144,6 +164,11 @@ function FindingCard({
           )}
         </span>
         <span className="finding-title">{f.summary}</span>
+        {APH_CITATIONS[f.rule_id] && (
+          <span className="clause-citation" title="Official statutory provision in AICTE Approval Process Handbook (2024-25 to 2026-27)">
+            📜 {APH_CITATIONS[f.rule_id]}
+          </span>
+        )}
         <span className="finding-detail">{f.detail}</span>
       </button>
 

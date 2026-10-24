@@ -1246,6 +1246,19 @@ tr.clickable:hover td { background: var(--surface-3); }
 .finding-top { display: flex; gap: 0.55rem; align-items: center; }
 .rule { font-size: 0.76rem; color: var(--ink-3); font-family: var(--mono); }
 .finding-title { font-weight: 650; font-size: 0.9rem; color: var(--ink); }
+.clause-citation {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--action);
+  background: var(--action-soft);
+  border: 1px solid var(--action-border);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--r-sm);
+  width: fit-content;
+}
 .finding-detail { font-size: 0.85rem; color: var(--ink-2); line-height: 1.45; }
 .evidence-chips { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.55rem; }
 .chip {

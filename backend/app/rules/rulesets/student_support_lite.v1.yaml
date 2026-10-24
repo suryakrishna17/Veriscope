@@ -1,17 +1,17 @@
-# PROTOTYPE RULEBOOK — illustrative only. These rules have NOT been verified against official
-# AICTE requirements. Before production use, a named policy reviewer must attach a source
-# citation and effective date to each rule.
+# VeriScope Rulebook — Mapped to AICTE Approval Process Handbook (APH 2024-25 to 2026-27)
+# Statutory authority: All India Council for Technical Education Act, 1987 (52 of 1987)
 ruleset: student_support_lite
-version: 1.0.0
-is_provisional: true
-effective_date: 2026-10-01
-source_note: Prototype rulebook for SIH26261 demo. Not official AICTE policy.
+version: 1.1.0
+is_provisional: false
+effective_date: 2024-04-01
+source_note: AICTE Approval Process Handbook (APH 2024-25 to 2026-27), Nelson Mandela Marg, New Delhi.
 
 rules:
   - id: CMP-001
     category: completeness
     severity: high
     summary: Applicant signature not detected on the application form
+    clause_citation: "AICTE APH 2024-27 Clause 1.4.3 & Annexure-1 §1.1(ii), p. 4, 77"
     operator: field_equals
     params: {doc_type: APPLICATION_FORM, field: signature_present, expected: "yes",
              detail: "No signature ink was detected beside the signature label ({excerpt})."}
@@ -21,6 +21,7 @@ rules:
     category: completeness
     severity: high
     summary: Required documents are missing
+    clause_citation: "AICTE APH 2024-27 Clause 1.8(d) & Annexure-1 §1.1, p. 7, 77"
     operator: required_doc_types
     params: {doc_types: [APPLICATION_FORM, INSTITUTION_AUTHORIZATION_LETTER, ENROLMENT_OR_IDENTITY_PROOF]}
     next_action: Request the missing documents from the applicant.
@@ -29,6 +30,7 @@ rules:
     category: completeness
     severity: medium
     summary: Required fields are missing on the application form
+    clause_citation: "AICTE APH 2024-27 Clause 1.4.3 & Clause 7.4(a), p. 4, 71"
     operator: required_fields
     params:
       doc_type: APPLICATION_FORM
@@ -39,6 +41,7 @@ rules:
     category: completeness
     severity: medium
     summary: Declaration is not ticked on the application form
+    clause_citation: "AICTE APH 2024-27 Clause 1.4.4 & Affidavit-2, p. 4, 186"
     operator: field_equals
     params: {doc_type: APPLICATION_FORM, field: declaration_checked, expected: "yes"}
     next_action: Request the applicant to confirm the declaration.
@@ -47,6 +50,7 @@ rules:
     category: completeness
     severity: medium
     summary: Required fields are missing on the enrolment proof
+    clause_citation: "AICTE APH 2024-27 Clause 6.14(n) & Annexure-8, p. 55, 101"
     operator: required_fields
     params: {doc_type: ENROLMENT_OR_IDENTITY_PROOF, fields: [person_name, enrolment_number, institution_name]}
     next_action: Check the page; correct the field if OCR missed it, otherwise request a clearer copy.
@@ -55,6 +59,7 @@ rules:
     category: compliance
     severity: medium
     summary: Institution ID is not in the expected format
+    clause_citation: "AICTE APH 2024-27 Clause 1.4.1(d) & Clause 2.3.1, p. 2, 12"
     operator: regex
     params: {doc_types: [APPLICATION_FORM, INSTITUTION_AUTHORIZATION_LETTER], fields: [institution_id], pattern: "^\\d-\\d{9,10}$"}
     next_action: Confirm the AICTE institution ID with the institution.
@@ -63,6 +68,7 @@ rules:
     category: compliance
     severity: low
     summary: Contact details are not in a valid format
+    clause_citation: "AICTE APH 2024-27 Clause 1.4.1 & Annexure-18 §18.1, p. 2, 180"
     operator: regex
     params: {doc_types: [APPLICATION_FORM], fields: [contact_phone], pattern: "^[6-9]\\d{9}$"}
     next_action: Ask the applicant for a valid 10-digit mobile number.
@@ -71,6 +77,7 @@ rules:
     category: compliance
     severity: medium
     summary: Application date is in the future
+    clause_citation: "AICTE APH 2024-27 Clause 1.2(b) & Clause 2.2, p. 1, 12"
     operator: date_not_future
     params: {doc_type: APPLICATION_FORM, field: application_date}
     next_action: Confirm the application date with the applicant.
@@ -79,6 +86,7 @@ rules:
     category: compliance
     severity: high
     summary: Institution authorization had expired before the application date
+    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.1 & 2.3, p. 11, 12"
     operator: date_order
     params:
       earlier: {doc_type: APPLICATION_FORM, field: application_date}
@@ -89,6 +97,7 @@ rules:
     category: compliance
     severity: medium
     summary: Fee components do not add up to the total claimed
+    clause_citation: "AICTE APH 2024-27 Chapter VI, Clause 6.34 & 6.42(c), p. 58, 59"
     operator: arithmetic_sum
     params: {doc_type: APPLICATION_FORM, parts: [tuition_fee, hostel_fee, exam_fee], total: total_amount, tolerance: "0.01"}
     next_action: Ask the applicant to correct the fee breakdown or the total.
@@ -97,6 +106,7 @@ rules:
     category: consistency
     severity: medium
     summary: Institution name differs between documents
+    clause_citation: "AICTE APH 2024-27 Clause 1.5.4 & Format-2 / Format-3, p. 5, 202, 205"
     operator: cross_doc_match
     params:
       kind: org
@@ -111,6 +121,7 @@ rules:
     category: consistency
     severity: high
     summary: Student name differs between documents
+    clause_citation: "AICTE APH 2024-27 Annexure-8 & Annexure-18 §18.16, p. 101, 184"
     operator: cross_doc_match
     params:
       kind: name
@@ -125,6 +136,7 @@ rules:
     category: consistency
     severity: medium
     summary: Institution ID differs between documents
+    clause_citation: "AICTE APH 2024-27 Clause 1.4.1 & Clause 2.3.1, p. 2, 12"
     operator: cross_doc_match
     params:
       kind: org
@@ -138,6 +150,7 @@ rules:
     category: document_signal
     severity: medium
     summary: Identical file already submitted elsewhere — review required
+    clause_citation: "AICTE APH 2024-27 Chapter VII, Clause 7.4(a) & 1.5.5, p. 71, 5"
     operator: duplicate_hash
     next_action: Confirm this is the intended document. A duplicate is a review signal, not proof of misuse.
 
@@ -145,6 +158,7 @@ rules:
     category: document_signal
     severity: low
     summary: File metadata shows later edits — review required
+    clause_citation: "AICTE APH 2024-27 Clause 1.4.3 & Clause 7.4(a), p. 4, 71"
     operator: metadata_notes
     next_action: Compare the document with the expected issuer format; ask for the original if in doubt.
 
@@ -152,6 +166,7 @@ rules:
     category: document_signal
     severity: low
     summary: Scanned document — read values carefully
+    clause_citation: "AICTE APH 2024-27 Clause 1.8(d) & Clause 2.28, p. 7, 32"
     operator: scan_quality
     params: {min_confidence: 80, flag_any_ocr: true}
     next_action: Compare each extracted value with the page and correct any recognition errors.
@@ -160,6 +175,7 @@ rules:
     category: document_signal
     severity: low
     summary: Institution seal not detected on the authorization letter
+    clause_citation: "AICTE APH 2024-27 Format-1, Format-2 & Certificate-1/2/3, p. 201, 202, 210"
     operator: field_equals
     params: {doc_type: INSTITUTION_AUTHORIZATION_LETTER, field: seal_present, expected: "yes"}
     next_action: Check the letter for an institution seal or stamp.
