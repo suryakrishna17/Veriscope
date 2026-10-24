@@ -9,7 +9,7 @@ from __future__ import annotations
 import io
 import logging
 import re
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import cv2
@@ -19,6 +19,8 @@ from pypdf import PdfReader
 
 from .fields import Extracted, bbox_of, group_lines
 from .text import PageText
+
+UTC = getattr(datetime, "UTC", timezone.utc)
 
 log = logging.getLogger("veriscope.signals")
 
@@ -124,7 +126,7 @@ def _pdf_date(value: Any) -> datetime | None:
     m = re.match(r"D?:?(\d{4})(\d{2})?(\d{2})?(\d{2})?(\d{2})?(\d{2})?", s)
     if not m:
         return None
-    parts = [int(p) if p else d for p, d in zip(m.groups(), (0, 1, 1, 0, 0, 0), strict=False)]
+    parts = [int(p) if p else d for p, d in zip(m.groups(), (0, 1, 1, 0, 0, 0))]  # noqa: B905
     try:
         return datetime(*parts, tzinfo=UTC)  # type: ignore[misc]
     except ValueError:

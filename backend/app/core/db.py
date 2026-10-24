@@ -11,9 +11,11 @@ import threading
 import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+UTC = getattr(datetime, "UTC", timezone.utc)
 
 MIGRATIONS_DIR = Path(__file__).resolve().parents[2] / "migrations"
 

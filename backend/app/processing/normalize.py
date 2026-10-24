@@ -44,8 +44,35 @@ FIELDS: dict[str, FieldSpec] = {
         FieldSpec("enrolment_number", "Enrolment number", "id"),
         FieldSpec("enrolment_date", "Enrolment date", "date"),
         FieldSpec("document_issue_date", "Issue date", "date"),
+        # -------------------------------------------------------- AICTE EoA fields (Step 3B)
+        FieldSpec("academic_year", "Academic year", "text"),
+        FieldSpec("principal_director_name", "Principal / Director name", "name"),
+        FieldSpec("land_category", "Land category", "text"),
+        FieldSpec("total_built_up_area", "Total built-up area", "text"),
+        FieldSpec("university_name", "University name", "org"),
+        FieldSpec("affiliation_order_number", "Affiliation order number", "id"),
+        FieldSpec("order_date", "Order date", "date"),
+        FieldSpec("fire_authority_name", "Fire authority name", "org"),
+        FieldSpec("noc_number", "NOC number", "id"),
+        FieldSpec("building_coverage", "Building coverage", "text"),
+        FieldSpec("structural_engineer_name", "Structural engineer name", "name"),
+        FieldSpec("license_registration_number", "License / Registration number", "id"),
+        FieldSpec("land_area", "Land area", "text"),
+        FieldSpec("survey_number", "Survey number", "id"),
+        FieldSpec("building_area", "Building area", "text"),
+        FieldSpec("issuing_authority", "Issuing authority", "org"),
+        # EoA committee self-disclosure boolean checkboxes
+        FieldSpec("anti_ragging_committee_constituted", "Anti-Ragging Committee constituted", "bool"),
+        FieldSpec("anti_ragging_squad_constituted", "Anti-Ragging Squad constituted", "bool"),
+        FieldSpec("icc_constituted", "Internal Complaints Committee (ICC) constituted", "bool"),
+        FieldSpec("sgrc_constituted", "Student Grievance Redressal Committee constituted", "bool"),
+        FieldSpec("sc_st_committee_constituted", "SC/ST Committee constituted", "bool"),
+        FieldSpec("iqac_established", "IQAC established", "bool"),
+        FieldSpec("barrier_free_environment_available", "Barrier-Free Environment available", "bool"),
+        FieldSpec("mandatory_disclosure_url_active", "Mandatory Disclosure website active", "bool"),
     ]
 }
+
 
 _DATE_FORMATS = ("%d-%m-%Y", "%d/%m/%Y", "%d.%m.%Y", "%Y-%m-%d", "%d %B %Y", "%d %b %Y", "%B %d, %Y", "%b %d, %Y", "%d-%b-%Y")
 _ORG_STOPWORDS = {"the", "of", "and", "pvt", "private", "ltd", "limited", "&"}
@@ -103,7 +130,10 @@ def normalize(key: str, raw: str | None) -> str | None:
     if kind == "id":
         return re.sub(r"[^A-Z0-9-]", "", v.upper()) or None
     if kind == "bool":
-        return "yes" if v.lower() in {"yes", "true", "1", "y", "x", "detected"} else "no"
+        low = v.lower()
+        if low in {"yes", "true", "1", "y", "x", "detected", "[x]", "[✓]", "[✔]", "☑", "✓", "✔"} or bool(re.search(r"\[\s*[xX✓✔]\s*\]|☑", low)):
+            return "yes"
+        return "no"
     if kind in {"name", "org"}:
         small = {"of", "and", "the", "for", "in", "&"}
         words = v.split()

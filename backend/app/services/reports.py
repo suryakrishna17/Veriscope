@@ -27,7 +27,7 @@ TRUST_TEXT = {"ISSUER_VERIFIED": "Issuer verified", "ANOMALY_DETECTED": "Review 
 
 def build_report(svc: Services, user: dict[str, Any], case_id: str) -> dict[str, Any]:
     d = case_detail(svc, case_id, user)
-    rs = svc.ruleset
+    rs = svc.get_ruleset(d.get("application_type"))
     return {
         "generated_at": utcnow(),
         "case": {k: d[k] for k in ("case_ref", "application_type_label", "applicant_ref", "institution_ref", "status", "triage_priority", "created_at", "updated_at")},
@@ -45,7 +45,8 @@ def build_report(svc: Services, user: dict[str, Any], case_id: str) -> dict[str,
         "findings": [
             {"rule_id": f["rule_id"], "rule_version": f["rule_version"], "severity": f["severity"], "status": f["status"], "category": f["category"],
              "summary": f["summary"], "detail": f["detail"], "evidence": [{"doc_type": e.get("doc_type"), "page": e.get("page"), "excerpt": e.get("excerpt")} for e in f["evidence_refs"]],
-             "resolution_note": f["resolution_note"], "resolved_by": f["resolved_by"]}
+             "resolution_note": f["resolution_note"], "resolved_by": f["resolved_by"],
+             "clause_citation": f.get("clause_citation"), "outcome": f.get("outcome", "FAIL")}
             for f in d["findings"]
         ],
         "decisions": d["decisions"],
@@ -107,8 +108,9 @@ def render_pdf(report: dict[str, Any]) -> bytes:
         rows = [[P("Rule", small), P("Severity / status", small), P("Finding and evidence", small), P("Resolution", small)]]
         for f in report["findings"]:
             ev = "; ".join(f"{(e.get('doc_type') or '').replace('_', ' ').lower()} p.{e.get('page') or '–'}: {e.get('excerpt') or ''}"[:140] for e in f["evidence"]) or "No source evidence"
+            cite = f"<br/><font color='#1E40AF'><b>Citation:</b> {escape(f['clause_citation'])}</font>" if f.get("clause_citation") else ""
             rows.append([P(f"{f['rule_id']} v{f['rule_version']}", small), P(f"{f['severity']} / {f['status']}", small),
-                         Paragraph(f"<b>{escape(f['summary'])}</b><br/>{escape(f['detail'])}<br/><font color='#5B6B7B'>Evidence: {escape(ev)}</font>", small),
+                         Paragraph(f"<b>{escape(f['summary'])}</b>{cite}<br/>{escape(f['detail'])}<br/><font color='#5B6B7B'>Evidence: {escape(ev)}</font>", small),
                          P(f"{f['resolution_note'] or ''} {('— ' + f['resolved_by']) if f['resolved_by'] else ''}".strip() or "—", small)])
         story.append(table(rows, [22 * mm, 24 * mm, 88 * mm, 40 * mm]))
 

@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 import fnmatch
+import hashlib
 import threading
 import time
 from collections import defaultdict, deque
 from collections.abc import Callable
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from functools import wraps
 from typing import Any, TypeVar
 
@@ -16,12 +17,14 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from .errors import ApiError
 
+UTC = getattr(datetime, "UTC", timezone.utc)
 F = TypeVar("F", bound=Callable[..., Any])
 ROLES = ("applicant", "reviewer", "admin")
 
 
 def hash_password(password: str) -> str:
-    return generate_password_hash(password, method="scrypt")
+    method = "scrypt" if hasattr(hashlib, "scrypt") else "pbkdf2:sha256"
+    return generate_password_hash(password, method=method)
 
 
 def verify_password(hashed: str, password: str) -> bool:

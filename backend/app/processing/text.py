@@ -5,13 +5,16 @@ regardless of render resolution, and a confidence (100 for native PDF text).
 """
 from __future__ import annotations
 
+import base64
 import io
 import logging
+import os
 from dataclasses import dataclass, field
 
 import pdfplumber
 import pypdfium2 as pdfium
 import pytesseract
+import requests
 from PIL import Image, ImageOps
 
 log = logging.getLogger("veriscope.text")
@@ -72,22 +75,90 @@ def render_pdf_page(data: bytes, page_index: int, scale: float) -> Image.Image:
         pdf.close()
 
 
+def groq_ocr_image(img: Image.Image) -> list[Word] | None:
+    api_key = os.environ.get("GROQ_API_KEY") or (os.environ.get("LLM_API_KEY") if os.environ.get("LLM_PROVIDER") == "groq" else "")
+    if not api_key:
+        return None
+    try:
+        max_dim = 1600
+        w, h = img.size
+        scale = min(1.0, max_dim / max(w, h))
+        if scale < 1.0:
+            resample = getattr(Image, "Resampling", Image).LANCZOS
+            thumb = img.resize((int(w * scale), int(h * scale)), resample)
+        else:
+            thumb = img
+        buf = io.BytesIO()
+        thumb.save(buf, format="JPEG", quality=85)
+        b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+        prompt = (
+            "You are an OCR engine. Extract all readable text from this document image exactly as it appears. "
+            "Preserve line breaks. Output ONLY the extracted text, with no introductory or concluding remarks."
+        )
+        r = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}"},
+            json={
+                "model": "qwen/qwen3.8-27b",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}},
+                        ],
+                    }
+                ],
+                "temperature": 0,
+                "max_tokens": 1500,
+            },
+            timeout=25,
+        )
+        if r.status_code != 200:
+            log.warning("groq_ocr_http_failed", extra={"status": r.status_code, "text": r.text[:100]})
+            return None
+        text = r.json()["choices"][0]["message"]["content"]
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        if not lines:
+            return []
+        words: list[Word] = []
+        num_lines = len(lines)
+        for line_idx, line in enumerate(lines):
+            line_words = line.split()
+            if not line_words:
+                continue
+            y0 = (line_idx + 0.1) / num_lines
+            y1 = (line_idx + 0.9) / num_lines
+            num_words = len(line_words)
+            for word_idx, w_txt in enumerate(line_words):
+                x0 = word_idx / num_words
+                x1 = (word_idx + 0.9) / num_words
+                words.append(Word(w_txt, x0, y0, x1, y1, 95.0))
+        return words
+    except Exception as e:
+        log.warning("groq_ocr_failed", extra={"error": str(e)})
+        return None
+
+
 def ocr_image(img: Image.Image, lang: str) -> list[Word]:
     gray = ImageOps.grayscale(img)
     try:
         data = pytesseract.image_to_data(gray, lang=lang, output_type=pytesseract.Output.DICT, config="--psm 4", timeout=60)
+        w, h = gray.size
+        words: list[Word] = []
+        for i, txt in enumerate(data["text"]):
+            txt = (txt or "").strip()
+            conf = float(data["conf"][i])
+            if not txt or conf < 0:
+                continue
+            left, top, bw, bh = data["left"][i], data["top"][i], data["width"][i], data["height"][i]
+            words.append(Word(txt, left / w, top / h, (left + bw) / w, (top + bh) / h, conf))
+        return words
     except (pytesseract.TesseractNotFoundError, RuntimeError) as e:
+        groq_words = groq_ocr_image(img)
+        if groq_words is not None:
+            return groq_words
         raise OcrUnavailable(str(e)) from e
-    w, h = gray.size
-    words: list[Word] = []
-    for i, txt in enumerate(data["text"]):
-        txt = (txt or "").strip()
-        conf = float(data["conf"][i])
-        if not txt or conf < 0:
-            continue
-        left, top, bw, bh = data["left"][i], data["top"][i], data["width"][i], data["height"][i]
-        words.append(Word(txt, left / w, top / h, (left + bw) / w, (top + bh) / h, conf))
-    return words
 
 
 def extract_pdf(data: bytes, ocr_enabled: bool, lang: str) -> list[PageText]:

@@ -3,8 +3,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
-from enum import StrEnum
 from typing import Any
+
+try:
+    from enum import StrEnum
+except ImportError:
+    from enum import Enum
+
+    class StrEnum(str, Enum):  # noqa: UP042
+        pass
 
 
 class RuleOutcome(StrEnum):

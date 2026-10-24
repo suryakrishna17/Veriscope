@@ -5,9 +5,11 @@ import json
 import logging
 import re
 import sys
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from flask import g, has_request_context
+
+UTC = getattr(datetime, "UTC", timezone.utc)
 
 _EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 _LONG_DIGITS = re.compile(r"\b\d{6,}\b")

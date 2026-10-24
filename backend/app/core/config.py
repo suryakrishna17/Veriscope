@@ -25,11 +25,13 @@ class Settings:
     ocr_enabled: bool = True
     ocr_lang: str = "eng"
     tesseract_cmd: str = ""
-    llm_provider: str = "none"  # none | mock | openai_compatible | anthropic
+    llm_provider: str = "none"  # none | mock | openai_compatible | anthropic | groq
     llm_api_key: str = ""
     llm_model: str = ""
     llm_base_url: str = "https://api.openai.com/v1"
     llm_timeout_s: int = 20
+    groq_api_key: str = ""
+    groq_ocr_enabled: bool = False
     issuer_verifier: str = "null"  # null | mock
     cors_origins: tuple[str, ...] = ("http://localhost:5173", "https://*.vercel.app", "*")
     log_level: str = "INFO"
@@ -45,6 +47,19 @@ class Settings:
     @classmethod
     def from_env(cls, **overrides: object) -> Settings:
         env = os.environ
+        groq_key = env.get("GROQ_API_KEY", "")
+        provider = env.get("LLM_PROVIDER", cls.llm_provider).lower()
+        api_key = env.get("LLM_API_KEY", "") or (groq_key if provider == "groq" else "")
+        model = env.get("LLM_MODEL", "")
+        base_url = env.get("LLM_BASE_URL", cls.llm_base_url)
+        if provider == "groq":
+            if not env.get("LLM_BASE_URL"):
+                base_url = "https://api.groq.com/openai/v1"
+            if not model:
+                model = "qwen/qwen3.8-27b"
+            if not api_key:
+                api_key = groq_key
+
         s = cls(
             app_env=env.get("APP_ENV", cls.app_env),
             secret_key=env.get("SECRET_KEY", cls.secret_key),
@@ -55,10 +70,12 @@ class Settings:
             ocr_enabled=_bool(env.get("OCR_ENABLED"), True),
             ocr_lang=env.get("OCR_LANG", cls.ocr_lang),
             tesseract_cmd=env.get("TESSERACT_CMD", ""),
-            llm_provider=env.get("LLM_PROVIDER", cls.llm_provider).lower(),
-            llm_api_key=env.get("LLM_API_KEY", ""),
-            llm_model=env.get("LLM_MODEL", ""),
-            llm_base_url=env.get("LLM_BASE_URL", cls.llm_base_url),
+            llm_provider=provider,
+            llm_api_key=api_key,
+            llm_model=model,
+            llm_base_url=base_url,
+            groq_api_key=groq_key or (api_key if provider == "groq" else ""),
+            groq_ocr_enabled=_bool(env.get("GROQ_OCR_ENABLED"), provider == "groq" or bool(groq_key or api_key)),
             issuer_verifier=env.get("ISSUER_VERIFIER", cls.issuer_verifier).lower(),
             cors_origins=tuple(
                 o.strip() for o in env.get("CORS_ORIGINS", ",".join(cls.cors_origins)).split(",") if o.strip()

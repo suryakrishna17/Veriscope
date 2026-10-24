@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import io
 import re
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
 from PIL import Image
@@ -19,7 +19,12 @@ from . import audit
 if TYPE_CHECKING:
     from ..container import Services
 
-APPLICATION_TYPES = {"STUDENT_SUPPORT_LITE": "Student support application (prototype)"}
+UTC = getattr(datetime, "UTC", timezone.utc)
+
+APPLICATION_TYPES = {
+    "STUDENT_SUPPORT_LITE": "Student support application (prototype)",
+    "AICTE_EOA": "AICTE Extension of Approval (Existing Institutions)",
+}
 
 TRANSITIONS: dict[str, set[str]] = {
     "received": {"processing"},
@@ -134,6 +139,8 @@ def serialize_finding(f: dict[str, Any]) -> dict[str, Any]:
         "evidence_refs": loads(f["evidence_refs_json"], []),
         "confidence": f["confidence"],
         "next_action": f["next_action"],
+        "clause_citation": f.get("clause_citation"),
+        "outcome": f.get("outcome", "FAIL"),
         "resolution_note": f["resolution_note"],
         "resolved_by": f.get("resolved_by_name") or f["resolved_by"],
         "resolved_at": f["resolved_at"],
@@ -215,7 +222,8 @@ def case_detail(svc: Services, case_id: str, user: dict[str, Any]) -> dict[str, 
     out["summary"] = loads(c["summary_json"]) if is_reviewer else None
     out["audit"] = audit.list_events(svc.db, c["id"], limit=100) if is_reviewer else []
     out["allowed_actions"] = allowed_actions(c, user)
-    out["ruleset"] = {"name": svc.ruleset.name, "version": svc.ruleset.version, "is_provisional": svc.ruleset.is_provisional}
+    rs = svc.get_ruleset(c.get("application_type"))
+    out["ruleset"] = {"name": rs.name, "version": rs.version, "is_provisional": rs.is_provisional}
     job = svc.db.one("SELECT * FROM jobs WHERE case_id = ? ORDER BY created_at DESC LIMIT 1", (c["id"],))
     out["latest_job"] = serialize_job(job) if job else None
     return out
@@ -254,7 +262,7 @@ def create_case(svc: Services, user: dict[str, Any], body: dict[str, Any]) -> di
             "status": "received",
             "triage_priority": 0,
             "triage_components_json": dumps([]),
-            "rule_set_version": svc.ruleset.label,
+            "rule_set_version": svc.get_ruleset(app_type).label,
             "created_at": now,
             "updated_at": now,
         }
@@ -376,7 +384,7 @@ def update_finding(svc: Services, user: dict[str, Any], finding_id: str, body: d
     if case["status"] not in REVIEW_STATES:
         raise conflict("Findings can only be changed while the case is under review.")
     status = body.get("status")
-    note = str(body.get("note") or "").strip()
+    note = str(body.get("note") or body.get("resolution_note") or "").strip()
     if status not in {"open", "resolved", "waived"}:
         raise bad_request("Status must be open, resolved or waived.")
     if status != "open" and len(note) < 5:

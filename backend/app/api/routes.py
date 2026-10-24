@@ -77,11 +77,19 @@ def meta():  # type: ignore[no-untyped-def]
 @api.get("/rulesets/active")
 @require_auth("reviewer", "admin")
 def active_ruleset():  # type: ignore[no-untyped-def]
-    rs = svc().ruleset
+    app_type = request.args.get("application_type")
+    rs = svc().get_ruleset(app_type)
     return jsonify({
         "name": rs.name, "version": rs.version, "checksum": rs.checksum, "is_provisional": rs.is_provisional,
         "source_note": rs.source_note, "effective_date": rs.effective_date,
-        "rules": [{k: r.get(k) for k in ("id", "category", "severity", "summary", "operator", "next_action")} for r in rs.rules],
+        "rules": [
+            {
+                k: r.get(k)
+                for k in ("id", "category", "severity", "summary", "operator", "next_action", "clause_citation", "applicability", "limitations", "is_verified", "verification_status")
+                if k in r
+            }
+            for r in rs.rules
+        ],
     })
 
 

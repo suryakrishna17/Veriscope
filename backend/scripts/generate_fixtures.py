@@ -7,7 +7,7 @@ from __future__ import annotations
 import io
 import json
 import random
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -17,6 +17,8 @@ from pypdf import PdfReader, PdfWriter
 from reportlab.lib.colors import HexColor
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+
+UTC = getattr(datetime, "UTC", timezone.utc)
 
 OUT = Path(__file__).resolve().parents[1] / "fixtures"
 W, H = A4

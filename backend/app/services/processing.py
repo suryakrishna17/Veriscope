@@ -87,10 +87,15 @@ def process_document(svc: Services, d: dict[str, Any]) -> None:
         data = svc.storage.get(d["storage_key"])
         pages = extract(data, d["mime_type"], svc.settings.ocr_enabled, svc.settings.ocr_lang)
         extracted = extract_fields(d["doc_type"], pages)
-        if d["doc_type"] in ("APPLICATION_FORM", "INSTITUTION_AUTHORIZATION_LETTER"):
+        # Baseline signal detectors (signatures, seals, letterheads)
+        if d["doc_type"] in ("APPLICATION_FORM", "INSTITUTION_AUTHORIZATION_LETTER", "EOA_APPLICATION_FORM"):
             extracted.append(sig.detect_signature(pages))
-        if d["doc_type"] == "INSTITUTION_AUTHORIZATION_LETTER":
+        if d["doc_type"] in ("INSTITUTION_AUTHORIZATION_LETTER", "EOA_APPLICATION_FORM",
+                             "UNIVERSITY_AFFILIATION_ORDER", "FIRE_SAFETY_CERTIFICATE",
+                             "BUILDING_SAFETY_CERTIFICATE"):
             extracted.append(sig.detect_seal(pages))
+        if d["doc_type"] in ("INSTITUTION_AUTHORIZATION_LETTER", "EOA_APPLICATION_FORM",
+                             "UNIVERSITY_AFFILIATION_ORDER"):
             extracted.append(sig.detect_letterhead(pages))
         signals = {"quality": sig.quality_signals(pages), "metadata": sig.metadata_signals(data, d["mime_type"])}
         issuer = svc.issuer.verify(d["doc_type"], {e.field_key: e.normalized_value for e in extracted})
@@ -179,7 +184,10 @@ def evaluate_case(svc: Services, case_id: str, actor: dict[str, Any]) -> None:
     case = svc.db.one("SELECT * FROM cases WHERE id = ?", (case_id,))
     assert case is not None
     ctx = build_context(svc, case)
-    results = evaluate(svc.ruleset, ctx)
+    # Dynamically select the correct ruleset based on the case's application_type.
+    app_type = case.get("application_type", "STUDENT_SUPPORT_LITE")
+    ruleset = svc.get_ruleset(app_type)
+    results = evaluate(ruleset, ctx)
     now = utcnow()
     with svc.db.transaction():
         existing = {f["fingerprint"]: f for f in svc.db.all("SELECT * FROM findings WHERE case_id = ?", (case_id,))}
@@ -191,7 +199,8 @@ def evaluate_case(svc: Services, case_id: str, actor: dict[str, Any]) -> None:
                 continue
             seen.add(fp)
             payload = {"summary": r.summary, "detail": r.detail, "evidence_refs_json": dumps(r.evidence_refs), "confidence": r.confidence,
-                       "severity": r.severity, "next_action": r.next_action, "is_current": 1, "updated_at": now}
+                       "severity": r.severity, "next_action": r.next_action, "clause_citation": r.clause_citation,
+                       "outcome": r.outcome, "is_current": 1, "updated_at": now}
             if fp in existing:
                 svc.db.update("findings", existing[fp]["id"], payload)  # keep reviewer resolution
             else:
@@ -206,6 +215,6 @@ def evaluate_case(svc: Services, case_id: str, actor: dict[str, Any]) -> None:
         current = [f for f in rows if f["is_current"]]
         summary = svc.llm.summarize(case["case_ref"], [{k: f[k] for k in ("rule_id", "severity", "status", "category", "summary", "detail")} for f in current])
         svc.db.update("cases", case_id, {"triage_priority": score, "triage_components_json": dumps(comps), "summary_json": dumps({**summary.as_dict(), "generated_at": now}),
-                                         "rule_set_version": svc.ruleset.label, "updated_at": now})
+                                         "rule_set_version": ruleset.label, "updated_at": now})
         audit.record(svc.db, case_id, actor, "rules.evaluated", "case", case_id,
-                     {"ruleset": svc.ruleset.label, "results": len(seen), "new_findings": created, "cleared_findings": len(stale)})
+                     {"ruleset": ruleset.label, "results": len(seen), "new_findings": created, "cleared_findings": len(stale)})
