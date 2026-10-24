@@ -2,8 +2,8 @@
 
 > **Document Status**: Authoritative Project Master Reference  
 > **Repository**: [https://github.com/suryakrishna17/Veriscope.git](https://github.com/suryakrishna17/Veriscope.git)  
-> **Active Working Tree**: `main` (Commit `9bd893d`)  
-> **Target Production Branch**: `main` (Latest Remote Tip: `9bd893d`)  
+> **Active Working Tree**: `main` (HEAD: `9938a7f` — *"docs: add comprehensive VeriScope project context and roadmap"*)  
+> **Target Production Branch**: `main` (Latest Remote Tip: `9938a7f`)  
 > **Author**: VeriScope Core Engineering Team  
 > **Target Audience**: Core Contributors, Regulatory Domain Experts, SIH Evaluators, and Incoming Engineers  
 
@@ -96,9 +96,10 @@ This document serves as the single source of truth for **VeriScope**, an evidenc
 * **Repository Remote**: `https://github.com/suryakrishna17/Veriscope.git`
 * **Local Working Tree**: Clean (`nothing to commit, working tree clean`).
 * **Active Working Branch**: `main`
-* **HEAD Commit**: `9bd893d` (*"Merge pull request #2 from suryakrishna17/feat/aicte-eoa-ruleset-foundation"*, Author: `navyaanubhutii`)
+* **HEAD Commit**: `9938a7f` (*"docs: add comprehensive VeriScope project context and roadmap"*, Author: `navyaanubhutii`) — this is the commit that added the present document.
+* **Previous Code Tip** (`9bd893d`): *"Merge pull request #2 from suryakrishna17/feat/aicte-eoa-ruleset-foundation"* — the tip before this document was committed. All code references in Sections 3–9 reflect the codebase as of `9bd893d`.
 * **Remote Tracking**: Branch is synchronized with `origin/main`.
-* **Remote Production Tip (`origin/main`)**: Commit `9bd893d`.
+* **Remote Production Tip (`origin/main`)**: Commit `9938a7f`.
 * **Pull Requests & Milestones**:
   - **Step 2 (PR #1)**: [https://github.com/suryakrishna17/Veriscope/pull/1](https://github.com/suryakrishna17/Veriscope/pull/1) — **MERGED** into `main` via `7488b34`. Contains commits `9d5948b` (initial 24-rule catalogue) and `19321e2` (applicability and citation fixes).
   - **Step 3A (PR #2)**: [https://github.com/suryakrishna17/Veriscope/pull/2](https://github.com/suryakrishna17/Veriscope/pull/2) — **MERGED** into `main` via `9bd893d`. Merged commit `541c4b8` on branch `feat/aicte-eoa-ruleset-foundation` directly into `main`.
@@ -217,7 +218,7 @@ The repository currently contains two distinct operational workflows:
 
 ### 2.7 Capabilities Today vs Post-Step 3B & 3C
 
-#### What VeriScope Can Do Today (Verified on `main` at Commit `9bd893d`):
+#### What VeriScope Can Do Today (Verified on `main` at Commit `9938a7f`, code from `9bd893d`):
 1. **Intake & Digest**: Ingest PDF, PNG, and JPEG files, sniff MIME magic bytes, reject corrupt files, and calculate immutable SHA-256 digests.
 2. **Extract & Coordinate-Ground**: Extract digital vector text (PyMuPDF) or OCR image text (Tesseract), grouping words into lines and retaining normalized bounding boxes `(x1, y1, x2, y2)`.
 3. **Execute AICTE EoA Rules In Isolation**: The pure rules engine (`backend/app/rules/engine.py`) can load `aicte_eoa_chapter2.v1.yaml` and evaluate synthetic `CaseContext` objects against all 24 statutory rules, returning structured `RuleEvaluation` records with `PASS`, `FAIL`, `REVIEW_REQUIRED`, or `NOT_APPLICABLE` outcomes (verified by 40 passing tests in `test_eoa_rules.py`).
@@ -234,7 +235,7 @@ The repository currently contains two distinct operational workflows:
 ### 2.8 System Maturity Assessment
 
 Based on empirical inspection of the codebase, VeriScope is a **partially integrated, high-assurance prototype**:
-- **Rules Engine Core**: **Production-grade**. Pure, isolated, fully typed, thoroughly tested, and decoupled from network or database side-effects.
+- **Rules Engine Core**: **Tested deterministic prototype**. Pure, isolated, fully typed, thoroughly tested (65 rules tests passing), and decoupled from network or database side-effects. Passing tests establish correctness of the evaluation logic, not production readiness (which also requires deployment hardening, infrastructure scaling, and regulatory sign-off — see Sections 8–9).
 - **Data Intake & Storage**: **Robust prototype**. Solid SQLite foundation with transactional triggers and local file storage; ready for PostgreSQL migration.
 - **Workflow & UI Integration**: **Mixed maturity**. Fully integrated for the baseline `STUDENT_SUPPORT_LITE` scenario; unintegrated for the newly developed `AICTE_EOA` regulatory catalogue.
 
@@ -250,7 +251,7 @@ Based on empirical inspection of the codebase, VeriScope is a **partially integr
 
 ### 2.10 End-to-End Data Flow Architecture
 
-The following diagram illustrates the complete data lifecycle, clearly delineating working production pathways from planned integration steps:
+The following diagram illustrates the complete data lifecycle, clearly delineating working prototype pathways from planned integration steps:
 
 ```mermaid
 flowchart TD
@@ -510,7 +511,7 @@ In Step 2 of the VeriScope engineering trajectory, the team established a formal
 
 ### 4.2 Catalogue YAML Schema & Field Semantics
 
-Every rule in [`backend/app/rules/rulesets/aicte_eoa_chapter2.v1.yaml`](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/backend/app/rules/rulesets/aicte_eoa_chapter2.v1.yaml) adheres to a strict schema validated by [`backend/app/rules/engine.py`](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/backend/app/rules/engine.py):
+Every rule in [`backend/app/rules/rulesets/aicte_eoa_chapter2.v1.yaml`](backend/app/rules/rulesets/aicte_eoa_chapter2.v1.yaml) adheres to a strict schema validated by [`backend/app/rules/engine.py`](backend/app/rules/engine.py):
 
 * **`id`** (`string`, mandatory): Unique rule identifier formatted as `EOA-<CAT>-<NUM>` (e.g., `EOA-CMP-001`). Used for fingerprinting findings and logging audit trails.
 * **`category`** (`string`, mandatory): Must be one of five standardized categories:
@@ -526,8 +527,8 @@ Every rule in [`backend/app/rules/rulesets/aicte_eoa_chapter2.v1.yaml`](file:///
 * **`applicable_condition`** / **`applicability`** (`string`, mandatory in EoA): Plain-English description explaining which institutions must comply and which are legally exempt (e.g., autonomous degree institutions exempt from affiliation orders).
 * **`condition`** (`dict` or `string`, optional): Programmatic prerequisite evaluated by `check_rule_applicability()`. If the condition is not met (e.g. `doc_present: FIRE_SAFETY_CERTIFICATE`), the rule is marked `NOT_APPLICABLE` and skipped.
 * **`limitations`** (`string`, mandatory in EoA): Explicit disclosure of what the automated check cannot verify (e.g., verifies document presence only; cannot verify municipal watermarks or physical building stability).
-* **`is_verified`** (`boolean`, default `true`): Indicates whether the rule is grounded in verified official statutory provisions.
-* **`verification_status`** (`string`): Set to `VERIFIED_OFFICIAL` for handbook rules or `ILLUSTRATIVE` for prototype rules.
+* **`is_verified`** (`boolean`, default `true`): **Software metadata field** indicating that the rule was authored by referencing an identified official statutory provision (e.g., AICTE APH Chapter II). This is a cataloguing label set by the rule author, **not** an assertion that an independent regulatory body has reviewed or validated the software implementation. Rules with `is_verified: true` must have corresponding `clause_citation` fields pointing to the source provision. Independent legal validation is a separate process described in Section 9.
+* **`verification_status`** (`string`): Set to `VERIFIED_OFFICIAL` for rules authored against official handbook provisions, or `ILLUSTRATIVE` for prototype rules. Like `is_verified`, this is an internal cataloguing label — **not** a guarantee of regulatory approval of the code logic.
 * **`outcome_on_pass`** (`string`, default `PASS`): Outcome emitted when the rule condition is satisfied.
 * **`outcome_on_fail`** (`string`, default `FAIL`): Outcome emitted when the condition is violated. May be set to `REVIEW_REQUIRED` for checks requiring human adjudication.
 * **`operator`** (`string`, mandatory): Evaluator function mapped in `backend/app/rules/operators.py` (e.g., `required_doc_types`, `required_fields`, `date_order`, `cross_doc_match`).
@@ -613,14 +614,14 @@ During the Step 2 audit of the AICTE Approval Process Handbook, the engineering 
 ### 4.5 Catalogue Documentation Artifacts
 
 Step 2 produced two primary documentation artifacts:
-1. [`docs/AICTE_EOA_RULE_CATALOGUE.md`](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/docs/AICTE_EOA_RULE_CATALOGUE.md): The exhaustive regulatory reference manual detailing all 24 rules, statutory authorities, complex numerical norms register (land acreage, carpet areas, FSR, FDRs), and reviewer remediation actions.
-2. [`docs/RULEBOOK.md`](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/docs/RULEBOOK.md): The technical developer guide detailing YAML syntax, schema fields, operator mappings, and instructions for authoring new rules.
+1. [`docs/AICTE_EOA_RULE_CATALOGUE.md`](docs/AICTE_EOA_RULE_CATALOGUE.md): The exhaustive regulatory reference manual detailing all 24 rules, statutory authorities, complex numerical norms register (land acreage, carpet areas, FSR, FDRs), and reviewer remediation actions.
+2. [`docs/RULEBOOK.md`](docs/RULEBOOK.md): The technical developer guide detailing YAML syntax, schema fields, operator mappings, and instructions for authoring new rules.
 
 ---
 
 ### 4.6 Step 2 Verification & Test Results
 
-The catalogue was verified through a dedicated test suite in [`backend/tests/test_eoa_rules.py`](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/backend/tests/test_eoa_rules.py):
+The catalogue was verified through a dedicated test suite in [`backend/tests/test_eoa_rules.py`](backend/tests/test_eoa_rules.py):
 - **Metadata Tests (`EoaRulesetMetadataTests`)**: Asserts ruleset loader loads the YAML file, calculates a valid SHA-256 checksum, validates that all 24 rule IDs are unique, and verifies that 100% of rules possess valid `clause_citation`, `applicability`, `limitations`, and `next_action` fields.
 - **Trust Language Tests**: Scans the YAML text and asserts zero forbidden verdict terms (`forged`, `fraudulent`, `counterfeit`, `fake`, `authentic`) appear in user-facing summaries.
 - **Evaluator Unit Tests (`EoaRuleEvaluationTests`)**: Executes isolated unit tests for all 24 rules against clean and failing `CaseContext` fixtures, verifying date boundaries (equal date boundary passes) and name similarity thresholds (88 boundary pass/fail).
@@ -639,7 +640,7 @@ The catalogue was verified through a dedicated test suite in [`backend/tests/tes
 
 ### 5.1 The Four-Valued Outcome Model (`PASS`, `FAIL`, `REVIEW_REQUIRED`, `NOT_APPLICABLE`)
 
-In Step 3A (merged into `main` via PR #2, commit `9bd893d`, which brought in branch commit `541c4b8`), the rules engine was upgraded from a binary anomaly model to a **four-valued evaluation outcome model** defined by `RuleOutcome(StrEnum)` in [`backend/app/rules/model.py`](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/backend/app/rules/model.py):
+In Step 3A (merged into `main` via PR #2, commit `9bd893d`, which brought in branch commit `541c4b8`), the rules engine was upgraded from a binary anomaly model to a **four-valued evaluation outcome model** defined by `RuleOutcome(StrEnum)` in [`backend/app/rules/model.py`](backend/app/rules/model.py):
 
 ```python
 class RuleOutcome(StrEnum):
@@ -765,7 +766,7 @@ The `Ruleset` class provides helper properties:
 
 ### 5.4 Operator Mechanics & Execution Flow
 
-In [`backend/app/rules/operators.py`](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/backend/app/rules/operators.py), the `_result()` helper function was updated to propagate statutory clause citations and custom outcomes:
+In [`backend/app/rules/operators.py`](backend/app/rules/operators.py), the `_result()` helper function was updated to propagate statutory clause citations and custom outcomes:
 
 ```python
 def _result(
@@ -805,20 +806,25 @@ def _result(
 |---|---|---|
 | **Ruleset Identifier** | `aicte_eoa_chapter2` | `student_support_lite` |
 | **Version** | `1.0.0` | `1.0.0` |
-| **`is_verified`** | `true` | `false` |
-| **`verification_status`** | `VERIFIED_OFFICIAL` | `ILLUSTRATIVE` |
-| **Statutory Grounding** | AICTE Approval Process Handbook (APH 2024-27) | Prototype student fee waiver policy |
-| **Trust Implication** | Official regulatory standard. Findings cite legal clauses and instruct official statutory remediation. | Illustrative prototype. Findings indicate demonstration checks and cannot be cited for legal enforcement. |
+| **`is_verified`** | `true` (Software catalogue metadata) | `false` |
+| **`verification_status`** | `VERIFIED_OFFICIAL` (Internal authoring tag) | `ILLUSTRATIVE` |
+| **Statutory Grounding** | Mapped clause-by-clause to AICTE Approval Process Handbook (APH 2024-27 Chapter II) | Prototype student fee waiver policy |
+| **Trust Implication** | Rules cite specific handbook clauses and provide structured next actions for scrutiny officers. *Note: This is an internal catalogue mapping, NOT an independent legal or regulatory endorsement by AICTE.* | Illustrative prototype. Findings indicate demonstration checks and cannot be cited for legal enforcement. |
+
+> [!NOTE]
+> **Important Regulatory Clarification**:
+> Marking a rule or ruleset as `VERIFIED_OFFICIAL` (`is_verified: true`) represents an internal software engineering classification: it asserts that the rule author formulated the rule logic, threshold, and citations directly from the text of the AICTE Approval Process Handbook (APH 2024-27 Chapter II), rather than creating an arbitrary mock check. It does **not** signify that AICTE, legal counsel, or any statutory authority has certified, formally audited, or legally approved this software implementation. Final administrative authority remains exclusively with human scrutiny officers and regulatory officials.
 
 ---
 
 ### 5.6 Step 3A Test Suite & Regression Verification
 
-During verification on `main` (commit `9bd893d`, which merged branch commit `541c4b8` via PR #2), the following tests were executed:
+During verification on `main` (commit `9938a7f`, testing the codebase established in `9bd893d`), the test suites were executed with the following empirical results:
 
 ```
 Test Execution Summary (Executed October 25, 2026):
 --------------------------------------------------
+Targeted Rules & Normalization Suite (python -m pytest tests/test_eoa_rules.py tests/test_rules.py tests/test_normalize.py):
 backend/tests/test_eoa_rules.py ...... 40 PASSED (0.95s)
   ├── EoaRulesetMetadataTests (4 tests)
   ├── EoaRuleEvaluationTests (30 tests)
@@ -836,13 +842,30 @@ backend/tests/test_rules.py .......... 20 PASSED (0.92s)
 backend/tests/test_normalize.py ......  5 PASSED (0.15s)
   └── Field Normalization & Parsing Unit Tests (5 tests)
 
+Result for Rules & Logic Suites: 65 PASSED (0 failures)
+
 Static Analysis:
   ruff check backend/ ................ ALL CHECKS PASSED (0 errors)
 ```
 
-**Total Verified Step 3A Ruleset Tests**: Exactly **65 tests passed**, confirming that Step 3A foundation logic is completely functional, regression-free, and adheres to static linting standards.
+**Full Repository Test Suite Execution (`python -m pytest tests/` - 96 Collected Tests)**:
+- **91 Passed**, **5 Failed**, **30 Warnings** (in ~12.7s).
+- **Passing Suites**:
+  - `tests/test_eoa_rules.py`: 40/40 passed.
+  - `tests/test_rules.py`: 20/20 passed.
+  - `tests/test_normalize.py`: 5/5 passed.
+  - `tests/test_api.py`: 23/26 passed (3 failed).
+  - `tests/test_guardrails.py`: 3/5 passed (2 failed).
+- **Documented Pre-Existing Failures (Unrelated to Step 3A Logic)**:
+  1. `tests/test_api.py::FixtureCaseTests::test_documents_never_claim_issuer_verification_without_issuer`: `TypeError: 'NoneType' object is not subscriptable` when inspecting `doc["issuer_check"]["response_id"]` on mock data.
+  2. `tests/test_api.py::FixtureCaseTests::test_expected_fields`: Assertion failure on baseline demo case `SIH-DEMO-015` (`ENROLMENT_OR_IDENTITY_PROOF.enrolment_number missing`).
+  3. `tests/test_api.py::FixtureCaseTests::test_expected_findings`: Assertion failure comparing actual findings `['CMP-005', 'DAT-002']` vs expected `['DAT-002', 'SIG-003']` for demo case `SIH-DEMO-015`.
+  4. `tests/test_guardrails.py::TrustLanguageTests::test_user_facing_text_has_no_verdict_words`: `UnicodeDecodeError: 'charmap' codec can't decode byte 0x9d` occurring on Windows environments when reading files without explicit `encoding="utf-8"`.
+  5. `tests/test_guardrails.py::PromptInjectionTests::test_injected_text_has_no_effect`: Assertion mismatch on demo fixture findings (`['CMP-005', 'DAT-002']` vs expected `['DAT-002', 'SIG-003']`).
+- **Warnings (30 total)**: Primarily `InsecureKeyLengthWarning` from PyJWT regarding the 11-byte test secret in `tests/helpers.py`.
 
-*(Note: Full-suite `pytest` runs currently flag 5 pre-existing baseline failures in `test_api.py` and `test_guardrails.py` related to synthetic fixture `SIH-DEMO-015` and a Windows cp1252 file encoding bug in `test_guardrails.py:23`; these do not affect rules engine logic and are documented in Section 8).*
+> [!IMPORTANT]
+> Passing the 65 isolated rule-engine unit tests verifies the programmatic correctness of the deterministic evaluation operators and outcome models. It does **not** establish overall system production-readiness, nor does it imply that the full end-to-end application suite passes without remaining issues. Resolving the 5 fixture and encoding failures is tracked as part of Step 4 (Security Hardening & Deployment Readiness).
 
 ---
 
@@ -885,7 +908,7 @@ Step 3B is the backend integration phase that wires the AICTE EoA ruleset into t
 3. Fall back safely to `STUDENT_SUPPORT_LITE` if no application type is specified.
 
 #### File Modifications:
-- [`backend/app/services/cases.py`](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/backend/app/services/cases.py):
+- [`backend/app/services/cases.py`](backend/app/services/cases.py):
   - Expand `APPLICATION_TYPES` dictionary:
     ```python
     APPLICATION_TYPES = {
@@ -893,7 +916,7 @@ Step 3B is the backend integration phase that wires the AICTE EoA ruleset into t
         "AICTE_EOA": "AICTE Extension of Approval (Existing Institutions)",
     }
     ```
-- [`backend/app/container.py`](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/backend/app/container.py):
+- [`backend/app/container.py`](backend/app/container.py):
   - Add ruleset cache or loader method `get_ruleset(app_type: str) -> Ruleset` to `Services`, loading rulesets from `APPLICATION_RULESETS` dynamically.
 
 ---
@@ -996,7 +1019,7 @@ To prevent false automation claims, complex numerical norms that vary by geograp
 
 ### 6.8 Workstream G: Step 3B Verification & Test Strategy
 
-The Step 3B implementation must be verified by implementing [`backend/tests/test_eoa_workflow.py`](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/backend/tests/test_eoa_workflow.py):
+The Step 3B implementation must be verified by implementing [`backend/tests/test_eoa_workflow.py`](backend/tests/test_eoa_workflow.py):
 
 | Test Name | Verification Goal | Failure Prevented |
 |---|---|---|
@@ -1137,7 +1160,7 @@ During the codebase inspection, three high-severity security concerns and severa
 
 ### 8.1 High-Severity Security Concern 1: Production Demo Credentials
 
-* **Affected Component**: [`backend/scripts/seed.py`](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/backend/scripts/seed.py) (Lines 19–24)
+* **Affected Component**: [`backend/scripts/seed.py`](backend/scripts/seed.py) (Lines 19–24)
 * **Confirmed Vulnerability**:
   ```python
   DEMO_PASSWORD = "demo1234"
@@ -1160,7 +1183,7 @@ During the codebase inspection, three high-severity security concerns and severa
 
 ### 8.2 High-Severity Security Concern 2: Reverse-Proxy Rate Limiting
 
-* **Affected Component**: [`backend/app/core/security.py`](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/backend/app/core/security.py) (Line 109)
+* **Affected Component**: [`backend/app/core/security.py`](backend/app/core/security.py) (Line 109)
 * **Confirmed Vulnerability**:
   ```python
   svc.rate_limiter.check(f"{bucket}:{request.remote_addr}", limit, window_s)
@@ -1169,7 +1192,7 @@ During the codebase inspection, three high-severity security concerns and severa
   - All external users share the exact same rate limit bucket; one user triggering a limit locks out every user globally.
   - Or, an attacker can spoof client IP headers if headers are read without validation.
 * **Remediation**:
-  Wrap the Flask application in Werkzeug's `ProxyFix` middleware when running behind reverse proxies in [`backend/app/__init__.py`](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/backend/app/__init__.py):
+  Wrap the Flask application in Werkzeug's `ProxyFix` middleware when running behind reverse proxies in [`backend/app/__init__.py`](backend/app/__init__.py):
   ```python
   from werkzeug.middleware.proxy_fix import ProxyFix
   if settings.app_env == "prod":
@@ -1180,7 +1203,7 @@ During the codebase inspection, three high-severity security concerns and severa
 
 ### 8.3 High-Severity Security Concern 3: JWT Secret Key Management
 
-* **Affected Component**: [`backend/app/core/config.py`](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/backend/app/core/config.py) (Line 20) & [`backend/tests/helpers.py`](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/backend/tests/helpers.py) (Line 24)
+* **Affected Component**: [`backend/app/core/config.py`](backend/app/core/config.py) (Line 20) & [`backend/tests/helpers.py`](backend/tests/helpers.py) (Line 24)
 * **Confirmed Vulnerability**:
   - `config.py` defaults `secret_key: str = "dev-only-change-me"`.
   - `helpers.py` sets `secret_key="test-secret"` (11 bytes).
@@ -1247,16 +1270,29 @@ Document Authentication (What VeriScope Does NOT Claim):
 
 ---
 
-### 9.3 Three-Tier Trust State Model
+### 9.3 Three-Tier Trust State Model: Implementation Reality vs Proposed Architecture
 
-Every document, extracted field, and rule finding in VeriScope carries exactly one of three mutually exclusive trust labels:
+VeriScope defines a three-tier trust model to prevent false claims of document authenticity. It is important to distinguish what is **implemented in code today** versus what is a **proposed conceptual architecture**:
 
-1. **`ISSUER_VERIFIED`**:
-   - Cryptographic confirmation from the issuing authority (e.g., DigiLocker PKI signature or verified registrar API) is on permanent record.
-2. **`ANOMALY_DETECTED`**:
-   - An automated check detected a discrepancy, missing document, expired date, or visual anomaly requiring human inspection.
-3. **`NOT_VERIFIED`** (Baseline Default):
-   - The document was processed and parsed, but no external issuing authority has cryptographically confirmed its provenance.
+#### 1. What is Implemented in Code Today:
+- **`NOT_VERIFIED` (Implemented — Live Document Default)**:
+  - In the database schema (`001_init.sql`), every uploaded document defaults to `trust_label = 'NOT_VERIFIED'`.
+  - The active default verifier in `backend/app/issuer/verifier.py` is `NullIssuerVerifier`, which explicitly records that no issuer integration is connected and assigns `NOT_VERIFIED`.
+  - In the current application, 100% of non-mocked ingested documents carry this label.
+- **`ANOMALY_DETECTED` (Implemented — Active Findings)**:
+  - In `backend/app/rules/model.py` and `001_init.sql`, active rule discrepancy findings are assigned `trust_label = "ANOMALY_DETECTED"`.
+  - This informs the reviewer that a rule condition was violated or requires human scrutiny.
+- **Extracted Fields**:
+  - In the codebase, individual extracted fields (`extracted_fields` table) **do not** have a `trust_label` attribute; they carry extraction `confidence` scores (0.0 to 1.0), coordinate bounding boxes `(x1, y1, x2, y2)`, and text source indicators (`pdf_stream` vs `ocr`).
+- **`ISSUER_VERIFIED` Adapter Protocol & Mock Stub (Implemented for Testing Only)**:
+  - An `IssuerVerifier` protocol is defined in `backend/app/issuer/verifier.py`.
+  - A `MockIssuerVerifier` fixture exists to simulate registry lookups against a local JSON file (`simulated_registry.json`) for automated tests. It is disabled by default in production.
+
+#### 2. What is Planned / Proposed Architecture:
+- **Live `ISSUER_VERIFIED` Integration (Proposed — Step 6 / Phase 3)**:
+  - Direct cryptographic verification via live external authority APIs (e.g., DigiLocker PKI, National Academic Depository, or state fire department registry lookup) is an architectural roadmap item.
+  - Until external API adapters are connected and certified, **no production document is ever marked `ISSUER_VERIFIED`**.
+  - The UI and reports explicitly disclaim authenticity for all documents lacking external issuer verification.
 
 ---
 
@@ -1314,7 +1350,7 @@ PROJECT ROADMAP MILESTONES:
   4. Dynamic ruleset selection in `container.py` and `processing.py`.
   5. Reprocessing idempotency and waiver preservation.
 * **Required Tests**: `test_eoa_workflow.py` (7 tests).
-* **Status**: **NOT STARTED ON MAIN / PARTIALLY IMPLEMENTED IN STASH**. Ready for implementation once PR #2 is merged.
+* **Status**: **NOT STARTED ON MAIN / PARTIALLY IMPLEMENTED IN STASH**. Ready for implementation on a dedicated feature branch off `main` (now that PR #2 is merged at `9bd893d` and project context is established at `9938a7f`).
 
 ---
 
@@ -1331,13 +1367,13 @@ PROJECT ROADMAP MILESTONES:
 ---
 
 ### Step 4: Security Hardening & Deployment Readiness
-* **Objective**: Resolve verified security vulnerabilities prior to staging or production hosting.
+* **Objective**: Resolve verified security vulnerabilities and pre-existing test failures prior to staging or production hosting.
 * **Features to Implement**:
   1. Restrict `scripts/seed.py` from executing in production environments.
   2. Configure Werkzeug `ProxyFix` middleware for reverse-proxy-aware rate limiting.
-  3. Enforce 32-byte minimum `SECRET_KEY` validation; update test fixtures.
+  3. Enforce 32-byte minimum `SECRET_KEY` validation; update test fixtures in `tests/helpers.py`.
   4. Fix Windows cp1252 file encoding bug in `test_guardrails.py:23` (`encoding="utf-8"`).
-  5. Correct expected findings assertion for `SIH-DEMO-015` in `test_api.py`.
+  5. Correct demo fixture assertions in `test_guardrails.py` (`PromptInjectionTests`) and `test_api.py` (`SIH-DEMO-015` fields, findings, and `issuer_check` handling).
 * **Status**: **REQUIRES IMPLEMENTATION** (High-priority operational blocker).
 
 ---
@@ -1365,48 +1401,47 @@ PROJECT ROADMAP MILESTONES:
 
 ## 11. Team Git Workflow & Collaboration Protocols
 
-To ensure seamless collaboration across teammates working on direct branches or pull requests:
+To ensure seamless collaboration across teammates and prevent accidental regressions or lost work:
 
 ### Agreed Team Git Rules
 
-1. **Always Pull Before You Build**:
+1. **Feature-Branch Workflow vs Direct Pushes**:
+   - **Feature Branches for All Code Work (Standard Practice)**:
+     All new feature implementations (Step 3B backend integration, Step 3C reviewer desk), database migrations, and schema modifications must be developed on dedicated feature branches (e.g., `git checkout -b feat/step-3b-backend-integration origin/main`).
+   - **Authorized Direct-to-Main Documentation Updates**:
+     Direct pushes to `main` without a pull request are reserved exclusively for authorized documentation updates (such as updating `context.md`) or critical project-lead hotfixes when explicitly requested. Never push untested application code, experimental migrations, or WIP stashes directly to `main`.
+
+2. **Strict Prohibition on Rewriting Shared History**:
+   - **Never Force-Push**: `git push --force` and `git push --force-with-lease` are strictly prohibited on `main` and all shared remote branches.
+   - **Do Not Rebase Shared History**: Once a branch is pushed to remote and shared with teammates, never rebase it. Rebasing rewrites commit hashes and causes silent divergence for collaborators.
+   - **Safe Conflict Resolution**: If a remote branch has advanced, synchronize by pulling or merging:
+     ```bash
+     git fetch origin
+     git merge origin/main  # Preferred for shared branches to preserve true history
+     ```
+     `git rebase origin/main` is acceptable *only* for private, unpushed local commits before publishing a branch.
+
+3. **Always Pull and Verify Before You Build**:
    ```bash
    git fetch origin
    git checkout main
-   git pull origin main
+   git merge origin/main --ff-only
    ```
-   Never begin a coding task on a stale local branch. Always confirm your local base matches `origin/main`.
-2. **Inspect Commit History & Active Branches**:
-   Before creating or claiming a task, inspect the remote branch list:
-   ```bash
-   git branch -a
-   git log -n 5 --oneline
-   ```
-   Confirm whether a teammate has already pushed work for that milestone (e.g. PR #1 vs PR #2).
-3. **Coordinate Shared File Edits**:
+   Confirm your local tree matches `origin/main` before creating new branches or beginning any task.
+
+4. **Coordinate Shared File Edits**:
    Components like `backend/app/api/routes.py`, `backend/app/services/cases.py`, and `frontend/src/api/types.ts` are shared across workstreams. Communicate in team channels before modifying these files to prevent merge conflicts.
-4. **Never Force-Push or Rewrite Public History**:
-   `git push --force` and destructive resets (`git reset --hard origin/main`) on shared branches are strictly prohibited.
+
 5. **Run Verification Tests Before Pushing**:
    Never push code that fails unit tests or linting:
    ```bash
    cd backend
    ruff check .
-   python -m pytest tests/test_eoa_rules.py tests/test_rules.py
+   python -m pytest tests/test_eoa_rules.py tests/test_rules.py tests/test_normalize.py
    ```
-6. **Handling Merge Conflicts**:
-   If a push is rejected due to upstream changes:
-   ```bash
-   git fetch origin
-   git rebase origin/main   # Or git merge origin/main
-   # Resolve conflicts manually in editor
-   git add <resolved-files>
-   git rebase --continue
-   python -m pytest tests/test_eoa_rules.py
-   git push origin <branch-name>
-   ```
-7. **All Pull Requests on `main` Are Resolved**:
-   PR #1 (`feat/aicte-eoa-rule-catalogue`) and PR #2 (`feat/aicte-eoa-ruleset-foundation`) are both merged into `main`. New Step 3B work should branch off the current `main` tip (`9bd893d`).
+
+6. **Current Base Tip for Future Workstreams**:
+   Both Step 2 (PR #1, `7488b34`) and Step 3A (PR #2, `9bd893d`) are fully merged into `main`. The current verified repository tip is commit `9938a7f` (which established this comprehensive project context manual). All new Step 3B feature branches must branch off this tip (`origin/main`).
 
 ---
 
@@ -1421,14 +1456,14 @@ To ensure seamless collaboration across teammates working on direct branches or 
 | **Step 3B: Backend Integration** | **NOT STARTED ON MAIN** (WIP in stash) | Prototype unmerged in `stash@{0}`. `cases.py` still lacks `AICTE_EOA` on `main`. | Implement Workstreams A through H; apply DB migration `002`; pass `test_eoa_workflow.py`. | High |
 | **Step 3C: Frontend Reviewer Desk**| **NOT STARTED ON MAIN** (WIP in stash) | `NewCasePage.tsx` and `FindingsPanel.tsx` lack EoA selectors and citation display on `main`. | Build 4-outcome summary card; add citation badges; dynamic 6-document upload slots. | High |
 | **Security Hardening** | **REQUIRES REMEDIATION** | `seed.py` has demo passwords; `security.py:109` lacks `ProxyFix`; test secret is 11 bytes. | Add env guard to `seed.py`; wrap app in `ProxyFix`; enforce 32-byte JWT secret. | High |
-| **Test Suite Health** | **PARTIALLY VERIFIED** | 65 rules tests pass (`test_eoa_rules.py`, `test_rules.py`, `test_normalize.py`); 5 baseline fixture failures in `test_api.py`. | Fix cp1252 encoding in `test_guardrails.py`; align `SIH-DEMO-015` fixture findings. | Medium |
+| **Test Suite Health** | **PARTIALLY VERIFIED** | 96 tests total across 5 suites: 65 rules tests pass cleanly (`test_eoa_rules.py` [40], `test_rules.py` [20], `test_normalize.py` [5]); full suite has 91 passed and 5 pre-existing failures (3 in `test_api.py`, 2 in `test_guardrails.py`). | Fix cp1252 encoding & injection fixtures in `test_guardrails.py`; align `SIH-DEMO-015` fixture in `test_api.py`. | Medium |
 
 ---
 
 ### Top Three Recommended Next Actions for the Engineering Team
 
 1. **Execute Step 3B Backend Review Integration**:
-   - Create a clean feature branch off `main` (now at `9bd893d` with Step 3A fully merged).
+   - Create a clean feature branch off `main` (currently at commit `9938a7f` with Step 3A and context manual fully merged).
    - Apply database migration `002_add_clause_citation_to_findings.sql`.
    - Update `cases.py`, `fields.py`, `normalize.py`, and `processing.py` to support `AICTE_EOA`.
    - Implement and pass all 7 tests in `backend/tests/test_eoa_workflow.py`.
@@ -1436,10 +1471,11 @@ To ensure seamless collaboration across teammates working on direct branches or 
    - Update `NewCasePage.tsx` and `Uploader.tsx` for EoA document selection.
    - Update `FindingsPanel.tsx` to render the 4-outcome summary banner and statutory clause citations.
    - Run end-to-end user journey tests from application submission to human decision.
-3. **Address High-Severity Security Findings**:
+3. **Address High-Severity Security Findings & Test Suite Gaps**:
    - Add production-environment guard to `seed.py` to prevent demo passwords in live deployments.
    - Wrap the Flask app in `ProxyFix` middleware (`security.py:109`).
-   - Enforce a minimum 32-byte JWT secret via environment variable validation at startup.
+   - Enforce a minimum 32-byte JWT secret via environment variable validation at startup and update test fixtures.
+   - Resolve the 5 pre-existing test failures across `test_api.py` and `test_guardrails.py`.
 
 ---
 
@@ -1466,7 +1502,7 @@ source venv/bin/activate
 pip install -r requirements.txt -r requirements-dev.txt
 
 # 4. Run Verified Rule Engine & Catalogue Tests
-python -m pytest tests/test_eoa_rules.py tests/test_rules.py -v
+python -m pytest tests/test_eoa_rules.py tests/test_rules.py tests/test_normalize.py -v
 
 # 5. Run Static Linting
 ruff check .
