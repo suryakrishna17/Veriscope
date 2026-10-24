@@ -1,6 +1,7 @@
 """JWT auth, password hashing, role guards, rate limiting and security headers."""
 from __future__ import annotations
 
+import fnmatch
 import threading
 import time
 from collections import defaultdict, deque
@@ -125,7 +126,7 @@ def install_security_headers(app: Flask, cors_origins: tuple[str, ...]) -> None:
             "font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; frame-ancestors 'none'",
         )
         origin = request.headers.get("Origin")
-        if origin and origin in cors_origins:
+        if origin and any(fnmatch.fnmatch(origin, pat) for pat in cors_origins):
             resp.headers["Access-Control-Allow-Origin"] = origin
             resp.headers["Vary"] = "Origin"
             resp.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, X-Request-ID"

@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: veriscope-backend
+    runtime: docker
+    dockerfilePath: Dockerfile
+    plan: free
+    envVars:
+      - key: APP_ENV
+        value: prod
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SEED_DEMO
+        value: "true"
+      - key: CORS_ORIGINS
+        value: "http://localhost:5173,https://*.vercel.app"

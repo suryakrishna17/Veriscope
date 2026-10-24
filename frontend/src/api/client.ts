@@ -26,13 +26,15 @@ export const auth = {
   onUnauthorized(fn: () => void) { onUnauthorized = fn; },
 };
 
+const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   if (token) headers.set("Authorization", `Bearer ${token}`);
   if (init.body && !(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
   let res: Response;
   try {
-    res = await fetch(`/api/v1${path}`, { ...init, headers });
+    res = await fetch(`${API_BASE}/api/v1${path}`, { ...init, headers });
   } catch {
     throw new ApiError(0, "NETWORK", "The server could not be reached. Check that the API is running and try again.");
   }

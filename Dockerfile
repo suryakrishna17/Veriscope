@@ -23,4 +23,4 @@ USER app
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"
 # One worker: the in-process job runner and rate limiter assume a single process (see docs/DECISIONS.md).
-CMD ["sh", "-c", "if [ \"$SEED_DEMO\" = \"true\" ]; then python -m scripts.seed; fi && exec gunicorn -w 1 --threads 8 -b 0.0.0.0:8000 --access-logfile - wsgi:app"]
+CMD ["sh", "-c", "if [ \"$SEED_DEMO\" = \"true\" ]; then python -m scripts.seed; fi && exec gunicorn -w 1 --threads 8 -b 0.0.0.0:${PORT:-8000} --access-logfile - wsgi:app"]
