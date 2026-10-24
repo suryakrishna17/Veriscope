@@ -76,7 +76,7 @@ def build_ctx(
 ) -> CaseContext:
     effective_values = values if values is not None else CLEAN_VALUES
     if docs is None:
-        doc_list = [DocView(f"doc-{dt}", dt, f"{dt.lower()}.pdf", "abc123sha", "processed") for dt in effective_values]
+        doc_list = [DocView(f"doc-{dt}", dt, f"{dt.lower()}.pdf", f"sha256-{dt}", "processed") for dt in effective_values]
     else:
         doc_list = docs
 
@@ -151,20 +151,35 @@ class EoaRulesetMetadataTests(unittest.TestCase):
 
 
 class EoaRuleEvaluationTests(unittest.TestCase):
-    """Verifies pass and fail paths for each automated rule in the catalogue."""
+    """Verifies pass, fail, and boundary paths for rules in the catalogue."""
 
     def test_clean_case_produces_no_findings(self) -> None:
         ctx = build_ctx()
         self.assertEqual(finding_ids(ctx), [])
 
+    def test_findings_payload_structure_and_citations(self) -> None:
+        """Verifies that rules specify clause citations and emitted findings have valid evidence refs and details."""
+        # Rule schema provides clause citation
+        rule = [r for r in RS.rules if r["id"] == "EOA-FMT-001"][0]
+        self.assertIn("AICTE APH 2024-27", rule.get("clause_citation", ""))
+
+        # Evaluated finding provides evidence refs and remediation action
+        ctx = build_ctx(with_val(FORM, "institution_id", "INVALID-ID"))
+        results = evaluate(RS, ctx)
+        self.assertGreaterEqual(len(results), 1)
+        r = [res for res in results if res.rule_id == "EOA-FMT-001"][0]
+        self.assertEqual(r.severity, "medium")
+        self.assertTrue(len(r.evidence_refs) > 0)
+        self.assertIn("institution_id", r.evidence_refs[0]["field_key"])
+        self.assertTrue(len(r.next_action) > 0)
+        self.assertTrue(len(r.detail) > 0)
+
     def test_eoa_cmp001_missing_core_dossier_docs(self) -> None:
-        # Remove Fire Safety Certificate from available documents
         docs = [DocView(f"doc-{dt}", dt, f"{dt.lower()}.pdf", "hash", "processed") for dt in [FORM, AFFILIATION, BUILDING, LAND, OCCUPANCY]]
         ctx = build_ctx(docs=docs)
         self.assertIn("EOA-CMP-001", finding_ids(ctx))
 
     def test_eoa_cmp002_missing_land_occupancy_docs(self) -> None:
-        # Remove Occupancy Certificate
         docs = [DocView(f"doc-{dt}", dt, f"{dt.lower()}.pdf", "hash", "processed") for dt in [FORM, AFFILIATION, FIRE, BUILDING, LAND]]
         ctx = build_ctx(docs=docs)
         self.assertIn("EOA-CMP-002", finding_ids(ctx))
@@ -202,9 +217,19 @@ class EoaRuleEvaluationTests(unittest.TestCase):
         ctx = build_ctx(with_val(FIRE, "valid_until", "2024-03-31"))
         self.assertIn("EOA-DAT-002", finding_ids(ctx))
 
+    def test_eoa_dat002_date_boundary_equal_dates_pass(self) -> None:
+        """Boundary test: application_date == valid_until is valid (certificate not expired)."""
+        ctx = build_ctx(with_val(FIRE, "valid_until", "2024-04-15"))
+        self.assertNotIn("EOA-DAT-002", finding_ids(ctx))
+
     def test_eoa_dat003_expired_building_safety_certificate(self) -> None:
         ctx = build_ctx(with_val(BUILDING, "valid_until", "2024-01-01"))
         self.assertIn("EOA-DAT-003", finding_ids(ctx))
+
+    def test_eoa_dat003_date_boundary_equal_dates_pass(self) -> None:
+        """Boundary test: application_date == valid_until is valid (stability certificate valid through day of filing)."""
+        ctx = build_ctx(with_val(BUILDING, "valid_until", "2024-04-15"))
+        self.assertNotIn("EOA-DAT-003", finding_ids(ctx))
 
     def test_eoa_com001_anti_ragging_committee_missing(self) -> None:
         ctx = build_ctx(with_val(FORM, "anti_ragging_committee_constituted", "no"))
@@ -243,7 +268,17 @@ class EoaRuleEvaluationTests(unittest.TestCase):
         self.assertIn("EOA-INF-003", finding_ids(ctx))
 
     def test_eoa_con001_institution_name_mismatch(self) -> None:
-        ctx = build_ctx(with_val(AFFILIATION, "institution_name", "Other Regional Engineering College"))
+        ctx = build_ctx(with_val(AFFILIATION, "institution_name", "Aryabhatta College of Technology"))
+        self.assertIn("EOA-CON-001", finding_ids(ctx))
+
+    def test_eoa_con001_name_similarity_threshold_boundary_pass(self) -> None:
+        """Boundary test: 'Aryabhatta Institute of Tech' yields similarity 90.3 >= 88 and passes."""
+        ctx = build_ctx(with_val(AFFILIATION, "institution_name", "Aryabhatta Institute of Tech"))
+        self.assertNotIn("EOA-CON-001", finding_ids(ctx))
+
+    def test_eoa_con001_name_similarity_threshold_boundary_fail(self) -> None:
+        """Boundary test: 'Aryabhatta College of Technology' yields similarity 78.8 < 88 and triggers EOA-CON-001."""
+        ctx = build_ctx(with_val(AFFILIATION, "institution_name", "Aryabhatta College of Technology"))
         self.assertIn("EOA-CON-001", finding_ids(ctx))
 
     def test_eoa_con002_academic_session_mismatch(self) -> None:
