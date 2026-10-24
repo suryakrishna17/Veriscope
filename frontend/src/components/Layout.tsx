@@ -30,7 +30,7 @@ export function Layout({ children, wide = false }: { children: ReactNode; wide?:
             {isApplicant ? "My Applications" : "Review Queue"}
           </a>
           <a href="#/cases/new" className="nav-item">
-            + New Case
+            New application
           </a>
         </nav>
 

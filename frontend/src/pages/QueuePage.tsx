@@ -60,7 +60,7 @@ export function QueuePage() {
         </div>
         <button className="btn btn-primary" onClick={() => navigate("/cases/new")}>
           <IconPlus width="14" height="14" />
-          <span>New Application</span>
+          <span>New application</span>
         </button>
       </div>
 
