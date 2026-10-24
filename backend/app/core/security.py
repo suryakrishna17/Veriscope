@@ -5,7 +5,7 @@ import threading
 import time
 from collections import defaultdict, deque
 from collections.abc import Callable
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from functools import wraps
 from typing import Any, TypeVar
 
@@ -28,7 +28,7 @@ def verify_password(hashed: str, password: str) -> bool:
 
 
 def issue_token(user: dict[str, Any], secret: str, ttl_minutes: int) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     claims = {"sub": user["id"], "role": user["role"], "iat": now, "exp": now + timedelta(minutes=ttl_minutes)}
     return jwt.encode(claims, secret, algorithm="HS256")
 

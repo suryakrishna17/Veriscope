@@ -9,7 +9,7 @@ from __future__ import annotations
 import io
 import logging
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import cv2
@@ -124,9 +124,9 @@ def _pdf_date(value: Any) -> datetime | None:
     m = re.match(r"D?:?(\d{4})(\d{2})?(\d{2})?(\d{2})?(\d{2})?(\d{2})?", s)
     if not m:
         return None
-    parts = [int(p) if p else d for p, d in zip(m.groups(), (0, 1, 1, 0, 0, 0))]
+    parts = [int(p) if p else d for p, d in zip(m.groups(), (0, 1, 1, 0, 0, 0), strict=False)]
     try:
-        return datetime(*parts, tzinfo=timezone.utc)  # type: ignore[misc]
+        return datetime(*parts, tzinfo=UTC)  # type: ignore[misc]
     except ValueError:
         log.debug("pdf_date_parse_failed", extra={"ctx": {"raw": s[:30]}})
         return None

@@ -3,13 +3,13 @@ from __future__ import annotations
 
 import io
 from typing import TYPE_CHECKING, Any
+from xml.sax.saxutils import escape
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
-from xml.sax.saxutils import escape
 
 from ..core.db import utcnow
 from .cases import case_detail

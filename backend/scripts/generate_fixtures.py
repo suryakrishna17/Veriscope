@@ -7,7 +7,7 @@ from __future__ import annotations
 import io
 import json
 import random
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import numpy as np
@@ -22,7 +22,7 @@ OUT = Path(__file__).resolve().parents[1] / "fixtures"
 W, H = A4
 INK = HexColor("#1B2A3A")
 PEN = HexColor("#1D3F8F")
-FIXED_DATE = datetime(2026, 10, 1, 9, 0, tzinfo=timezone.utc)
+FIXED_DATE = datetime(2026, 10, 1, 9, 0, tzinfo=UTC)
 
 
 def _canvas(buf: io.BytesIO, title: str) -> canvas.Canvas:

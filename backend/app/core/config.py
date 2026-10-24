@@ -43,7 +43,7 @@ class Settings:
         return self.max_upload_mb * 1024 * 1024
 
     @classmethod
-    def from_env(cls, **overrides: object) -> "Settings":
+    def from_env(cls, **overrides: object) -> Settings:
         env = os.environ
         s = cls(
             app_env=env.get("APP_ENV", cls.app_env),

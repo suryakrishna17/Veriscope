@@ -3,13 +3,13 @@ from __future__ import annotations
 
 import io
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 from PIL import Image
 
 from ..core.db import dumps, loads, new_id, utcnow
-from ..core.errors import ApiError, bad_request, conflict, forbidden, not_found
+from ..core.errors import ApiError, bad_request, conflict, not_found
 from ..processing.fields import DOC_TYPES
 from ..processing.normalize import FIELDS, normalize
 from ..processing.text import render_pdf_page
@@ -59,7 +59,7 @@ def load_case(svc: Services, case_id: str, user: dict[str, Any]) -> dict[str, An
 
 
 def _next_case_ref(svc: Services) -> str:
-    year = datetime.now(timezone.utc).year
+    year = datetime.now(UTC).year
     prefix = f"VS-{year}-"
     # Use MAX on the numeric suffix so deleted/skipped refs do not produce duplicates.
     max_n = svc.db.scalar(
