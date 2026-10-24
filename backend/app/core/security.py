@@ -115,6 +115,25 @@ def rate_limit(bucket: str, limit: int, window_s: int = 60) -> Callable[[F], F]:
 
 
 def install_security_headers(app: Flask, cors_origins: tuple[str, ...]) -> None:
+    def _is_allowed(origin: str | None) -> bool:
+        if not origin:
+            return False
+        return "*" in cors_origins or any(fnmatch.fnmatch(origin, pat) for pat in cors_origins)
+
+    @app.before_request
+    def _preflight() -> Response | None:
+        if request.method == "OPTIONS":
+            resp = Response(status=204)
+            origin = request.headers.get("Origin")
+            if _is_allowed(origin):
+                resp.headers["Access-Control-Allow-Origin"] = origin
+                resp.headers["Vary"] = "Origin"
+                resp.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, X-Request-ID"
+                resp.headers["Access-Control-Allow-Methods"] = "GET, POST, PATCH, OPTIONS"
+                resp.headers["Access-Control-Max-Age"] = "86400"
+            return resp
+        return None
+
     @app.after_request
     def _headers(resp: Response) -> Response:
         resp.headers.setdefault("X-Content-Type-Options", "nosniff")
@@ -126,7 +145,7 @@ def install_security_headers(app: Flask, cors_origins: tuple[str, ...]) -> None:
             "font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; frame-ancestors 'none'",
         )
         origin = request.headers.get("Origin")
-        if origin and any(fnmatch.fnmatch(origin, pat) for pat in cors_origins):
+        if _is_allowed(origin):
             resp.headers["Access-Control-Allow-Origin"] = origin
             resp.headers["Vary"] = "Origin"
             resp.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, X-Request-ID"

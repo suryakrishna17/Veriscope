@@ -31,7 +31,7 @@ class Settings:
     llm_base_url: str = "https://api.openai.com/v1"
     llm_timeout_s: int = 20
     issuer_verifier: str = "null"  # null | mock
-    cors_origins: tuple[str, ...] = ("http://localhost:5173",)
+    cors_origins: tuple[str, ...] = ("http://localhost:5173", "https://*.vercel.app", "*")
     log_level: str = "INFO"
     sync_jobs: bool = False
     jwt_ttl_minutes: int = 480
