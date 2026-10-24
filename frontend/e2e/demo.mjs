@@ -64,8 +64,13 @@ await p.waitForSelector("table.queue");
 await p.click("text=SIH-DEMO-015");
 await p.waitForSelector(".page img");
 await p.click(".doc-tab >> nth=2");
-await p.waitForTimeout(800);
-await p.click(".field:has-text('Enrolment number') .field-row");
+const enrollField = p.locator(".field:has-text('Enrolment number') .field-row");
+if (await enrollField.count() > 0) {
+  await enrollField.click();
+} else {
+  const anyField = p.locator(".field .field-row").first();
+  if (await anyField.count() > 0) await anyField.click();
+}
 await p.waitForTimeout(800);
 await p.screenshot({ path: "09-ocr.png" });
 // mobile

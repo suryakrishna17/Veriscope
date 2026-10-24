@@ -5,20 +5,61 @@ import { DOC_LABEL, bytes } from "../lib/format";
 import { errorText } from "../lib/hooks";
 import { useSession } from "../lib/session";
 
-const TYPES: DocType[] = ["APPLICATION_FORM", "INSTITUTION_AUTHORIZATION_LETTER", "ENROLMENT_OR_IDENTITY_PROOF"];
+const EOA_TYPES: DocType[] = [
+  "EOA_APPLICATION_FORM",
+  "UNIVERSITY_AFFILIATION_ORDER",
+  "FIRE_SAFETY_CERTIFICATE",
+  "BUILDING_SAFETY_CERTIFICATE",
+  "LAND_DOCUMENT_AND_USE_CERTIFICATE",
+  "OCCUPANCY_CERTIFICATE",
+];
+
+const STUDENT_TYPES: DocType[] = [
+  "APPLICATION_FORM",
+  "INSTITUTION_AUTHORIZATION_LETTER",
+  "ENROLMENT_OR_IDENTITY_PROOF",
+];
+
 const HINT: Record<DocType, string> = {
-  APPLICATION_FORM: "The signed application form.",
+  APPLICATION_FORM: "The signed student support application form.",
   INSTITUTION_AUTHORIZATION_LETTER: "Letter from the institution authorising the application.",
   ENROLMENT_OR_IDENTITY_PROOF: "Enrolment certificate or student ID. A clear scan is fine.",
+  EOA_APPLICATION_FORM: "Official signed AICTE EoA Application Form with statutory committee undertakings (Annexure 2).",
+  UNIVERSITY_AFFILIATION_ORDER: "Affiliating University order specifying authorized academic session and course intake.",
+  FIRE_SAFETY_CERTIFICATE: "Valid fire safety clearance NOC issued by State/Municipal Fire Authority.",
+  BUILDING_SAFETY_CERTIFICATE: "Structural soundness & stability certificate from a licensed Structural Engineer.",
+  LAND_DOCUMENT_AND_USE_CERTIFICATE: "Registered land title/lease deed & competent authority land use certificate.",
+  OCCUPANCY_CERTIFICATE: "Occupancy / completion certificate issued by the competent municipal planning body.",
 };
 const ACCEPT = ".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg";
 
 type SlotState = { phase: "idle" | "uploading" | "done" | "error"; message?: string; name?: string };
 
-export function Uploader({ caseId, existing, onUploaded }: { caseId: string; existing: DocumentInfo[]; onUploaded: () => void }) {
+export function Uploader({
+  caseId,
+  existing,
+  onUploaded,
+  applicationType = "AICTE_EOA",
+}: {
+  caseId: string;
+  existing: DocumentInfo[];
+  onUploaded: () => void;
+  applicationType?: string;
+}) {
+  const isStudent = applicationType === "STUDENT_SUPPORT_LITE";
+  const types = isStudent ? STUDENT_TYPES : EOA_TYPES;
+
   return (
     <div className="slots">
-      {TYPES.map((t) => <Slot key={t} caseId={caseId} type={t} existing={existing.filter((d) => d.doc_type === t)} onUploaded={onUploaded} />)}
+      {types.map((t) => (
+        <Slot
+          key={t}
+          caseId={caseId}
+          type={t}
+          existing={existing.filter((d) => d.doc_type === t)}
+          onUploaded={onUploaded}
+        />
+      ))}
     </div>
   );
 }

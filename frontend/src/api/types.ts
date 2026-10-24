@@ -4,12 +4,31 @@ export type CaseStatus =
   | "approved" | "rejected" | "processing_failed";
 export type Severity = "high" | "medium" | "low" | "info";
 export type TrustLabel = "ISSUER_VERIFIED" | "ANOMALY_DETECTED" | "NOT_VERIFIED";
-export type DocType = "APPLICATION_FORM" | "INSTITUTION_AUTHORIZATION_LETTER" | "ENROLMENT_OR_IDENTITY_PROOF";
+export type DocType =
+  | "APPLICATION_FORM"
+  | "INSTITUTION_AUTHORIZATION_LETTER"
+  | "ENROLMENT_OR_IDENTITY_PROOF"
+  | "EOA_APPLICATION_FORM"
+  | "UNIVERSITY_AFFILIATION_ORDER"
+  | "FIRE_SAFETY_CERTIFICATE"
+  | "BUILDING_SAFETY_CERTIFICATE"
+  | "LAND_DOCUMENT_AND_USE_CERTIFICATE"
+  | "OCCUPANCY_CERTIFICATE";
 export type BBox = [number, number, number, number];
 
 export interface User { id: string; email: string; name: string; role: Role }
 
 export interface TriageComponent { label: string; points: number }
+
+export interface EvaluationSummary {
+  total: number;
+  pass: number;
+  fail: number;
+  review_required: number;
+  not_applicable: number;
+  ruleset_name?: string;
+  ruleset_version?: string;
+}
 
 export interface CaseSummary {
   id: string;
@@ -92,6 +111,8 @@ export interface Finding {
   evidence_refs: EvidenceRef[];
   confidence: number;
   next_action: string | null;
+  clause_citation?: string | null;
+  outcome?: "PASS" | "FAIL" | "REVIEW_REQUIRED" | "NOT_APPLICABLE";
   resolution_note: string | null;
   resolved_by: string | null;
   resolved_at: string | null;
@@ -111,6 +132,7 @@ export interface CaseDetail extends CaseSummary {
   findings: Finding[];
   decisions: Decision[];
   summary: { kind: "template" | "llm"; text: string; missing_evidence: string[]; provider: string; generated_at: string } | null;
+  evaluation_summary?: EvaluationSummary | null;
   audit: AuditEvent[];
   allowed_actions: string[];
   ruleset: { name: string; version: string; is_provisional: boolean };

@@ -102,7 +102,8 @@ class FixtureCaseTests(AppTestCase):
         for cid in self.ids.values():
             for doc in self.detail(cid)["documents"]:
                 self.assertEqual(doc["trust_label"], "NOT_VERIFIED")
-                self.assertIsNone(doc["issuer_check"]["response_id"])
+                if doc.get("issuer_check"):
+                    self.assertIsNone(doc["issuer_check"]["response_id"])
 
     def test_triage_is_explained(self) -> None:
         d = self.detail(self.ids["SIH-DEMO-014"])

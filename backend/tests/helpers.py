@@ -21,7 +21,7 @@ class AppTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.tmp = Path(tempfile.mkdtemp(prefix="vs-test-"))
-        settings = Settings(app_env="test", secret_key="test-secret", database_path=cls.tmp / "t.db", storage_path=cls.tmp / "files",
+        settings = Settings(app_env="test", secret_key="veriscope-test-secret-at-least-32-bytes-long", database_path=cls.tmp / "t.db", storage_path=cls.tmp / "files",
                             sync_jobs=True, frontend_dist=None, log_level="WARNING")
         cls.app = create_app(settings)
         cls.svc = cls.app.extensions["veriscope"]

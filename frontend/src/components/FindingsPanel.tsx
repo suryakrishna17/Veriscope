@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { api } from "../api/client";
-import type { EvidenceRef, Finding, Severity } from "../api/types";
-import { DOC_LABEL, when } from "../lib/format";
+import type { EvaluationSummary, EvidenceRef, Finding, Severity } from "../api/types";
+import { DOC_LABEL, humanize, when } from "../lib/format";
 import { errorText } from "../lib/hooks";
 import { useToast } from "../lib/toast";
 import { SeverityTag } from "./Badges";
@@ -34,9 +34,76 @@ interface Props {
   selectedId: string | null;
   onSelect: (f: Finding, ref: EvidenceRef | null) => void;
   onChanged: () => void;
+  evaluationSummary?: EvaluationSummary | null;
+  ruleset?: { name: string; version: string; is_provisional: boolean };
+  applicationType?: string;
 }
 
-export function FindingsPanel({ findings, canAct, selectedId, onSelect, onChanged }: Props) {
+function EvaluationSummaryBanner({
+  summary,
+  ruleset,
+  applicationType,
+}: {
+  summary?: EvaluationSummary | null;
+  ruleset?: { name: string; version: string; is_provisional: boolean };
+  applicationType?: string;
+}) {
+  if (!summary) return null;
+
+  const isEoa = applicationType === "AICTE_EOA" || summary.ruleset_name?.includes("eoa");
+  const title = isEoa
+    ? "AICTE EoA Regulatory Audit Summary (APH 2024-27 Chapter II)"
+    : `${ruleset?.name || "Regulatory"} Evaluation Summary`;
+
+  return (
+    <div className="eval-summary-card" role="region" aria-label="Evaluation summary">
+      <div className="eval-summary-head">
+        <span className="eval-summary-title">📜 {title}</span>
+        <span className="eval-summary-total">Total Evaluated: {summary.total} Rules</span>
+      </div>
+      <div className="eval-badges-grid">
+        <div className="eval-badge eval-badge-pass" title="Passing statutory checks">
+          <span className="eval-badge-val">{summary.pass}</span>
+          <span className="eval-badge-lbl">PASS</span>
+        </div>
+        <div className="eval-badge eval-badge-fail" title="Active statutory deficiencies">
+          <span className="eval-badge-val">{summary.fail}</span>
+          <span className="eval-badge-lbl">FAIL</span>
+        </div>
+        <div className="eval-badge eval-badge-review" title="Checks requiring human reviewer scrutiny">
+          <span className="eval-badge-val">{summary.review_required}</span>
+          <span className="eval-badge-lbl">REVIEW REQUIRED</span>
+        </div>
+        <div className="eval-badge eval-badge-na" title="Statutory rules not applicable to this dossier">
+          <span className="eval-badge-val">{summary.not_applicable}</span>
+          <span className="eval-badge-lbl">NOT APPLICABLE</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function isSelfDisclosure(f: Finding): boolean {
+  return (
+    f.rule_id.startsWith("EOA-COM-") ||
+    f.rule_id === "ARI-001" ||
+    f.rule_id === "CMP-004" ||
+    f.summary.toLowerCase().includes("committee") ||
+    f.summary.toLowerCase().includes("self-disclosure") ||
+    f.detail.toLowerCase().includes("self-disclosure")
+  );
+}
+
+export function FindingsPanel({
+  findings,
+  canAct,
+  selectedId,
+  onSelect,
+  onChanged,
+  evaluationSummary,
+  ruleset,
+  applicationType,
+}: Props) {
   const [acting, setActing] = useState<{ f: Finding; to: Finding["status"] } | null>(null);
   const [filterSev, setFilterSev] = useState<string>("all");
 
@@ -51,6 +118,11 @@ export function FindingsPanel({ findings, canAct, selectedId, onSelect, onChange
   if (!findings.length) {
     return (
       <div className="pad">
+        <EvaluationSummaryBanner
+          summary={evaluationSummary}
+          ruleset={ruleset}
+          applicationType={applicationType}
+        />
         <p className="clear-msg">No findings recorded. Every automated rule check passed.</p>
         <p className="muted small">This does not mean documents have been confirmed by their issuers.</p>
       </div>
@@ -59,6 +131,11 @@ export function FindingsPanel({ findings, canAct, selectedId, onSelect, onChange
 
   return (
     <div className="findings">
+      <EvaluationSummaryBanner
+        summary={evaluationSummary}
+        ruleset={ruleset}
+        applicationType={applicationType}
+      />
       {open.length > 0 && (
         <div style={{ padding: "0.5rem 1rem", display: "flex", gap: "0.35rem", borderBottom: "1px solid var(--line-2)" }}>
           {(["all", "high", "medium", "low"] as const).map((s) => {
@@ -158,18 +235,29 @@ function FindingCard({
       >
         <span className="finding-top">
           <SeverityTag severity={f.severity as Severity} />
+          {f.outcome && (
+            <span className={`pill outcome-pill outcome-${f.outcome.toLowerCase()}`} title={`Evaluation outcome: ${f.outcome}`}>
+              {f.outcome.replace("_", " ")}
+            </span>
+          )}
           <span className="rule">{f.rule_id} · v{f.rule_version}</span>
           {f.status !== "open" && (
             <span className="pill">{f.status === "resolved" ? "Resolved" : "Waived"}</span>
           )}
         </span>
         <span className="finding-title">{f.summary}</span>
-        {APH_CITATIONS[f.rule_id] && (
+        {(f.clause_citation || APH_CITATIONS[f.rule_id]) && (
           <span className="clause-citation" title="Official statutory provision in AICTE Approval Process Handbook (2024-25 to 2026-27)">
-            📜 {APH_CITATIONS[f.rule_id]}
+            📜 {f.clause_citation || APH_CITATIONS[f.rule_id]}
           </span>
         )}
         <span className="finding-detail">{f.detail}</span>
+        {isSelfDisclosure(f) && (
+          <div className="self-disclosure-note" role="note">
+            <span className="note-icon">ℹ️</span>
+            <span>Self-disclosure checked &apos;yes&apos;. Reviewer must inspect uploaded office order to verify representation.</span>
+          </div>
+        )}
       </button>
 
       {f.evidence_refs.length > 0 && (
@@ -183,7 +271,7 @@ function FindingCard({
               title="Click to view highlighted evidence page"
             >
               <IconEye width="12" height="12" style={{ verticalAlign: "middle", marginRight: "4px" }} />
-              {r.doc_type ? DOC_LABEL[r.doc_type] : "Document"}
+              {r.doc_type ? (DOC_LABEL[r.doc_type] || humanize(r.doc_type)) : "Document"}
               {r.page ? ` · p.${r.page}` : ""}
               {r.value ? ` · ${r.value}` : ""}
             </button>

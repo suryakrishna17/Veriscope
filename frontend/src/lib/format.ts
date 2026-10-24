@@ -11,9 +11,15 @@ export const STATUS_LABEL: Record<CaseStatus, string> = {
 };
 
 export const DOC_LABEL: Record<DocType, string> = {
-  APPLICATION_FORM: "Application form",
-  INSTITUTION_AUTHORIZATION_LETTER: "Authorization letter",
-  ENROLMENT_OR_IDENTITY_PROOF: "Enrolment proof",
+  APPLICATION_FORM: "Application Form",
+  INSTITUTION_AUTHORIZATION_LETTER: "Authorization Letter",
+  ENROLMENT_OR_IDENTITY_PROOF: "Enrolment Proof",
+  EOA_APPLICATION_FORM: "AICTE EoA Application Form",
+  UNIVERSITY_AFFILIATION_ORDER: "University Affiliation Order",
+  FIRE_SAFETY_CERTIFICATE: "Fire Safety Certificate",
+  BUILDING_SAFETY_CERTIFICATE: "Building Safety Certificate",
+  LAND_DOCUMENT_AND_USE_CERTIFICATE: "Land Document & Land Use Certificate",
+  OCCUPANCY_CERTIFICATE: "Occupancy / Completion Certificate",
 };
 
 export const SEVERITY_ORDER: Severity[] = ["high", "medium", "low", "info"];

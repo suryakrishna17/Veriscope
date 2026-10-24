@@ -1399,6 +1399,148 @@ tr.clickable:hover td { background: var(--surface-3); }
 .report-findings p { margin: 0.15rem 0; font-size: 0.88rem; }
 .doc-list { padding-left: 1.2rem; }
 
+/* Evaluation Summary Card (Step 3C 4-Outcome Banner) */
+.eval-summary-card {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 0.85rem 1rem;
+  margin: 0.75rem 1rem 0.5rem;
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.eval-summary-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+.eval-summary-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.eval-summary-total {
+  font-size: 0.74rem;
+  font-family: var(--mono);
+  color: var(--ink-2);
+  background: var(--surface-3);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-2);
+  font-weight: 600;
+}
+.eval-badges-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.45rem;
+}
+@media (max-width: 600px) {
+  .eval-badges-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.eval-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.35rem;
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+  text-align: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.eval-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+.eval-badge-val {
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1.2;
+  font-family: var(--mono);
+}
+.eval-badge-lbl {
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  margin-top: 0.12rem;
+}
+.eval-badge-pass {
+  background: var(--ok-bg);
+  border-color: var(--ok-border);
+  color: var(--ok);
+}
+.eval-badge-fail {
+  background: var(--high-bg);
+  border-color: var(--high-border);
+  color: var(--high);
+}
+.eval-badge-review {
+  background: var(--medium-bg);
+  border-color: var(--medium-border);
+  color: var(--medium);
+}
+.eval-badge-na {
+  background: var(--info-bg);
+  border-color: var(--info-border);
+  color: var(--info);
+}
+
+/* Outcome Pills on Finding Cards */
+.outcome-pill {
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+}
+.outcome-fail {
+  background: var(--high-bg);
+  color: var(--high);
+  border: 1px solid var(--high-border);
+}
+.outcome-review_required {
+  background: var(--medium-bg);
+  color: var(--medium);
+  border: 1px solid var(--medium-border);
+}
+.outcome-pass {
+  background: var(--ok-bg);
+  color: var(--ok);
+  border: 1px solid var(--ok-border);
+}
+.outcome-not_applicable {
+  background: var(--info-bg);
+  color: var(--info);
+  border: 1px solid var(--info-border);
+}
+
+/* Committee Self-Disclosure Disclaimer Callout */
+.self-disclosure-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin-top: 0.45rem;
+  padding: 0.4rem 0.65rem;
+  background: var(--surface-3);
+  border-left: 3px solid var(--medium);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-size: 0.77rem;
+  color: var(--ink-2);
+  line-height: 1.4;
+}
+.self-disclosure-note .note-icon {
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
 /* Responsive adjustments */
 @media (max-width: 1280px) {
   .review { grid-template-columns: 1fr 1fr; }

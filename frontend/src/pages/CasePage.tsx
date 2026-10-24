@@ -204,11 +204,16 @@ export function CasePage({ id }: { id: string }) {
         <div className="card">
           <h2>Application Documents</h2>
           {c.allowed_actions.includes("upload") ? (
-            <Uploader caseId={c.id} existing={c.documents} onUploaded={() => void reload(true)} />
+            <Uploader
+              caseId={c.id}
+              existing={c.documents}
+              onUploaded={() => void reload(true)}
+              applicationType={c.application_type}
+            />
           ) : (
             <ul className="doc-list">
               {c.documents.map((d) => (
-                <li key={d.id}>{DOC_LABEL[d.doc_type]} · {d.original_name}</li>
+                <li key={d.id}>{(DOC_LABEL[d.doc_type] || d.doc_type)} · {d.original_name}</li>
               ))}
             </ul>
           )}
@@ -237,7 +242,14 @@ export function CasePage({ id }: { id: string }) {
         <div className="card">
           <h2>No documents uploaded</h2>
           <p className="muted">Upload the application documents to begin automated extraction and policy evaluation.</p>
-          {c.allowed_actions.includes("upload") && <Uploader caseId={c.id} existing={[]} onUploaded={() => void reload(true)} />}
+          {c.allowed_actions.includes("upload") && (
+            <Uploader
+              caseId={c.id}
+              existing={[]}
+              onUploaded={() => void reload(true)}
+              applicationType={c.application_type}
+            />
+          )}
         </div>
       ) : (
         <div className="review">
@@ -280,6 +292,9 @@ export function CasePage({ id }: { id: string }) {
                 selectedId={sel}
                 onSelect={selectFinding}
                 onChanged={() => void reload(true)}
+                evaluationSummary={c.evaluation_summary}
+                ruleset={c.ruleset}
+                applicationType={c.application_type}
               />
             </div>
           </section>
@@ -289,7 +304,12 @@ export function CasePage({ id }: { id: string }) {
       {c.allowed_actions.includes("upload") && c.documents.length > 0 && c.status === "clarification_requested" && (
         <details className="card" style={{ marginTop: "1rem" }}>
           <summary style={{ fontWeight: 600, cursor: "pointer" }}>Add or replace documents</summary>
-          <Uploader caseId={c.id} existing={c.documents} onUploaded={() => void reload(true)} />
+          <Uploader
+            caseId={c.id}
+            existing={c.documents}
+            onUploaded={() => void reload(true)}
+            applicationType={c.application_type}
+          />
         </details>
       )}
 

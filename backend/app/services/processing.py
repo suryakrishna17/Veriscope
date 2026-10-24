@@ -11,7 +11,7 @@ from ..core.errors import ApiError, conflict
 from ..processing import signals as sig
 from ..processing.fields import extract_fields
 from ..processing.text import OcrUnavailable, extract
-from ..rules.engine import evaluate
+from ..rules.engine import evaluate_ruleset
 from ..rules.model import CaseContext, DocView, FieldView
 from . import audit
 from .audit import SYSTEM_ACTOR
@@ -187,8 +187,18 @@ def evaluate_case(svc: Services, case_id: str, actor: dict[str, Any]) -> None:
     # Dynamically select the correct ruleset based on the case's application_type.
     app_type = case.get("application_type", "STUDENT_SUPPORT_LITE")
     ruleset = svc.get_ruleset(app_type)
-    results = evaluate(ruleset, ctx)
+    evaluations = evaluate_ruleset(ruleset, ctx)
+    results = [f for ev in evaluations for f in ev.findings if ev.outcome in ("FAIL", "REVIEW_REQUIRED")]
     now = utcnow()
+    eval_summary = {
+        "total": len(evaluations),
+        "pass": sum(1 for ev in evaluations if ev.outcome == "PASS"),
+        "fail": sum(1 for ev in evaluations if ev.outcome == "FAIL"),
+        "review_required": sum(1 for ev in evaluations if ev.outcome == "REVIEW_REQUIRED"),
+        "not_applicable": sum(1 for ev in evaluations if ev.outcome == "NOT_APPLICABLE"),
+        "ruleset_name": ruleset.name,
+        "ruleset_version": ruleset.version,
+    }
     with svc.db.transaction():
         existing = {f["fingerprint"]: f for f in svc.db.all("SELECT * FROM findings WHERE case_id = ?", (case_id,))}
         seen: set[str] = set()
@@ -214,7 +224,8 @@ def evaluate_case(svc: Services, case_id: str, actor: dict[str, Any]) -> None:
         score, comps = compute_triage(rows)
         current = [f for f in rows if f["is_current"]]
         summary = svc.llm.summarize(case["case_ref"], [{k: f[k] for k in ("rule_id", "severity", "status", "category", "summary", "detail")} for f in current])
-        svc.db.update("cases", case_id, {"triage_priority": score, "triage_components_json": dumps(comps), "summary_json": dumps({**summary.as_dict(), "generated_at": now}),
+        summary_payload = {**summary.as_dict(), "evaluation_summary": eval_summary, "generated_at": now}
+        svc.db.update("cases", case_id, {"triage_priority": score, "triage_components_json": dumps(comps), "summary_json": dumps(summary_payload),
                                          "rule_set_version": ruleset.label, "updated_at": now})
         audit.record(svc.db, case_id, actor, "rules.evaluated", "case", case_id,
                      {"ruleset": ruleset.label, "results": len(seen), "new_findings": created, "cleared_findings": len(stale)})

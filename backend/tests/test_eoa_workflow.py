@@ -168,13 +168,22 @@ class EoaWorkflowIntegrationTests(AppTestCase):
             self.assertIn("APH 2024-27", f["clause_citation"])
             self.assertIn(f["outcome"], ("FAIL", "REVIEW_REQUIRED"))
 
-        # Check detail API serialization includes citations
+        # Check detail API serialization includes citations and evaluation_summary
         detail = self.detail(cid)
         api_findings = detail["findings"]
         self.assertTrue(len(api_findings) > 0)
         for af in api_findings:
             self.assertIsNotNone(af.get("clause_citation"))
             self.assertIsNotNone(af.get("outcome"))
+
+        eval_sum = detail.get("evaluation_summary")
+        self.assertIsNotNone(eval_sum)
+        self.assertEqual(eval_sum["total"], 24)
+        self.assertEqual(
+            eval_sum["total"],
+            eval_sum["pass"] + eval_sum["fail"] + eval_sum["review_required"] + eval_sum["not_applicable"],
+        )
+        self.assertEqual(eval_sum["ruleset_name"], "aicte_eoa_chapter2")
 
     def test_reprocessing_idempotency_and_resolution_preservation(self) -> None:
         """Reprocesses a case twice and verifies finding count is unchanged and reviewer waiver notes are preserved."""

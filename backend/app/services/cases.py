@@ -219,11 +219,31 @@ def case_detail(svc: Services, case_id: str, user: dict[str, Any]) -> dict[str, 
         {"id": d["id"], "outcome": d["outcome"], "reason_code": d["reason_code"], "note": d["note"], "reviewer": d["reviewer_name"], "decided_at": d["decided_at"]}
         for d in decisions
     ]
-    out["summary"] = loads(c["summary_json"]) if is_reviewer else None
-    out["audit"] = audit.list_events(svc.db, c["id"], limit=100) if is_reviewer else []
-    out["allowed_actions"] = allowed_actions(c, user)
     rs = svc.get_ruleset(c.get("application_type"))
     out["ruleset"] = {"name": rs.name, "version": rs.version, "is_provisional": rs.is_provisional}
+    sum_data = loads(c["summary_json"]) if c.get("summary_json") else None
+    out["summary"] = sum_data if is_reviewer else None
+    eval_sum = sum_data.get("evaluation_summary") if sum_data else None
+    if eval_sum is None and c["status"] not in {"received", "processing"} and docs:
+        try:
+            from ..rules.engine import evaluate_ruleset
+            from .processing import build_context
+            ctx = build_context(svc, c)
+            evals = evaluate_ruleset(rs, ctx)
+            eval_sum = {
+                "total": len(evals),
+                "pass": sum(1 for ev in evals if ev.outcome == "PASS"),
+                "fail": sum(1 for ev in evals if ev.outcome == "FAIL"),
+                "review_required": sum(1 for ev in evals if ev.outcome == "REVIEW_REQUIRED"),
+                "not_applicable": sum(1 for ev in evals if ev.outcome == "NOT_APPLICABLE"),
+                "ruleset_name": rs.name,
+                "ruleset_version": rs.version,
+            }
+        except Exception:
+            eval_sum = None
+    out["evaluation_summary"] = eval_sum
+    out["audit"] = audit.list_events(svc.db, c["id"], limit=100) if is_reviewer else []
+    out["allowed_actions"] = allowed_actions(c, user)
     job = svc.db.one("SELECT * FROM jobs WHERE case_id = ? ORDER BY created_at DESC LIMIT 1", (c["id"],))
     out["latest_job"] = serialize_job(job) if job else None
     return out
