@@ -62,6 +62,8 @@ Rather than relying on unverified generative text, VeriScope combines high-speed
 | **4. Dynamic Risk & Triage Prioritization** | Real-time calculation of Triage Urgency Points based on weighted rule severity. | Automatically bubbles high-risk, incomplete, or critical applications to the top of the queue without manual sorting. |
 | **5. Automated Compliance Dossiers** | 1-click automated PDF/JSON report generation with ruleset versions, cryptographic digests, and tamper-evident logs. | Produces court-ready, audit-compliant inspection dossiers instantly upon case determination. |
 
+> 📌 **Detailed Engineering Breakdown**: For a full inventory of implemented automation systems and upcoming engineering milestones (DigiLocker API, side-by-side visual diffing, SMS/Email webhooks), see the [**Smart Automation Implementation & Roadmap Guide**](docs/AUTOMATION_ROADMAP.md).
+
 ---
 
 ## 🖥️ Core Workspaces
@@ -221,7 +223,7 @@ cd frontend && npm run e2e
 │   │   ├── api/client.ts          # Typed REST API client
 │   │   └── styles.css             # Glassmorphism design tokens, animations, responsive layout
 │   └── e2e/                       # Playwright automated browser walkthrough scripts
-├── docs/                          # Architecture specs, rulebook docs, demo scripts, threat model
+├── docs/                          # Architecture specs, rulebook docs, automation roadmap, threat model
 └── .github/workflows/ci.yml       # Continuous Integration pipeline
 ```
 
