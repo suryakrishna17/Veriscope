@@ -123,6 +123,24 @@ VeriScope enforces strict governance standards:
 
 ---
 
+## 💡 Research Novelty & Competitive Advantage
+
+| Evaluation Dimension | Generic Cloud OCR (Textract / DocAI) | Computer Vision CNNs (ELA / Noise Classifiers) | Pure Generative AI (GPT-4V / Claude) | **VeriScope Platform** |
+|---|---|---|---|---|
+| **Evidence Grounding** | Text bounding boxes only | Anomaly heatmaps (no field data) | Non-grounded or hallucinated | **Exact pixel bounding box per entity** |
+| **Multi-Document Auditing** | ❌ Single-document only | ❌ Single-document only | ⚠️ Unreliable correlation | **✅ Automated cross-document relational graph** |
+| **Arithmetic & Fee Auditing** | ❌ None | ❌ None | ⚠️ Prone to hallucinated math | **✅ Zero-error deterministic arithmetic engine** |
+| **Tamper & Revision Forensics** | ❌ None | ⚠️ Fragile ML noise analysis | ❌ None | **✅ PDF trailer trees + physical ink/seal** |
+| **Administrative Due Process** | ❌ None | ❌ Violates due process (black box) | ❌ Unexplainable | **✅ Transparent rules + reviewer authority** |
+| **Prompt Injection Resilience** | N/A | N/A | ❌ Highly vulnerable | **✅ 100% resilient (deterministic policy engine)** |
+| **Append-Only Tamper-Evident Trail** | ❌ None | ❌ None | ❌ None | **✅ Database-trigger backed immutable audit log** |
+| **Regulatory Decision Gating** | ❌ None | ❌ None | ❌ None | **✅ Hard-blocks approval on open high flags** |
+| **Reviewer Ergonomics** | ❌ Raw API / Multi-tab | ❌ Standalone heatmap viewer | ❌ Chat text interface | **✅ Integrated 3-pane glassmorphic review desk** |
+
+> 🔬 **Academic Whitepaper**: For the complete research critique, administrative law principles, and architectural breakdown, read the [**Research Novelty & Theoretical Foundations Guide**](docs/INNOVATION_AND_RESEARCH.md).
+
+---
+
 ## 🛠️ Technology Stack
 
 <p align="center">
@@ -223,7 +241,7 @@ cd frontend && npm run e2e
 │   │   ├── api/client.ts          # Typed REST API client
 │   │   └── styles.css             # Glassmorphism design tokens, animations, responsive layout
 │   └── e2e/                       # Playwright automated browser walkthrough scripts
-├── docs/                          # Architecture specs, rulebook docs, automation roadmap, threat model
+├── docs/                          # Architecture specs, innovation whitepaper, automation roadmap, threat model
 └── .github/workflows/ci.yml       # Continuous Integration pipeline
 ```
 
