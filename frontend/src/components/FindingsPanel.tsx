@@ -208,7 +208,7 @@ function FindingCard({
                 <span>Mark resolved</span>
               </button>
               <button className="btn btn-small btn-ghost" onClick={() => onAct("waived")}>
-                Waive finding
+                Waive
               </button>
             </>
           ) : (

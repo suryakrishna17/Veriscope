@@ -37,8 +37,8 @@ export function DecisionBar({ c, onDecided }: { c: CaseDetail; onDecided: () => 
 
   const start = (o: Outcome) => {
     setOutcome(o);
+    setReason("");
     if (o === "request_clarification") {
-      setReason("DATA_MISMATCH");
       const openFindings = c.findings.filter((f) => f.status === "open");
       const list = openFindings
         .map((f, i) => `${i + 1}. [${f.rule_id}] ${f.summary}: ${f.next_action || f.detail}`)
@@ -47,7 +47,6 @@ export function DecisionBar({ c, onDecided }: { c: CaseDetail; onDecided: () => 
         `Dear Applicant / Institution Registrar,\n\nDuring the automated AICTE regulatory compliance evaluation of application ${c.case_ref}, the following item(s) require official clarification:\n\n${list}\n\nPlease upload the rectified registered documents through the institution portal within 7 working days.`
       );
     } else {
-      setReason("");
       setNote("");
     }
     setErr(null);
