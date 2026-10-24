@@ -1,9 +1,10 @@
+import type { ReactNode } from "react";
 import type { CaseStatus, Severity, TrustLabel } from "../api/types";
 import { STATUS_LABEL } from "../lib/format";
 import { IconAlert, IconCheck, IconShield } from "./Icons";
 
 export function StatusBadge({ status }: { status: CaseStatus }) {
-  const icons: Partial<Record<CaseStatus, JSX.Element>> = {
+  const icons: Partial<Record<CaseStatus, ReactNode>> = {
     approved: <IconCheck width="13" height="13" />,
     needs_review: <IconAlert width="13" height="13" />,
     clarification_requested: <IconAlert width="13" height="13" />,

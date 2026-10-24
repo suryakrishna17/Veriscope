@@ -217,7 +217,7 @@ function ResolveDialog({
     setBusy(true);
     setErr(null);
     try {
-      await api.resolveFinding(finding.id, to, note);
+      await api.updateFinding(finding.id, to, note);
       toast(`Finding marked ${to}.`);
       onClose(true);
     } catch (e) {
