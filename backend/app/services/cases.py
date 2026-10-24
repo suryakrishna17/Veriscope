@@ -60,8 +60,13 @@ def load_case(svc: Services, case_id: str, user: dict[str, Any]) -> dict[str, An
 
 def _next_case_ref(svc: Services) -> str:
     year = datetime.now(timezone.utc).year
-    n = (svc.db.scalar("SELECT COUNT(*) FROM cases WHERE case_ref LIKE ?", (f"VS-{year}-%",)) or 0) + 1
-    return f"VS-{year}-{n:04d}"
+    prefix = f"VS-{year}-"
+    # Use MAX on the numeric suffix so deleted/skipped refs do not produce duplicates.
+    max_n = svc.db.scalar(
+        "SELECT MAX(CAST(SUBSTR(case_ref, ?) AS INTEGER)) FROM cases WHERE case_ref LIKE ?",
+        (len(prefix) + 1, f"{prefix}%"),
+    )
+    return f"{prefix}{(max_n or 0) + 1:04d}"
 
 
 # ---------------------------------------------------------------- serialisation

@@ -28,6 +28,8 @@ class LocalStorage(StorageBackend):
         if not _KEY.match(key) or ".." in key:
             raise ValueError("invalid storage key")
         p = (self.root / key).resolve()
+        # resolve() follows symlinks/junctions on all platforms, so comparing against
+        # self.root (also resolved in __init__) correctly catches escapes via symlinks.
         if self.root not in p.parents:
             raise ValueError("storage key escapes root")
         return p

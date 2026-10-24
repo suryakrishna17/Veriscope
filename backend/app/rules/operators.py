@@ -127,10 +127,14 @@ def date_order(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[Rule
 def arithmetic_sum(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[RuleResult]:
     parts = [ctx.field(p["doc_type"], k) for k in p["parts"]]
     total = ctx.field(p["doc_type"], p["total"])
-    if total is None or any(x is None for x in parts):
+    # Require every component to be present AND have a parseable value; a partial
+    # sum would silently mask a real arithmetic mismatch.
+    if total is None or total.value is None:
         return
-    s = sum((Decimal(x.value) for x in parts if x and x.value), Decimal("0"))
-    t = Decimal(total.value or "0")
+    if any(x is None or x.value is None for x in parts):
+        return
+    s = sum((Decimal(x.value) for x in parts), Decimal("0"))  # type: ignore[union-attr]
+    t = Decimal(total.value)
     if abs(s - t) > Decimal(str(p.get("tolerance", "0.01"))):
         detail = f"Components add up to {s:,.2f} but {_label(total.field_key).lower()} is {t:,.2f} (difference {t - s:,.2f})."
         refs = [total.ref()] + [x.ref() for x in parts if x]

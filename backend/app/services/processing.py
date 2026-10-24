@@ -79,7 +79,10 @@ def run_job(svc: Services, job_id: str, case_id: str, force: bool) -> None:
 
 
 def process_document(svc: Services, d: dict[str, Any]) -> None:
-    svc.db.update("documents", d["id"], {"processing_status": "processing", "processing_error": None})
+    # Wrap the initial status flip in its own transaction so the document is never
+    # left in "processing" state if the subsequent _fail_doc transaction also fails.
+    with svc.db.transaction():
+        svc.db.update("documents", d["id"], {"processing_status": "processing", "processing_error": None})
     try:
         data = svc.storage.get(d["storage_key"])
         pages = extract(data, d["mime_type"], svc.settings.ocr_enabled, svc.settings.ocr_lang)
@@ -139,7 +142,15 @@ def build_context(svc: Services, case: dict[str, Any], today: date | None = None
             (d["sha256"], d["id"], d["uploaded_at"]),
         )
         views.append(DocView(d["id"], d["doc_type"], d["original_name"], d["sha256"], d["processing_status"], loads(d["signals_json"], {}), dupes))
-    rows = svc.db.all("SELECT * FROM extracted_fields WHERE case_id = ? AND document_id IN (%s)" % ",".join("?" * len(docs)), (case["id"], *[d["id"] for d in docs])) if docs else []
+    rows = (
+        svc.db.all(
+            "SELECT * FROM extracted_fields WHERE case_id = ? AND document_id IN ({})" .format(
+                ",".join("?" * len(docs))
+            ),
+            (case["id"], *[d["id"] for d in docs]),
+        )
+        if docs else []
+    )
     fields = [
         FieldView(r["id"], r["document_id"], doc_types[r["document_id"]], r["field_key"], effective_value(r), r["corrected_value"] or r["raw_value"],
                   1.0 if r["corrected_value"] else r["confidence"], r["page_number"], loads(r["bbox_json"]), r["evidence_excerpt"], bool(r["corrected_value"]))

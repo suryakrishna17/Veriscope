@@ -6,11 +6,15 @@ export function useAsync<T>(fn: () => Promise<T>, deps: unknown[]) {
   const [error, setError] = useState<ApiError | null>(null);
   const [loading, setLoading] = useState(true);
   const seq = useRef(0);
+  // Store the latest fn in a ref so useCallback can read it without listing fn
+  // as a dependency (which would cause a new callback on every render).
+  const fnRef = useRef(fn);
+  fnRef.current = fn;  // always up-to-date; safe to call inside the callback
   const run = useCallback(async (quiet = false) => {
     const id = ++seq.current;
     if (!quiet) setLoading(true);
     try {
-      const v = await fn();
+      const v = await fnRef.current();
       if (id === seq.current) { setData(v); setError(null); }
     } catch (e) {
       if (id === seq.current) setError(e instanceof ApiError ? e : new ApiError(0, "UNKNOWN", String(e)));

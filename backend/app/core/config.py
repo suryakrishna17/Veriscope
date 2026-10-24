@@ -70,6 +70,9 @@ class Settings:
         )
         if overrides:
             s = replace(s, **overrides)  # type: ignore[arg-type]
-        if s.app_env == "prod" and s.secret_key == cls.secret_key:
-            raise RuntimeError("SECRET_KEY must be set in production")
+        if s.app_env not in {"dev", "test"} and s.secret_key == cls.secret_key:
+            raise RuntimeError(
+                "SECRET_KEY must be changed from the default in non-dev/test environments. "
+                "Set the SECRET_KEY environment variable."
+            )
         return s

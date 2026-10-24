@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import io
+import logging
 import re
 from datetime import datetime, timezone
 from typing import Any
@@ -18,6 +19,8 @@ from pypdf import PdfReader
 
 from .fields import Extracted, bbox_of, group_lines
 from .text import PageText
+
+log = logging.getLogger("veriscope.signals")
 
 EDITOR_HINTS = re.compile(r"photoshop|gimp|canva|pdf ?editor|ilovepdf|smallpdf|sejda|foxit phantom|nitro", re.I)
 
@@ -40,8 +43,10 @@ def detect_signature(pages: list[PageText]) -> Extracted:
             for w in line:
                 if w.t.lower().startswith("signature"):
                     best = (page, w)
-    if best is None or best[0].image is None:
+    if best is None:
         return Extracted("signature_present", "no", "no", 0.55, None, "No 'Signature' label found on the document.", None, "visual")
+    if best[0].image is None:
+        return Extracted("signature_present", "no", "no", 0.5, None, "Page image was not available; signature presence could not be checked visually.", None, "visual")
     page, label = best
     arr = _gray(page.image).copy()
     h, w = arr.shape
@@ -123,6 +128,7 @@ def _pdf_date(value: Any) -> datetime | None:
     try:
         return datetime(*parts, tzinfo=timezone.utc)  # type: ignore[misc]
     except ValueError:
+        log.debug("pdf_date_parse_failed", extra={"ctx": {"raw": s[:30]}})
         return None
 
 

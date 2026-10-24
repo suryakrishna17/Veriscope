@@ -111,7 +111,15 @@ class Database:
         for f in sorted(MIGRATIONS_DIR.glob("*.sql")):
             if f.stem in applied:
                 continue
-            c.executescript("BEGIN;\n" + f.read_text() + "\nCOMMIT;")
-            c.execute("INSERT INTO schema_migrations VALUES (?, ?)", (f.stem, utcnow()))
+            # executescript() always issues an implicit COMMIT before running, so
+            # the separate INSERT could execute outside any transaction if the script
+            # fails midway. Include both in the same script to keep them atomic.
+            stem_safe = f.stem.replace("'", "''")
+            c.executescript(
+                f"BEGIN;\n"
+                f"{f.read_text()}\n"
+                f"INSERT INTO schema_migrations(version, applied_at) VALUES ('{stem_safe}', datetime('now'));\n"
+                f"COMMIT;"
+            )
             done.append(f.stem)
         return done

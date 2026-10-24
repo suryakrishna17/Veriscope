@@ -32,7 +32,9 @@ def create_app(settings: Settings | None = None) -> Flask:
 
     @app.teardown_appcontext
     def _close(_: BaseException | None) -> None:
-        pass  # connections are thread-local and reused
+        # Release thread-local SQLite connections when the app context tears down
+        # so that WSGI server threads that are recycled do not hold open handles.
+        services.db.close()
 
     register_error_handlers(app)
     install_security_headers(app, settings.cors_origins)

@@ -28,11 +28,21 @@ export function CasePage({ id }: { id: string }) {
   const [running, setRunning] = useState(false);
   const [reopenOpen, setReopenOpen] = useState(false);
 
-  // Poll while checks are running.
+  // Poll while checks are running, with exponential back-off to avoid hammering
+  // the server during long OCR jobs (caps at 5 s).
   useEffect(() => {
     if (c?.status !== "processing") return;
-    const t = setInterval(() => void reload(true), 1200);
-    return () => clearInterval(t);
+    let delay = 1200;
+    let timer: ReturnType<typeof setTimeout>;
+    const poll = () => {
+      timer = setTimeout(() => {
+        void reload(true);
+        delay = Math.min(Math.round(delay * 1.5), 5000);
+        poll();
+      }, delay);
+    };
+    poll();
+    return () => clearTimeout(timer);
   }, [c?.status, reload]);
 
   useEffect(() => {

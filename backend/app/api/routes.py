@@ -124,7 +124,9 @@ def upload(case_id: str):  # type: ignore[no-untyped-def]
 def process(case_id: str):  # type: ignore[no-untyped-def]
     user = current_user()
     case = case_svc.load_case(svc(), case_id, user)
-    if "process" not in case_svc.allowed_actions(case, user) and case["status"] != "processing":
+    # allowed_actions does not include "process" when the case is already
+    # "processing", so we no longer need a special carve-out for that state.
+    if "process" not in case_svc.allowed_actions(case, user):
         raise ApiError(409 if user["role"] != "applicant" else 403, "INVALID_STATE" if user["role"] != "applicant" else "FORBIDDEN",
                        f"Checks cannot be run while the case is '{case['status']}'.")
     return jsonify(start_processing(svc(), user, case_id, force=bool(body().get("force", False)))), 202

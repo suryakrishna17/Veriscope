@@ -61,8 +61,12 @@ def render_pdf_page(data: bytes, page_index: int, scale: float) -> Image.Image:
     pdf = pdfium.PdfDocument(data)
     try:
         page = pdf[page_index]
-        img = page.render(scale=scale).to_pil().convert("RGB")
-        page.close()
+        # Close the page handle in its own finally so it is released even if
+        # render() or to_pil() raises an exception.
+        try:
+            img = page.render(scale=scale).to_pil().convert("RGB")
+        finally:
+            page.close()
         return img
     finally:
         pdf.close()
