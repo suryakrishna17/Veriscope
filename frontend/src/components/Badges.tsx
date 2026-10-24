@@ -1,8 +1,21 @@
 import type { CaseStatus, Severity, TrustLabel } from "../api/types";
 import { STATUS_LABEL } from "../lib/format";
+import { IconAlert, IconCheck, IconShield } from "./Icons";
 
 export function StatusBadge({ status }: { status: CaseStatus }) {
-  return <span className={`status status-${status}`}>{STATUS_LABEL[status]}</span>;
+  const icons: Partial<Record<CaseStatus, JSX.Element>> = {
+    approved: <IconCheck width="13" height="13" />,
+    needs_review: <IconAlert width="13" height="13" />,
+    clarification_requested: <IconAlert width="13" height="13" />,
+    rejected: <IconShield width="13" height="13" />,
+  };
+
+  return (
+    <span className={`status status-${status}`}>
+      {icons[status] && <span className="status-icon" aria-hidden>{icons[status]}</span>}
+      {STATUS_LABEL[status]}
+    </span>
+  );
 }
 
 const TRUST: Record<TrustLabel, { text: string; hint: string }> = {
@@ -16,14 +29,21 @@ export function TrustBadge({ label, simulated = false }: { label: TrustLabel; si
   return (
     <span className={`trust trust-${label.toLowerCase()}`} title={t.hint}>
       <span className="trust-dot" aria-hidden />
-      {t.text}
-      {simulated && label === "ISSUER_VERIFIED" ? " (simulated)" : ""}
+      <span>
+        {t.text}
+        {simulated && label === "ISSUER_VERIFIED" ? " (simulated)" : ""}
+      </span>
     </span>
   );
 }
 
 export function SeverityTag({ severity }: { severity: Severity }) {
-  return <span className={`sev sev-${severity}`}>{severity.charAt(0).toUpperCase() + severity.slice(1)}</span>;
+  return (
+    <span className={`sev sev-${severity}`}>
+      <span className="sev-dot" aria-hidden />
+      {severity.charAt(0).toUpperCase() + severity.slice(1)}
+    </span>
+  );
 }
 
 export function Confidence({ value }: { value: number }) {
