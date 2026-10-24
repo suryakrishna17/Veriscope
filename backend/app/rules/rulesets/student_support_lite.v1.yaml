@@ -3,6 +3,8 @@
 ruleset: student_support_lite
 version: 1.0.0
 is_provisional: true
+is_verified: false
+verification_status: ILLUSTRATIVE
 effective_date: 2024-04-01
 source_note: AICTE Approval Process Handbook (APH 2024-25 to 2026-27), Nelson Mandela Marg, New Delhi.
 

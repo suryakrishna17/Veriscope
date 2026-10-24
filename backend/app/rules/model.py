@@ -3,7 +3,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
+from enum import StrEnum
 from typing import Any
+
+
+class RuleOutcome(StrEnum):
+    PASS = "PASS"
+    FAIL = "FAIL"
+    REVIEW_REQUIRED = "REVIEW_REQUIRED"
+    NOT_APPLICABLE = "NOT_APPLICABLE"
 
 
 @dataclass(frozen=True)
@@ -76,3 +84,44 @@ class RuleResult:
     subject: str  # stable identity of *what* failed, used for idempotent fingerprints
     trust_label: str = "ANOMALY_DETECTED"
     clause_citation: str | None = None
+    outcome: str = "FAIL"  # PASS | FAIL | REVIEW_REQUIRED | NOT_APPLICABLE
+    is_verified: bool = True  # True if verified against official source (e.g. AICTE APH), False if illustrative
+
+
+@dataclass
+class RuleEvaluation:
+    rule_id: str
+    rule_version: str
+    category: str
+    severity: str
+    summary: str
+    outcome: str  # PASS | FAIL | REVIEW_REQUIRED | NOT_APPLICABLE
+    detail: str
+    evidence_refs: list[dict[str, Any]] = field(default_factory=list)
+    confidence: float = 1.0
+    clause_citation: str | None = None
+    is_verified: bool = True
+    verification_status: str = "VERIFIED_OFFICIAL"
+    next_action: str | None = None
+    subject: str = ""
+    findings: list[RuleResult] = field(default_factory=list)
+    applicable_condition: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "rule_id": self.rule_id,
+            "rule_version": self.rule_version,
+            "category": self.category,
+            "severity": self.severity,
+            "summary": self.summary,
+            "outcome": self.outcome,
+            "detail": self.detail,
+            "evidence_refs": self.evidence_refs,
+            "confidence": self.confidence,
+            "clause_citation": self.clause_citation,
+            "is_verified": self.is_verified,
+            "verification_status": self.verification_status,
+            "next_action": self.next_action,
+            "subject": self.subject,
+            "applicable_condition": self.applicable_condition,
+        }

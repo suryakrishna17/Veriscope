@@ -37,7 +37,16 @@ def _doc_label(doc_type: str) -> str:
     return doc_type.replace("_", " ").lower()
 
 
-def _result(rule: Rule, detail: str, refs: list[dict[str, Any]], confidence: float, subject: str, summary: str | None = None) -> RuleResult:
+def _result(
+    rule: Rule,
+    detail: str,
+    refs: list[dict[str, Any]],
+    confidence: float,
+    subject: str,
+    summary: str | None = None,
+    outcome: str | None = None,
+) -> RuleResult:
+    rule_outcome = outcome or rule.get("outcome_on_fail") or ("REVIEW_REQUIRED" if rule.get("review_required") or rule.get("category") == "document_signal" else "FAIL")
     return RuleResult(
         rule_id=rule["id"],
         rule_version=rule["_version"],
@@ -49,6 +58,9 @@ def _result(rule: Rule, detail: str, refs: list[dict[str, Any]], confidence: flo
         confidence=round(max(0.0, min(1.0, confidence)), 3),
         next_action=rule.get("next_action", "Review the evidence and decide."),
         subject=subject,
+        clause_citation=rule.get("clause_citation"),
+        outcome=rule_outcome,
+        is_verified=bool(rule.get("is_verified", True)),
     )
 
 
@@ -134,7 +146,7 @@ def arithmetic_sum(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[
     if any(x is None or x.value is None for x in parts):
         return
     s = sum((Decimal(x.value) for x in parts), Decimal("0"))  # type: ignore[union-attr]
-    t = Decimal(total.value)
+    t = Decimal(total.value)  # type: ignore[union-attr,arg-type]
     if abs(s - t) > Decimal(str(p.get("tolerance", "0.01"))):
         detail = f"Components add up to {s:,.2f} but {_label(total.field_key).lower()} is {t:,.2f} (difference {t - s:,.2f})."
         refs = [total.ref()] + [x.ref() for x in parts if x]
