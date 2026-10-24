@@ -26,7 +26,8 @@ export const auth = {
   onUnauthorized(fn: () => void) { onUnauthorized = fn; },
 };
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+const metaEnv = (import.meta as unknown as { env?: { VITE_API_BASE_URL?: string } }).env;
+const API_BASE = (metaEnv?.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
