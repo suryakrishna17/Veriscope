@@ -108,6 +108,10 @@ export const api = {
   analytics: () => request<AnalyticsData>("/analytics"),
   report: (caseId: string) => request<Record<string, unknown>>(`/cases/${caseId}/report`),
   reportPdf: (caseId: string) => request<Blob>(`/cases/${caseId}/report?format=pdf`),
+  auditVerify: (caseId: string) =>
+    request<{ valid: boolean; event_count: number; head_hash?: string; broken_at_seq?: number; algorithm: string }>(
+      `/cases/${caseId}/audit/verify`
+    ),
 };
 
 export function download(blob: Blob, filename: string) {

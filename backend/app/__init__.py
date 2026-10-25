@@ -36,6 +36,21 @@ def create_app(settings: Settings | None = None) -> Flask:
         from werkzeug.middleware.proxy_fix import ProxyFix
         app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)  # type: ignore[method-assign]
 
+    _last_reap_sweep = 0.0
+
+    @app.before_request
+    def _periodic_reap_sweep() -> None:
+        nonlocal _last_reap_sweep
+        import time
+        now = time.time()
+        if now - _last_reap_sweep > 60.0:
+            _last_reap_sweep = now
+            try:
+                from .services.processing import reap_stale_jobs
+                reap_stale_jobs(services)
+            except Exception:
+                pass
+
     @app.before_request
     def _correlation() -> None:
         incoming = request.headers.get("X-Request-ID", "")

@@ -218,12 +218,28 @@ def duplicate_hash(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[
         if not d.duplicates:
             continue
         where = "; ".join(
-            f"{x.get('original_name', 'document')} as {_doc_label(x.get('doc_type', ''))} in case {x.get('case_ref', 'unknown')}"
+            f"{x.get('original_name', 'document')} as {_doc_label(x.get('doc_type', ''))}" +
+            (f" in case {x.get('case_ref', 'unknown')}" if x.get("case_ref") == ctx.case_ref else " in a previously submitted application")
             for x in d.duplicates[:3]
         )
         detail = f"'{d.original_name}' has the same SHA-256 as: {where}. Identical files can be legitimate; confirm the intended document was submitted."
         refs = [{"document_id": d.id, "doc_type": d.doc_type, "page": 1, "excerpt": f"sha256 {d.sha256[:16]}…"}]
         yield _result(rule, detail, refs, 1.0, d.id)
+
+
+@operator("hidden_text")
+def hidden_text(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[RuleResult]:
+    """Detects adversarial low-contrast or hidden text in document vector streams."""
+    for d in ctx.docs:
+        q = d.signals.get("quality") or {}
+        if q.get("hidden_text_detected"):
+            count = q.get("hidden_word_count", 1)
+            refs = [{"document_id": d.id, "doc_type": d.doc_type, "page": 1, "excerpt": f"{count} hidden word(s) detected"}]
+            detail = (
+                f"'{d.original_name}' contains {count} hidden or zero-contrast word(s) masked from visual display. "
+                f"Possible adversarial injection or extraction evasion."
+            )
+            yield _result(rule, detail, refs, 0.95, d.id)
 
 
 @operator("metadata_notes")

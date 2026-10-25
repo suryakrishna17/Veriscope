@@ -311,8 +311,9 @@ def list_cases(svc: Services, user: dict[str, Any], status: str | None, q: str |
             where.append(f"status IN ({','.join('?' * len(statuses))})")
             params += statuses
     if q:
-        where.append("(case_ref LIKE ? OR applicant_ref LIKE ? OR institution_ref LIKE ?)")
-        params += [f"%{q}%"] * 3
+        safe_q = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        where.append("(case_ref LIKE ? ESCAPE '\\' OR applicant_ref LIKE ? ESCAPE '\\' OR institution_ref LIKE ? ESCAPE '\\')")
+        params += [f"%{safe_q}%"] * 3
     order = {"priority": "triage_priority DESC, updated_at DESC", "updated": "updated_at DESC", "created": "created_at DESC"}.get(sort, "triage_priority DESC, updated_at DESC")
     total = svc.db.scalar(f"SELECT COUNT(*) FROM cases WHERE {' AND '.join(where)}", tuple(params))
     rows = svc.db.all(f"SELECT * FROM cases WHERE {' AND '.join(where)} ORDER BY {order} LIMIT ? OFFSET ?", (*params, page_size, (page - 1) * page_size))
@@ -335,19 +336,26 @@ def upload_document(svc: Services, user: dict[str, Any], case_id: str, doc_type:
         "SELECT d.id, d.doc_type, d.original_name, c.case_ref FROM documents d JOIN cases c ON c.id = d.case_id WHERE d.sha256 = ?",
         (vf.sha256,),
     )
-    with svc.db.transaction():
-        svc.db.insert(
-            "documents",
-            {
-                "id": doc_id, "case_id": case["id"], "doc_type": doc_type, "original_name": vf.safe_name,
-                "mime_type": vf.mime_type, "size_bytes": len(vf.data), "sha256": vf.sha256, "storage_key": key,
-                "uploaded_at": utcnow(), "uploaded_by": user["id"], "page_count": vf.page_count,
-                "processing_status": "pending", "trust_label": "NOT_VERIFIED",
-            },
-        )
-        svc.db.update("cases", case["id"], {"updated_at": utcnow()})
-        audit.record(svc.db, case["id"], user, "document.uploaded", "document", doc_id,
-                     {"doc_type": doc_type, "sha256": vf.sha256, "size_bytes": len(vf.data), "pages": vf.page_count, "duplicate_of": [d["id"] for d in dupes]})
+    try:
+        with svc.db.transaction():
+            svc.db.insert(
+                "documents",
+                {
+                    "id": doc_id, "case_id": case["id"], "doc_type": doc_type, "original_name": vf.safe_name,
+                    "mime_type": vf.mime_type, "size_bytes": len(vf.data), "sha256": vf.sha256, "storage_key": key,
+                    "uploaded_at": utcnow(), "uploaded_by": user["id"], "page_count": vf.page_count,
+                    "processing_status": "pending", "trust_label": "NOT_VERIFIED",
+                },
+            )
+            svc.db.update("cases", case["id"], {"updated_at": utcnow()})
+            audit.record(svc.db, case["id"], user, "document.uploaded", "document", doc_id,
+                         {"doc_type": doc_type, "sha256": vf.sha256, "size_bytes": len(vf.data), "pages": vf.page_count, "duplicate_of": [d["id"] for d in dupes]})
+    except Exception:
+        try:
+            svc.storage.delete(key)
+        except Exception:
+            pass
+        raise
     return {"document_id": doc_id, "processing_status": "pending", "sha256": vf.sha256, "duplicate": bool(dupes)}
 
 

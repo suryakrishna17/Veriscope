@@ -7,7 +7,7 @@ from flask import Blueprint, Response, current_app, jsonify, request
 
 from ..container import Services
 from ..core.errors import ApiError, bad_request, not_found
-from ..core.security import current_user, issue_token, rate_limit, require_auth, verify_password
+from ..core.security import current_user, hash_password, issue_token, rate_limit, require_auth, verify_password
 from ..processing.fields import DOC_TYPES
 from ..services import analytics as analytics_svc
 from ..services import cases as case_svc
@@ -15,6 +15,8 @@ from ..services import digilocker as digilocker_svc
 from ..services import reports
 from ..services.audit import compute_merkle_root, list_events, verify_audit_chain
 from ..services.processing import start_processing
+
+DUMMY_PASSWORD_HASH = hash_password("dummy-auth-timing-guard-string")
 
 api = Blueprint("api_v1", __name__, url_prefix="/api/v1")
 
@@ -47,8 +49,11 @@ def _int(name: str, default: int, lo: int, hi: int) -> int:
 def login():  # type: ignore[no-untyped-def]
     b = body()
     email = str(b.get("email", "")).strip().lower()
+    pw = str(b.get("password", ""))
     user = svc().db.one("SELECT * FROM users WHERE email = ?", (email,))
-    if user is None or not verify_password(user["password_hash"], str(b.get("password", ""))):
+    hash_to_verify = user["password_hash"] if user else DUMMY_PASSWORD_HASH
+    valid = verify_password(hash_to_verify, pw)
+    if user is None or not valid:
         raise ApiError(401, "INVALID_CREDENTIALS", "Email or password is incorrect.")
     token = issue_token(user, svc().settings.secret_key, svc().settings.jwt_ttl_minutes)
     return jsonify({"access_token": token, "token_type": "bearer", "user": {k: user[k] for k in ("id", "email", "name", "role")}})
@@ -179,6 +184,7 @@ def update_finding(finding_id: str):  # type: ignore[no-untyped-def]
 
 
 @api.post("/cases/<case_id>/decisions")
+@rate_limit("cases_decide", 20)
 @require_auth("reviewer", "admin")
 def decide(case_id: str):  # type: ignore[no-untyped-def]
     return jsonify(case_svc.decide(svc(), current_user(), case_id, body())), 201
@@ -264,4 +270,4 @@ def healthz():  # type: ignore[no-untyped-def]
 def readyz():  # type: ignore[no-untyped-def]
     s = svc()
     s.db.scalar("SELECT 1")
-    return jsonify({"status": "ready", "ruleset": s.ruleset.label, "ocr": s.settings.ocr_enabled, "ai": s.llm.name})
+    return jsonify({"status": "ready"})

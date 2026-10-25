@@ -108,7 +108,7 @@ def rate_limit(bucket: str, limit: int, window_s: int = 60) -> Callable[[F], F]:
         @wraps(fn)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             svc = current_app.extensions["veriscope"]
-            if svc.settings.app_env != "test":
+            if svc.settings.rate_limit_enabled and svc.settings.app_env != "test":
                 svc.rate_limiter.check(f"{bucket}:{request.remote_addr}", limit, window_s)
             return fn(*args, **kwargs)
 
@@ -142,6 +142,12 @@ def install_security_headers(app: Flask, cors_origins: tuple[str, ...]) -> None:
         resp.headers.setdefault("X-Content-Type-Options", "nosniff")
         resp.headers.setdefault("X-Frame-Options", "DENY")
         resp.headers.setdefault("Referrer-Policy", "no-referrer")
+        try:
+            veriscope_svc = current_app.extensions.get("veriscope")
+            if veriscope_svc and veriscope_svc.settings.app_env == "prod":
+                resp.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+        except Exception:
+            pass
         resp.headers.setdefault(
             "Content-Security-Policy",
             "default-src 'self'; img-src 'self' blob: data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "

@@ -539,3 +539,20 @@ rules:
       min_confidence: 80
       flag_any_ocr: true
     next_action: "Compare the extracted details against the original scan and correct any OCR misreadings."
+
+  - id: EOA-SIG-003
+    category: document_signal
+    severity: high
+    summary: Hidden or zero-contrast text detected in uploaded document vector streams
+    description: "Hidden or zero-contrast text detected in uploaded document vector streams. Adversarial evasion or automated extraction manipulation signal under AICTE APH 2024-27 Chapter II & Chapter VII."
+    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.3 & Chapter VII"
+    applicable_condition: "All uploaded digital PDF documents."
+    applicability: "All uploaded digital PDF documents."
+    limitations: "Visual signal only; intentionally styled white text or watermarks trigger manual verification."
+    is_verified: true
+    verification_status: VERIFIED_OFFICIAL
+    outcome_on_pass: PASS
+    outcome_on_fail: REVIEW_REQUIRED
+    operator: hidden_text
+    params: {}
+    next_action: "Inspect the hidden words on the document page to confirm whether content was intentionally masked or represents benign background styling."

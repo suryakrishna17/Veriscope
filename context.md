@@ -2,7 +2,7 @@
 
 > **Document Status**: Authoritative Project Master Reference  
 > **Repository**: [https://github.com/suryakrishna17/Veriscope.git](https://github.com/suryakrishna17/Veriscope.git)  
-> **Active Working Tree**: `main` (HEAD: `556c375` — *"feat(security): implement comprehensive audit fix plan (F1-F9)"*, with Render container startup fix and 147/147 test suite verification)  
+> **Active Working Tree**: `main` (HEAD: `556c375` — *"feat(security): implement comprehensive audit fix plan (F1-F9)"*, with Render container startup fix and 148/148 test suite verification)  
 > **Target Production Branch**: `main` (Latest Remote Tip: `871b3f6`)  
 > **Author**: VeriScope Core Engineering Team  
 > **Target Audience**: Core Contributors, Regulatory Domain Experts, SIH Evaluators, and Incoming Engineers  
@@ -30,7 +30,7 @@
 4. [Step 2 Deep Dive: AICTE EoA Rule Catalogue](#4-step-2-deep-dive-aicte-eoa-rule-catalogue)
    - [4.1 Purpose of a Structured Rule Catalogue](#41-purpose-of-a-structured-rule-catalogue)
    - [4.2 Catalogue YAML Schema & Field Semantics](#42-catalogue-yaml-schema--field-semantics)
-   - [4.3 Exhaustive Rule Inventory (All 24 Rules Analyzed)](#43-exhaustive-rule-inventory-all-24-rules-analyzed)
+   - [4.3 Exhaustive Rule Inventory (All 24 Rules Analyzed)](#43-exhaustive-rule-inventory-all-25-rules-analyzed)
    - [4.4 Statutory Traceability & Historical Corrections](#44-statutory-traceability--historical-corrections)
    - [4.5 Catalogue Documentation Artifacts](#45-catalogue-documentation-artifacts)
    - [4.6 Step 2 Verification & Test Results](#46-step-2-verification--test-results)
@@ -98,7 +98,7 @@ This document serves as the single source of truth for **VeriScope**, an evidenc
 * **Active Working Branch**: `main`
 * **HEAD Commit**: `871b3f6` (*"fix(ocr): add hermetic test fallback for scanned fixtures when tesseract is uninstalled and update LIMITATIONS.md"*, Author: `suryakrishna17`).
 * **Merged Milestones**:
-  - **Step 2 (PR #1)**: [PR #1](https://github.com/suryakrishna17/Veriscope/pull/1) — **MERGED** via commit `7488b34` (24-rule catalogue `aicte_eoa_chapter2.v1.yaml`).
+  - **Step 2 (PR #1)**: [PR #1](https://github.com/suryakrishna17/Veriscope/pull/1) — **MERGED** via commit `7488b34` (25-rule catalogue `aicte_eoa_chapter2.v1.yaml`).
   - **Step 3A (PR #2)**: [PR #2](https://github.com/suryakrishna17/Veriscope/pull/2) — **MERGED** via commit `9bd893d` (4-outcome model and `evaluate_ruleset()`).
   - **Step 3B (Commit `9142deb`)**: **MERGED** into `main` (dynamic routing, migration `002`, Groq vision OCR engine, and `test_eoa_workflow.py`).
   - **Step 3C (Commit `bfce402`)**: **MERGED** into `main` (Reviewer desk, 4-outcome summary card, dynamic upload slots, and `test_step3c_e2e.mjs`).
@@ -113,9 +113,9 @@ This document serves as the single source of truth for **VeriScope**, an evidenc
 ### Critical Historical Reconciliation
 
 Code inspection confirms the exact current Git state:
-1. **Step 2 is Merged**: The 24-rule YAML catalogue and catalogue markdown documentation exist on `main` (commit `7488b34` via PR #1).
+1. **Step 2 is Merged**: The 25-rule YAML catalogue and catalogue markdown documentation exist on `main` (commit `7488b34` via PR #1).
 2. **Step 3A is Merged**: The 4-outcome evaluation model (`PASS`, `FAIL`, `REVIEW_REQUIRED`, `NOT_APPLICABLE`), typed dataclasses (`RuleEvaluation`, `RuleResult`), and helper methods are fully merged into `main` (commit `9bd893d` via PR #2).
-3. **Step 3B & Step 3C are Merged**: The backend review integration and frontend reviewer desk are fully operational on `main` (commits `9142deb` and `bfce402`). `AICTE_EOA` applications can be selected, multi-document uploaded, evaluated against 24 rules, and deep-linked to evidence pages.
+3. **Step 3B & Step 3C are Merged**: The backend review integration and frontend reviewer desk are fully operational on `main` (commits `9142deb` and `bfce402`). `AICTE_EOA` applications can be selected, multi-document uploaded, evaluated against 25 rules, and deep-linked to evidence pages.
 4. **Step 4 Security Hardening is Merged**: Seed protection, ProxyFix middleware, and production 32-byte secret validation are live on `main` via PR #3 (commit `d6c9e18`).
 5. **Analytics & Land Norm Operators are Merged**: Real-time SLA telemetry, systemic AICTE deficiency ranking, Three-Tier Trust distribution, and Appendix 4 Table 4.1 land category operators are active on `main` (commits `2a9fdeb` and `0329a2b`).
 
@@ -216,7 +216,7 @@ The repository currently contains two distinct operational workflows:
 | **Authority** | Prototype student support ruleset | AICTE Act, 1987 & APH 2024–27 Chapter II |
 | **Verification Status** | `ILLUSTRATIVE` (`is_verified: false`) | `VERIFIED_OFFICIAL` (`is_verified: true`) |
 | **Document Types** | 3 documents (`APPLICATION_FORM`, `INSTITUTION_AUTHORIZATION_LETTER`, `ENROLMENT_OR_IDENTITY_PROOF`) | 6 documents (`EOA_APPLICATION_FORM`, `UNIVERSITY_AFFILIATION_ORDER`, `FIRE_SAFETY_CERTIFICATE`, `BUILDING_SAFETY_CERTIFICATE`, `LAND_DOCUMENT_AND_USE_CERTIFICATE`, `OCCUPANCY_CERTIFICATE`) |
-| **Ruleset File** | `backend/app/rules/rulesets/student_support_lite.v1.yaml` (17 rules) | `backend/app/rules/rulesets/aicte_eoa_chapter2.v1.yaml` (24 rules) |
+| **Ruleset File** | `backend/app/rules/rulesets/student_support_lite.v1.yaml` (17 rules) | `backend/app/rules/rulesets/aicte_eoa_chapter2.v1.yaml` (25 rules) |
 | **Outcome Model** | Binary anomaly generation (`RuleResult` active findings) | Four-valued outcome model (`PASS`, `FAIL`, `REVIEW_REQUIRED`, `NOT_APPLICABLE`) via `RuleEvaluation` |
 | **Integration Status** | Fully connected end-to-end (intake, DB, UI) | Rules engine complete (Step 2 & 3A); pipeline & UI connection pending (Step 3B & 3C) |
 
@@ -379,7 +379,7 @@ Veriscope/
 │   │   │   ├── model.py               # RuleEvaluation, RuleResult, CaseContext dataclasses
 │   │   │   ├── operators.py           # Pure rule evaluation operators (regex, date, match)
 │   │   │   └── rulesets/
-│   │   │       ├── aicte_eoa_chapter2.v1.yaml  # Official AICTE EoA rule catalogue (24 rules)
+│   │   │       ├── aicte_eoa_chapter2.v1.yaml  # Official AICTE EoA rule catalogue (25 rules)
 │   │   │       └── student_support_lite.v1.yaml # Baseline prototype ruleset (17 rules)
 │   │   ├── services/
 │   │   │   ├── audit.py               # Audit trail event recording
@@ -486,7 +486,7 @@ sequenceDiagram
         Svc->>Svc: Extract native text / OCR & bounding boxes
         Svc->>Svc: build_context() -> CaseContext
         Svc->>Engine: evaluate_ruleset(ruleset, CaseContext)
-        Note over Engine: Pure evaluation of 24 rules (No I/O)
+        Note over Engine: Pure evaluation of 25 rules (No I/O)
         Engine-->>Svc: list[RuleEvaluation] (PASS/FAIL/REVIEW/NOT_APP)
         Svc->>DB: Upsert findings with citations & fingerprint
         Svc->>DB: Compute triage score & transition to "needs_review"
@@ -620,7 +620,7 @@ During the Step 2 audit of the AICTE Approval Process Handbook, the engineering 
 ### 4.5 Catalogue Documentation Artifacts
 
 Step 2 produced two primary documentation artifacts:
-1. [`docs/AICTE_EOA_RULE_CATALOGUE.md`](docs/AICTE_EOA_RULE_CATALOGUE.md): The exhaustive regulatory reference manual detailing all 24 rules, statutory authorities, complex numerical norms register (land acreage, carpet areas, FSR, FDRs), and reviewer remediation actions.
+1. [`docs/AICTE_EOA_RULE_CATALOGUE.md`](docs/AICTE_EOA_RULE_CATALOGUE.md): The exhaustive regulatory reference manual detailing all 25 rules, statutory authorities, complex numerical norms register (land acreage, carpet areas, FSR, FDRs), and reviewer remediation actions.
 2. [`docs/RULEBOOK.md`](docs/RULEBOOK.md): The technical developer guide detailing YAML syntax, schema fields, operator mappings, and instructions for authoring new rules.
 
 ---
@@ -630,7 +630,7 @@ Step 2 produced two primary documentation artifacts:
 The catalogue was verified through a dedicated test suite in [`backend/tests/test_eoa_rules.py`](backend/tests/test_eoa_rules.py):
 - **Metadata Tests (`EoaRulesetMetadataTests`)**: Asserts ruleset loader loads the YAML file, calculates a valid SHA-256 checksum, validates that all 24 rule IDs are unique, and verifies that 100% of rules possess valid `clause_citation`, `applicability`, `limitations`, and `next_action` fields.
 - **Trust Language Tests**: Scans the YAML text and asserts zero forbidden verdict terms (`forged`, `fraudulent`, `counterfeit`, `fake`, `authentic`) appear in user-facing summaries.
-- **Evaluator Unit Tests (`EoaRuleEvaluationTests`)**: Executes isolated unit tests for all 24 rules against clean and failing `CaseContext` fixtures, verifying date boundaries (equal date boundary passes) and name similarity thresholds (88 boundary pass/fail).
+- **Evaluator Unit Tests (`EoaRuleEvaluationTests`)**: Executes isolated unit tests for all 25 rules against clean and failing `CaseContext` fixtures, verifying date boundaries (equal date boundary passes) and name similarity thresholds (88 boundary pass/fail).
 
 ---
 
@@ -1334,7 +1334,7 @@ PROJECT ROADMAP MILESTONES:
 ---
 
 ### Step 2: AICTE EoA Rule Catalogue
-* **Objective**: Research, author, and validate an official 24-rule catalogue based on AICTE APH 2024-27 Chapter II.
+* **Objective**: Research, author, and validate an official 25-rule catalogue based on AICTE APH 2024-27 Chapter II.
 * **Delivered**: `aicte_eoa_chapter2.v1.yaml`, `AICTE_EOA_RULE_CATALOGUE.md`, `RULEBOOK.md`, `test_eoa_rules.py` (34 tests).
 * **Status**: **COMPLETED AND VERIFIED** (Merged into `main` via PR #1, commit `7488b34`).
 
@@ -1465,7 +1465,7 @@ To ensure seamless collaboration across teammates and prevent accidental regress
 | **Sequential Hash-Chained Audit Trail (F7)** | **COMPLETED & VERIFIED ON MAIN** | Migration `003_audit_chain.sql`; SHA-256 sequential hashing (`seq`, `prev_hash`, `event_hash`); verification via `/audit/verify`. Tested in `test_audit_chain.py`. | None — verified on `main`. | Done |
 | **Job Heartbeat & Stale Task Reaper (F8)** | **COMPLETED & VERIFIED ON MAIN** | Migration `004_job_heartbeat.sql`; `reap_stale_jobs()` sweeps tasks idle >300s. Tested in `test_reaper.py`. | None — verified on `main`. | Done |
 | **Render Container Startup Resilience (F9)** | **COMPLETED & VERIFIED ON MAIN** | Safe demo password fallback in `seed.py`, `render.yaml` CORS & demo seed configuration, `Dockerfile` lockfile preservation, PostgreSQL schema idempotency. | None — operational on Render. | Done |
-| **Test Suite Health** | **COMPLETED & VERIFIED ON MAIN** | 147 tests across all 19 test modules (`test_analytics.py`, `test_api.py`, `test_audit_chain.py`, `test_digilocker_service.py`, `test_empty_dossier_rules.py`, `test_eoa_rules.py`, `test_eoa_workflow.py`, `test_guardrails.py`, `test_hardened_gates.py`, `test_issuer.py`, `test_issuer_integrity.py`, `test_merkle_audit.py`, `test_normalize.py`, `test_processing_bounds.py`, `test_reaper.py`, `test_rules.py`, `test_rules_fail_closed.py`, `test_security_guards.py`, `test_workers.py`). | None — 147/147 passing (100% green), 0 ruff lint errors, 0 type errors. | Done |
+| **Test Suite Health** | **COMPLETED & VERIFIED ON MAIN** | 148 tests across all 19 test modules (`test_analytics.py`, `test_api.py`, `test_audit_chain.py`, `test_digilocker_service.py`, `test_empty_dossier_rules.py`, `test_eoa_rules.py`, `test_eoa_workflow.py`, `test_guardrails.py`, `test_hardened_gates.py`, `test_issuer.py`, `test_issuer_integrity.py`, `test_merkle_audit.py`, `test_normalize.py`, `test_processing_bounds.py`, `test_reaper.py`, `test_rules.py`, `test_rules_fail_closed.py`, `test_security_guards.py`, `test_workers.py`). | None — 148/148 passing (100% green), 0 ruff lint errors, 0 type errors. | Done |
 
 ---
 

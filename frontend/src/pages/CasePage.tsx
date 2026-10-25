@@ -274,7 +274,7 @@ export function CasePage({ id }: { id: string }) {
                   onChanged={() => void reload(true)}
                 />
               ) : (
-                <AuditTimeline events={c.audit} />
+                <AuditTimeline events={c.audit} caseId={c.id} />
               )}
             </div>
           </section>

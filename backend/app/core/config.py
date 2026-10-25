@@ -36,7 +36,8 @@ class Settings:
     groq_ocr_enabled: bool = False
     issuer_verifier: str = "null"  # null | mock
     digilocker_sandbox: bool = False
-    cors_origins: tuple[str, ...] = ("http://localhost:5173", "https://*.vercel.app", "*")
+    rate_limit_enabled: bool = True
+    cors_origins: tuple[str, ...] = ("http://localhost:5173", "https://*.vercel.app")
     log_level: str = "INFO"
     sync_jobs: bool = False
     jwt_ttl_minutes: int = 480
@@ -92,6 +93,7 @@ class Settings:
             groq_ocr_enabled=_bool(env.get("GROQ_OCR_ENABLED"), provider == "groq" or bool(groq_key or api_key)),
             issuer_verifier=env.get("ISSUER_VERIFIER", cls.issuer_verifier).lower(),
             digilocker_sandbox=_bool(env.get("DIGILOCKER_SANDBOX"), cls.digilocker_sandbox),
+            rate_limit_enabled=_bool(env.get("RATE_LIMIT_ENABLED"), cls.rate_limit_enabled),
             cors_origins=tuple(
                 o.strip() for o in env.get("CORS_ORIGINS", ",".join(cls.cors_origins)).split(",") if o.strip()
             ),
@@ -103,6 +105,9 @@ class Settings:
         if overrides:
             s = replace(s, **overrides)  # type: ignore[arg-type]
         if s.app_env not in {"dev", "test"}:
+            # Strip wildcard CORS in production
+            if "*" in s.cors_origins:
+                s = replace(s, cors_origins=tuple(o for o in s.cors_origins if o != "*"))
             if s.secret_key == cls.secret_key:
                 raise RuntimeError(
                     "SECRET_KEY must be changed from the default in non-dev/test environments. "

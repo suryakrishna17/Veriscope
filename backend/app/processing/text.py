@@ -180,20 +180,7 @@ def ocr_image(img: Image.Image, lang: str) -> list[Word]:
         groq_words = groq_ocr_image(img)
         if groq_words is not None:
             return groq_words
-        if os.environ.get("APP_ENV") == "test" or os.environ.get("FLASK_ENV") == "test":
-            w, h = gray.size
-            if w > 400 and h > 400:
-                mock_text = [
-                    ("Northstar", 0.3, 0.08), ("Technical", 0.45, 0.08), ("Institute", 0.6, 0.08),
-                    ("Certificate", 0.35, 0.11), ("of", 0.48, 0.11), ("Enrolment", 0.52, 0.11),
-                    ("Student", 0.09, 0.17), ("Name:", 0.17, 0.17), ("Priya", 0.39, 0.17), ("Nair", 0.46, 0.17),
-                    ("Enrolment", 0.09, 0.20), ("Number:", 0.19, 0.20), ("NTI-2024-ECE-0211", 0.39, 0.20),
-                    ("Institution:", 0.09, 0.23), ("Northstar", 0.39, 0.23), ("Technical", 0.50, 0.23), ("Institute", 0.61, 0.23),
-                    ("Course:", 0.09, 0.26), ("B.Tech", 0.39, 0.26), ("Electronics", 0.47, 0.26),
-                    ("Date", 0.09, 0.29), ("of", 0.14, 0.29), ("Enrolment:", 0.17, 0.29), ("01-08-2024", 0.39, 0.29),
-                    ("Issue", 0.09, 0.32), ("Date:", 0.15, 0.32), ("15-09-2025", 0.39, 0.32),
-                ]
-                return [Word(t, x, y, x + 0.06, y + 0.02, 92.0) for t, x, y in mock_text]
+
         raise OcrUnavailable(str(e)) from e
 
 

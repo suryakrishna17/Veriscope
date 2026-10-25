@@ -34,7 +34,7 @@ class EoaWorkflowIntegrationTests(AppTestCase):
         self.assertEqual(meta["name"], "aicte_eoa_chapter2")
         self.assertEqual(meta["version"], "1.0.0")
         self.assertIn("Approval Process Handbook", meta["source_note"])
-        self.assertEqual(len(meta["rules"]), 24)
+        self.assertEqual(len(meta["rules"]), 25)
         for rule in meta["rules"]:
             self.assertIsNotNone(rule.get("clause_citation"), f"Rule {rule['id']} missing statutory citation")
 
@@ -178,7 +178,7 @@ class EoaWorkflowIntegrationTests(AppTestCase):
 
         eval_sum = detail.get("evaluation_summary")
         self.assertIsNotNone(eval_sum)
-        self.assertEqual(eval_sum["total"], 24)
+        self.assertEqual(eval_sum["total"], 25)
         self.assertEqual(
             eval_sum["total"],
             eval_sum["pass"] + eval_sum["fail"] + eval_sum["review_required"] + eval_sum["not_applicable"],
@@ -246,7 +246,7 @@ class EoaWorkflowIntegrationTests(AppTestCase):
         empty_ctx = CaseContext(case_id="empty-1", case_ref="VS-EMPTY", today=date(2024, 6, 1), docs=[], fields=[])
 
         evaluations = evaluate_ruleset(ruleset, empty_ctx)
-        self.assertEqual(len(evaluations), 24)
+        self.assertEqual(len(evaluations), 25)
 
         # Verify that outcomes are properly assigned
         outcomes = {e.rule_id: e.outcome for e in evaluations}

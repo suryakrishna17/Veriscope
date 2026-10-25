@@ -27,7 +27,7 @@ class EmptyDossierRegressionTests(unittest.TestCase):
         outcomes = {e.rule_id: e.outcome for e in evaluations}
 
         # Must evaluate all 24 rules
-        self.assertEqual(len(evaluations), 24)
+        self.assertEqual(len(evaluations), 25)
 
         # Mandatory document completeness rules must FAIL
         self.assertEqual(outcomes["EOA-CMP-001"], RuleOutcome.FAIL.value)

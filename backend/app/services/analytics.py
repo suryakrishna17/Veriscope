@@ -34,7 +34,7 @@ def get_analytics_summary(svc: Services) -> dict[str, Any]:
            FROM findings
            WHERE is_current = 1 AND status = 'open'
            GROUP BY rule_id, summary, category, severity, clause_citation
-           ORDER BY violation_count DESC, severity ASC
+           ORDER BY violation_count DESC, CASE severity WHEN 'high' THEN 0 WHEN 'medium' THEN 1 WHEN 'low' THEN 2 ELSE 3 END ASC
            LIMIT 10"""
     )
     top_deficiencies = [

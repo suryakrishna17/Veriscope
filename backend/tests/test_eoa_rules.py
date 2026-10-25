@@ -317,7 +317,7 @@ class EoaFoundationTests(unittest.TestCase):
         """When clean documents and values are provided, all 24 rules evaluate to PASS."""
         ctx = build_ctx()
         evaluations = evaluate_ruleset(RS, ctx)
-        self.assertEqual(len(evaluations), 24)
+        self.assertEqual(len(evaluations), 25)
 
         for ev in evaluations:
             self.assertEqual(ev.outcome, RuleOutcome.PASS.value, f"Rule {ev.rule_id} did not pass: {ev.detail}")
@@ -413,7 +413,7 @@ class EoaFoundationTests(unittest.TestCase):
     def test_verified_official_vs_illustrative_ruleset_distinction(self) -> None:
         """Ruleset loader cleanly distinguishes verified official AICTE rules from illustrative prototypes."""
         self.assertTrue(RS.is_provisional)
-        self.assertEqual(len(RS.verified_rules), 24)
+        self.assertEqual(len(RS.verified_rules), 25)
         self.assertEqual(len(RS.illustrative_rules), 0)
 
         for r in RS.verified_rules:
@@ -443,7 +443,31 @@ class EoaFoundationTests(unittest.TestCase):
         self.assertIn("compliance", by_cat)
         self.assertIn("consistency", by_cat)
         self.assertIn("document_signal", by_cat)
-        self.assertEqual(sum(len(v) for v in by_cat.values()), 24)
+        self.assertEqual(sum(len(v) for v in by_cat.values()), 25)
+
+    def test_eoa_sig_003_hidden_text_detection(self) -> None:
+        """EOA-SIG-003 triggers high-severity REVIEW_REQUIRED when hidden_text_detected is true."""
+        clean_ctx = build_ctx()
+        evals_clean = evaluate_ruleset(RS, clean_ctx)
+        sig003_clean = next(e for e in evals_clean if e.rule_id == "EOA-SIG-003")
+        self.assertEqual(sig003_clean.outcome, RuleOutcome.PASS.value)
+
+        # Context with hidden text signal
+        doc_hidden = DocView(
+            id="doc-hidden",
+            doc_type="EOA_APPLICATION_FORM",
+            original_name="app_form.pdf",
+            sha256="abc",
+            processing_status="processed",
+            signals={"quality": {"hidden_text_detected": True, "hidden_word_count": 3}},
+        )
+        hidden_ctx = build_ctx()
+        hidden_ctx.docs = [doc_hidden]
+        evals_hidden = evaluate_ruleset(RS, hidden_ctx)
+        sig003_flagged = next(e for e in evals_hidden if e.rule_id == "EOA-SIG-003")
+        self.assertEqual(sig003_flagged.outcome, RuleOutcome.REVIEW_REQUIRED.value)
+        self.assertEqual(sig003_flagged.severity, "high")
+        self.assertIn("hidden or zero-contrast", sig003_flagged.detail)
 
     def test_backward_compatibility_evaluate_findings_only(self) -> None:
         """Calling evaluate() returns findings for non-passing rules while returning empty list on clean context."""
