@@ -79,14 +79,22 @@ def required_doc_types(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Itera
 
 @operator("required_fields")
 def required_fields(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[RuleResult]:
+    names = ", ".join(_label(k) for k in p["fields"])
     if not ctx.docs_of(p["doc_type"]):
+        yield _result(
+            rule,
+            f"Required document {_doc_label(p['doc_type'])} was not uploaded; mandatory fields ({names}) cannot be verified. {NO_EVIDENCE}",
+            [],
+            1.0,
+            "|".join(p["fields"]),
+        )
         return
     missing = [k for k in p["fields"] if ctx.field(p["doc_type"], k) is None]
     if missing:
-        names = ", ".join(_label(k) for k in missing)
+        missing_names = ", ".join(_label(k) for k in missing)
         yield _result(
             rule,
-            f"Not found on the {_doc_label(p['doc_type'])}: {names}. {NO_EVIDENCE} OCR may also have missed it; check the page.",
+            f"Not found on the {_doc_label(p['doc_type'])}: {missing_names}. {NO_EVIDENCE} OCR may also have missed it; check the page.",
             _doc_ref(ctx, p["doc_type"]),
             0.8,
             "|".join(missing),
@@ -96,6 +104,13 @@ def required_fields(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator
 @operator("field_equals")
 def field_equals(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[RuleResult]:
     if not ctx.docs_of(p["doc_type"]):
+        yield _result(
+            rule,
+            f"Required document {_doc_label(p['doc_type'])} was not uploaded; {_label(p['field'])} cannot be confirmed. {NO_EVIDENCE}",
+            [],
+            1.0,
+            p["field"],
+        )
         return
     f = ctx.field(p["doc_type"], p["field"])
     if f is None:
@@ -287,4 +302,3 @@ def built_up_area_norm(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Itera
             yield _result(rule, detail, refs, area_field.confidence, "built_up_area_norm")
     except Exception:
         return
-

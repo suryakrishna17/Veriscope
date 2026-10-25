@@ -1453,7 +1453,8 @@ To ensure seamless collaboration across teammates and prevent accidental regress
 | **PostgreSQL Dual-Mode Migration** | **COMPLETED & VERIFIED ON MAIN** | `db.py` dual engine, `postgresql_schema.sql` with PL/pgSQL immutable triggers, auto-dialect translation. | None — operational on `main`. | Done |
 | **Distributed Task Queue (Celery + Redis)** | **COMPLETED & VERIFIED ON MAIN** | `celery_app.py`, `tasks.py`, `jobs.py` distributed dispatch with thread fallback, `test_workers.py`. | None — verified on `main`. | Done |
 | **DigiLocker DPI Interactive Gateway** | **COMPLETED & VERIFIED ON MAIN** | `digilocker.py` sandbox certificates & pull endpoint, `Uploader.tsx` 1-click pull, `test_digilocker_service.py`. | None — operational on `main`. | Done |
-| **Test Suite Health** | **COMPLETED & VERIFIED ON MAIN** | 125 tests across all 11 test modules (`test_api.py`, `test_guardrails.py`, `test_eoa_rules.py`, `test_rules.py`, `test_workers.py`, `test_digilocker_service.py`, `test_analytics.py`, `test_merkle_audit.py`, `test_issuer.py`, `test_normalize.py`, `test_security_guards.py`). | None — 125/125 passing with 0 lint errors and 0 type errors. | Done |
+| **P0 Rules Missing-Evidence Safeguard** | **COMPLETED & VERIFIED ON MAIN** | `required_fields` and `field_equals` in `operators.py` yield explicit failures when target documents are absent. Tested in `test_empty_dossier_rules.py`. | None — verified on `main`. | Done |
+| **Test Suite Health** | **COMPLETED & VERIFIED ON MAIN** | 129 tests across all 12 test modules (`test_empty_dossier_rules.py`, `test_api.py`, `test_guardrails.py`, `test_eoa_rules.py`, `test_rules.py`, `test_workers.py`, `test_digilocker_service.py`, `test_analytics.py`, `test_merkle_audit.py`, `test_issuer.py`, `test_normalize.py`, `test_security_guards.py`). | None — 129/129 passing with 0 lint errors and 0 type errors. | Done |
 
 ---
 
