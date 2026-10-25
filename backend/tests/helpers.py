@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -20,6 +21,7 @@ try:
 except ImportError:
     pass
 
+os.environ.setdefault("APP_ENV", "test")
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 EXPECTED = json.loads((FIXTURES / "expected_results.json").read_text())
 

@@ -14,9 +14,9 @@ To maintain full transparency with evaluation officers, auditors, and engineerin
 4. **Layout and Extraction Assumptions**:
    - Document field extraction relies on label-anchored patterns and synonym dictionaries alongside checkbox detection. Highly handwritten, unstructured free-form prose, or multi-column newspaper layouts require human reviewer verification using the Extracted Values Desk.
    - Multi-tier OCR utilizes native PyMuPDF vector streams first, falling back to local Tesseract OCR (English by default) and Groq Vision OCR (`qwen/qwen3.8-27b`) for degraded scans. Non-English regional languages require configuring additional Tesseract language packs (`OCR_LANG`).
-5. **Single-Instance Prototype Infrastructure**:
-   - The background job runner uses an in-process Python `ThreadPoolExecutor`, and rate limiting uses an in-memory queue. In production multi-node environments, this will transition to Celery with a Redis broker.
-6. **Relational Database Concurrency**:
-   - The system utilizes SQLite in WAL (Write-Ahead Logging) mode with database-level busy timeouts. While sufficient for single-instance hosted demos and pilots, enterprise nationwide deployments require migration to PostgreSQL with connection pooling.
-7. **Simulated Issuer Adapters**:
-   - The current issuer verification adapter provides a mock/null implementation. Live PKI integrations with DigiLocker and National Academic Depository (NAD) APIs are specified for Phase 3 national scaling.
+5. **Distributed Task Queue Architecture**:
+   - The system defaults to an in-process Python `ThreadPoolExecutor` for zero-dependency local runs, and seamlessly scales to a distributed Celery + Redis worker pool when configured with `REDIS_URL` in production multi-worker environments.
+6. **Dual-Mode Database Architecture**:
+   - The system defaults to SQLite in WAL (Write-Ahead Logging) mode with busy timeouts for instant local dev and zero-config testing. In enterprise deployments, it automatically engages PostgreSQL 16 with connection pooling and PL/pgSQL append-only immutable triggers when `DATABASE_URL` is configured.
+7. **DigiLocker & NAD DPI Sandbox Integration**:
+   - The issuer verification adapter provides a mock/null baseline for offline applications and an interactive DigiLocker & NAD DPI Gateway with cryptographic X.509 metadata, enabling instant pull of verified statutory certificates with the `ISSUER_VERIFIED` trust state.
