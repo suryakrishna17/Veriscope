@@ -7,12 +7,16 @@ import time
 from pathlib import Path
 
 import requests
-from dotenv import load_dotenv
 from PIL import Image
 
-env_path = Path(__file__).resolve().parents[2] / ".env"
-if env_path.exists():
-    load_dotenv(env_path)
+try:
+    from dotenv import load_dotenv
+
+    env_path = Path(__file__).resolve().parents[2] / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
+except ImportError:
+    pass
 
 BASE_URL = "http://127.0.0.1:8000"
 

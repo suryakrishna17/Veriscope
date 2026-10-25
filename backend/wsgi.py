@@ -1,10 +1,13 @@
 from pathlib import Path
 
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
 
-env_file = Path(__file__).resolve().parent.parent / ".env"
-if env_file.exists():
-    load_dotenv(env_file)
+    env_file = Path(__file__).resolve().parent.parent / ".env"
+    if env_file.exists():
+        load_dotenv(env_file)
+except ImportError:
+    pass
 
 from app import create_app  # noqa: E402
 
