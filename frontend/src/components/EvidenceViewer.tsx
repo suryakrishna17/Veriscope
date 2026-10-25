@@ -79,7 +79,22 @@ export function EvidenceViewer({ documents, activeDocId, page, highlight, onNavi
           >
             <span className="doc-tab-name" style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
               <IconFileText width="14" height="14" />
-              {DOC_LABEL[d.doc_type]}
+              <span>{DOC_LABEL[d.doc_type]}</span>
+              {d.version && d.version > 1 ? (
+                <span
+                  style={{
+                    fontSize: "0.65rem",
+                    padding: "0.05rem 0.35rem",
+                    background: "rgba(139, 92, 246, 0.25)",
+                    color: "#a78bfa",
+                    border: "1px solid #8b5cf6",
+                    borderRadius: "4px",
+                    fontWeight: 600,
+                  }}
+                >
+                  v{d.version} Resubmitted
+                </span>
+              ) : null}
             </span>
             <span className="doc-tab-file">{d.original_name}</span>
           </button>
@@ -88,6 +103,31 @@ export function EvidenceViewer({ documents, activeDocId, page, highlight, onNavi
 
       <div className="viewer-meta">
         <TrustBadge label={doc.trust_label} simulated={doc.issuer_check?.simulated} />
+
+        {documents.filter((other) => other.doc_type === doc.doc_type).length > 1 && (
+          <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.8rem", padding: "0.2rem 0.5rem", borderRadius: "6px", background: "rgba(139, 92, 246, 0.15)", border: "1px solid rgba(139, 92, 246, 0.4)" }}>
+            <span style={{ fontWeight: 600, color: "#c4b5fd" }}>Version Diff:</span>
+            {documents.filter((other) => other.doc_type === doc.doc_type).map((other) => (
+              <button
+                key={other.id}
+                type="button"
+                className="btn btn-tiny"
+                style={{
+                  padding: "0.1rem 0.4rem",
+                  fontSize: "0.75rem",
+                  background: other.id === doc.id ? "#8b5cf6" : "rgba(255,255,255,0.08)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+                onClick={() => onNavigate(other.id, 1)}
+              >
+                v{other.version ?? 1} {other.id === doc.id ? "(Active)" : ""}
+              </button>
+            ))}
+          </div>
+        )}
 
         {pageInfo?.text_source === "ocr" && (
           <span className="pill pill-warn" title="Text on this page was extracted from an image via OCR">

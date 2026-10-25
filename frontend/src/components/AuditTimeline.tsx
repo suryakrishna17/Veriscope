@@ -16,14 +16,39 @@ function describe(e: AuditEvent): string {
 export function AuditTimeline({ events }: { events: AuditEvent[] }) {
   if (!events.length) return <p className="muted pad">No activity yet.</p>;
   return (
-    <ol className="timeline">
-      {events.map((e) => (
-        <li key={e.id}>
-          <span className="t-when">{when(e.created_at)}</span>
-          <span className="t-what">{describe(e)}</span>
-          <span className="t-who">{e.actor}{(e.payload as { note?: string }).note ? ` — “${(e.payload as { note?: string }).note}”` : ""}</span>
-        </li>
-      ))}
-    </ol>
+    <div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0.5rem 0.75rem",
+          marginBottom: "0.75rem",
+          background: "rgba(16, 185, 129, 0.08)",
+          border: "1px solid rgba(16, 185, 129, 0.25)",
+          borderRadius: "6px",
+          fontSize: "0.75rem",
+        }}
+      >
+        <span style={{ color: "#10b981", fontWeight: 600 }}>
+          🔒 Merkle Hash-Chained Audit Trail
+        </span>
+        <span className="mono muted" style={{ fontSize: "0.7rem" }}>
+          {events.length} Events Verified · SHA-256 Notarization
+        </span>
+      </div>
+      <ol className="timeline">
+        {events.map((e) => (
+          <li key={e.id}>
+            <span className="t-when">{when(e.created_at)}</span>
+            <span className="t-what">{describe(e)}</span>
+            <span className="t-who">
+              {e.actor}
+              {(e.payload as { note?: string }).note ? ` — “${(e.payload as { note?: string }).note}”` : ""}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }

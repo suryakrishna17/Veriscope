@@ -52,6 +52,7 @@ export interface IssuerCheck { label: TrustLabel; issuer: string | null; respons
 
 export interface DocumentInfo {
   id: string;
+  version?: number;
   doc_type: DocType;
   original_name: string;
   mime_type: string;
@@ -70,6 +71,7 @@ export interface DocumentInfo {
 export interface Field {
   id: string;
   document_id: string;
+  version?: number;
   doc_type: DocType;
   field_key: string;
   label: string;

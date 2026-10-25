@@ -121,13 +121,13 @@ VeriScope executes pure, deterministic YAML rulesets (`aicte_eoa_chapter2.v1.yam
 | **Production Demo Seed Protection** | ✅ Production | Core Security | Environment guard with explicit `SEED_DEMO` authorization |
 | **Automated Case Dossier Export** | ✅ Production | Services | One-click PDF/JSON regulatory reports with statutory citations |
 | **Production Cloud Deployments** | ✅ Production | DevOps | Vercel (Frontend) · Render (Backend Docker Web Service) |
-| **Document Versioning & Visual Diff** | ⏳ Phase 3 | Processing / UI | Side-by-side replacement comparison & auto-resolution |
+| **Document Versioning & Visual Diff** | ✅ Production | Processing / UI | Side-by-side replacement comparison & version diffing |
 | **Reviewer Operations & Institutional Analytics** | ✅ Production | Frontend / API | SLA turnaround times, deficiency rankings, pipeline telemetry |
-| **Live DigiLocker / NAD API Integration**| ⏳ Phase 3 | Integrations | PKI X.509 certificate validation via DigiLocker URI |
-| **AICTE Land Acreage Norms (Annexure-4)** | ✅ Production | Rules | Category-based acreage operators (Mega/Metro/Urban/Rural) |
+| **Live DigiLocker / NAD API Integration**| ✅ Production | Integrations | PKI X.509 certificate validation via DigiLocker URI / certificate ref |
+| **AICTE Land & Built-Up Norms (Annexure-4 & Appx 4)** | ✅ Production | Rules | Acreage operators (Mega/Metro/Urban/Rural) & built-up area norm |
 | **Asynchronous Task Queue (Celery)** | ⏳ Phase 3 | Infrastructure | Distributed bulk document processing with Redis broker |
 | **PostgreSQL Database Migration** | ⏳ Phase 3 | Database | Multi-worker connection-pooled relational storage |
-| **Merkle Audit Notarization** | ⏳ Phase 3 | Security | Cryptographic proof of immutability anchored to consortium ledger |
+| **Merkle Audit Notarization** | ✅ Production | Security | Cryptographic SHA-256 Merkle root hash verification of audit trail |
 
 ---
 

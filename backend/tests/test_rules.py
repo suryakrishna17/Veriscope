@@ -154,3 +154,19 @@ class RuleTests(unittest.TestCase):
         res_fail = list(op(rule, {"doc_type": FORM, "land_field": "total_land_area_acres", "category_field": "land_category"}, c_fail))
         self.assertEqual(len(res_fail), 1)
         self.assertIn("fails the minimum statutory requirement of 7.5 acres", res_fail[0].detail)
+
+    def test_built_up_area_norm_operator(self) -> None:
+        from app.rules.operators import OPERATORS
+        rule = {"id": "TEST-BUILTUP", "_version": "1.0", "category": "completeness", "severity": "high", "summary": "Built-up area below norm"}
+        op = OPERATORS["built_up_area_norm"]
+
+        # Passing: 6000 sq.m. >= 4000 sq.m. base & (300 intake * 9.5 = 2850)
+        c_pass = ctx({FORM: {"total_built_up_area": "6000.0", "approved_intake": "300"}})
+        res_pass = list(op(rule, {"doc_type": FORM, "area_field": "total_built_up_area", "intake_field": "approved_intake"}, c_pass))
+        self.assertEqual(len(res_pass), 0)
+
+        # Failing: 3500 sq.m. < 4000 sq.m. base requirement
+        c_fail = ctx({FORM: {"total_built_up_area": "3500.0", "approved_intake": "300"}})
+        res_fail = list(op(rule, {"doc_type": FORM, "area_field": "total_built_up_area", "intake_field": "approved_intake"}, c_fail))
+        self.assertEqual(len(res_fail), 1)
+        self.assertIn("below the statutory requirement", res_fail[0].detail)

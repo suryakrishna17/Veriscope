@@ -289,6 +289,7 @@ All endpoints reside under `/api/v1`, accept JSON payloads, and authenticate via
 | `POST` | `/cases/{id}/decisions` | Record official determination (`approve`, `request_clarification`, `reject`) |
 | `POST` | `/cases/{id}/reopen` | Reopen closed case (Admin only) |
 | `GET` | `/analytics` | Institutional compliance analytics, SLA turnaround times, and statutory deficiency rankings |
+| `GET` | `/cases/{id}/audit/merkle` | Cryptographic SHA-256 Merkle tree root hash and tree depth of the audit log |
 | `GET` | `/rulesets/active` | Inspect active ruleset metadata and statutory clause citations |
 | `GET` | `/cases/{id}/report?format=pdf` | Generate comprehensive regulatory audit dossier |
 

@@ -12,7 +12,7 @@ from ..processing.fields import DOC_TYPES
 from ..services import analytics as analytics_svc
 from ..services import cases as case_svc
 from ..services import reports
-from ..services.audit import list_events
+from ..services.audit import compute_merkle_root, list_events
 from ..services.processing import start_processing
 
 api = Blueprint("api_v1", __name__, url_prefix="/api/v1")
@@ -195,6 +195,13 @@ def audit_log(case_id: str):  # type: ignore[no-untyped-def]
     case = case_svc.load_case(svc(), case_id, current_user())
     page, size = _int("page", 1, 1, 10_000), _int("page_size", 50, 1, 200)
     return jsonify({"items": list_events(svc().db, case["id"], size, (page - 1) * size), "page": page})
+
+
+@api.get("/cases/<case_id>/audit/merkle")
+@require_auth("reviewer", "admin")
+def audit_merkle(case_id: str):  # type: ignore[no-untyped-def]
+    case = case_svc.load_case(svc(), case_id, current_user())
+    return jsonify(compute_merkle_root(svc().db, case["id"]))
 
 
 @api.get("/cases/<case_id>/report")

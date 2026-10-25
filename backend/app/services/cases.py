@@ -78,6 +78,7 @@ def _next_case_ref(svc: Services) -> str:
 def serialize_document(d: dict[str, Any], pages: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     return {
         "id": d["id"],
+        "version": d.get("version", 1),
         "doc_type": d["doc_type"],
         "original_name": d["original_name"],
         "mime_type": d["mime_type"],
@@ -194,6 +195,11 @@ def allowed_actions(c: dict[str, Any], user: dict[str, Any]) -> list[str]:
 def case_detail(svc: Services, case_id: str, user: dict[str, Any]) -> dict[str, Any]:
     c = load_case(svc, case_id, user)
     docs = svc.db.all("SELECT * FROM documents WHERE case_id = ? ORDER BY uploaded_at", (c["id"],))
+    v_counts: dict[str, int] = {}
+    for d in docs:
+        dt = d["doc_type"]
+        v_counts[dt] = v_counts.get(dt, 0) + 1
+        d["version"] = v_counts[dt]
     pages = svc.db.all("SELECT document_id, page_number, width, height, text_source, mean_confidence FROM pages WHERE document_id IN (SELECT id FROM documents WHERE case_id = ?) ORDER BY page_number", (c["id"],))
     doc_types = {d["id"]: d["doc_type"] for d in docs}
     is_reviewer = user["role"] in {"reviewer", "admin"}

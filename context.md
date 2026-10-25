@@ -1444,6 +1444,10 @@ To ensure seamless collaboration across teammates and prevent accidental regress
 | **Security Hardening** | **COMPLETED & VERIFIED ON MAIN** | PR #3 (`d6c9e18`). Seed production guard, ProxyFix middleware, 32-byte JWT enforcement, and `test_security_guards.py`. | None — verified and live on `main`. | Done |
 | **Institutional Analytics & SLA Telemetry** | **COMPLETED & VERIFIED ON MAIN** | Commit `2a9fdeb`. `analytics.py`, `AnalyticsPage.tsx`, `/api/v1/analytics`, and `test_analytics.py`. | None — fully operational on `main`. | Done |
 | **Mathematical Land Norm Operators** | **COMPLETED & VERIFIED ON MAIN** | Commit `0329a2b`. `land_norm_by_category` & `numeric_min` in `operators.py`, tested in `test_rules.py`. | None — verified and operational on `main`. | Done |
+| **Document Resubmission Versioning & Diffing** | **COMPLETED & VERIFIED ON MAIN** | Document version tracking, `EvidenceViewer.tsx` version tabs & diff toggle. | None — operational on `main`. | Done |
+| **Built-Up Area & FSR Calculator** | **COMPLETED & VERIFIED ON MAIN** | `built_up_area_norm` operator in `operators.py`, tested in `test_rules.py`. | None — verified on `main`. | Done |
+| **Merkle Audit Notarization** | **COMPLETED & VERIFIED ON MAIN** | SHA-256 Merkle tree in `audit.py`, `/audit/merkle` route, `AuditTimeline.tsx` badge, and `test_merkle_audit.py`. | None — verified on `main`. | Done |
+| **DigiLocker DPI Adapter** | **COMPLETED & VERIFIED ON MAIN** | `DigiLockerIssuerVerifier` in `verifier.py`, `ISSUER_VERIFIED` state, tested in `test_issuer.py`. | None — operational on `main`. | Done |
 | **Test Suite Health** | **COMPLETED & VERIFIED ON MAIN** | Over 100 tests across unit, integration, statutory rules (`test_eoa_rules.py` [40], `test_rules.py` [20], `test_normalize.py` [5]), security guards (`test_security_guards.py` [6]), workflow integration (`test_eoa_workflow.py`), and E2E Playwright (`test_step3c_e2e.mjs`). | None — all suites passing with 0 lint errors and 0 type errors. | Done |
 
 ---

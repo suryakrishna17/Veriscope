@@ -259,3 +259,32 @@ def land_norm_by_category(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> It
             yield _result(rule, detail, [land_field.ref(), cat_field.ref()], min(land_field.confidence, cat_field.confidence), "land_norm")
     except Exception:
         return
+
+
+@operator("built_up_area_norm")
+def built_up_area_norm(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[RuleResult]:
+    """Evaluates institutional built-up area and FSR norms under AICTE APH Appendix 4 Table 4.2."""
+    doc_type = p.get("doc_type", "EOA_APPLICATION_FORM")
+    area_field = ctx.field(doc_type, p.get("area_field", "total_built_up_area"))
+    intake_field = ctx.field(doc_type, p.get("intake_field", "approved_intake"))
+    if area_field is None or area_field.value is None:
+        return
+    norm_per_seat = Decimal(str(p.get("norm_sqm_per_seat", "9.5")))
+    base_min = Decimal(str(p.get("min_base_area_sqm", "4000.0")))
+    try:
+        actual_area = Decimal(str(area_field.value))
+        intake_val = Decimal(str(intake_field.value)) if intake_field and intake_field.value else Decimal("0")
+        required_area = max(base_min, intake_val * norm_per_seat)
+        if actual_area < required_area:
+            detail = (
+                f"Total built-up area is {actual_area:,.1f} sq.m., which is below the statutory requirement of "
+                f"{required_area:,.1f} sq.m. (based on base norm {base_min:,.0f} sq.m. and {norm_per_seat} sq.m./student) "
+                f"under AICTE APH Chapter II & Appendix 4 Table 4.2."
+            )
+            refs = [area_field.ref()]
+            if intake_field:
+                refs.append(intake_field.ref())
+            yield _result(rule, detail, refs, area_field.confidence, "built_up_area_norm")
+    except Exception:
+        return
+
