@@ -89,6 +89,13 @@ A unified workstation engineered to eliminate tab switching and context loss:
 - **Findings Panel with Statutory Citations:** Categorized rule signals with severity badges (`HIGH`, `MEDIUM`, `LOW`), outcome tags (`FAIL`, `REVIEW REQUIRED`), official statutory citations (`📜 AICTE APH 2024-27 Clause 2.4 & Annexure-2`), and one-click visual coordinate chips.
 - **Sticky Decision Bar & Automated Clarification Drafter:** The "Approve" button is strictly gated while high-severity findings remain open. Requesting clarification auto-synthesizes a formal draft itemizing open statutory discrepancies with human reviewer edit/approval before dispatch.
 
+### 3. Institutional Compliance & Operations Analytics Dashboard
+Accessible via `#analytics` for Reviewing Officers and AICTE Regional Directors:
+- **Macro Compliance Telemetry:** Real-time institutional health across the 6-stage lifecycle pipeline (`received` $\rightarrow$ `processing` $\rightarrow$ `needs_review` $\rightarrow$ `clarification_requested` $\rightarrow$ `approved` / `rejected`).
+- **Reviewer Turnaround Time (TAT) SLA:** Tracks mean elapsed hours from application submission to official decision issuance via Julian-day delta tracking.
+- **Top Systemic Deficiencies Table:** Automatically ranks the top most frequently violated statutory clauses across technical institutions with direct APH clause citations.
+- **Three-Tier Trust State Model:** Monitors document integrity distribution across `NOT_VERIFIED` (default intake), `ANOMALY_DETECTED` (discrepancy flagged), and `ISSUER_VERIFIED` (PKI verified).
+
 ---
 
 ## 🧠 Smart Automation Pipeline & Architecture
@@ -245,7 +252,7 @@ cd frontend && npm run e2e
 │   │   ├── processing/            # Tesseract OCR, PyMuPDF engine, Groq vision OCR, field normalizers
 │   │   ├── rules/                 # Pure deterministic rule engine & YAML policy rulesets
 │   │   │   └── rulesets/          # aicte_eoa_chapter2.v1.yaml (24 rules), student_support_lite.v1.yaml
-│   │   ├── services/              # Case lifecycle, job runner, audit logger, report generator
+│   │   ├── services/              # Case lifecycle, analytics engine, job runner, audit logger, report generator
 │   │   └── ai/adapter.py          # AI summarization adapter with strict anti-hallucination guard
 │   ├── fixtures/                  # Synthetic institutional test applications (SIH-DEMO-013..016)
 │   ├── migrations/                # Database migrations (001_init.sql, 002_add_clause_citation_to_findings.sql)
@@ -253,7 +260,7 @@ cd frontend && npm run e2e
 ├── frontend/
 │   ├── src/
 │   │   ├── components/            # EvidenceViewer, FindingsPanel (Summary Card), DecisionBar, Badges, Uploader
-│   │   ├── pages/                 # LoginPage, QueuePage, CasePage, NewCasePage, ReportPage
+│   │   ├── pages/                 # LoginPage, QueuePage, CasePage, NewCasePage, ReportPage, AnalyticsPage
 │   │   ├── api/client.ts          # Typed REST API client
 │   │   └── styles.css             # Glassmorphism design tokens, animations, responsive layout
 │   └── e2e/                       # Playwright automated browser walkthrough scripts (test_step3c_e2e.mjs)
@@ -281,6 +288,7 @@ All endpoints reside under `/api/v1`, accept JSON payloads, and authenticate via
 | `PATCH` | `/findings/{id}` | Mark finding resolved or waived with reviewer rationale |
 | `POST` | `/cases/{id}/decisions` | Record official determination (`approve`, `request_clarification`, `reject`) |
 | `POST` | `/cases/{id}/reopen` | Reopen closed case (Admin only) |
+| `GET` | `/analytics` | Institutional compliance analytics, SLA turnaround times, and statutory deficiency rankings |
 | `GET` | `/rulesets/active` | Inspect active ruleset metadata and statutory clause citations |
 | `GET` | `/cases/{id}/report?format=pdf` | Generate comprehensive regulatory audit dossier |
 

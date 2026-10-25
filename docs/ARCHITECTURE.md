@@ -79,6 +79,14 @@ Invalid state transitions return `409 INVALID_STATE`.
 
 ---
 
+## Macro Compliance & Operations Analytics Architecture
+
+- **SLA Telemetry Calculation**: Measures real-time reviewer turnaround times using database Julian-day calculations between case creation and official decision timestamps.
+- **Systemic Statutory Deficiency Aggregator**: Groups active discrepancies by rule ID, severity, and official APH clause citation to provide AICTE leadership with macro insights into systemic non-compliance trends across technical colleges.
+- **Three-Tier Trust State Telemetry**: Continuously tallies the proportion of documents at `NOT_VERIFIED`, `ANOMALY_DETECTED`, and `ISSUER_VERIFIED` to prevent premature claims of document authenticity.
+
+---
+
 ## System Boundaries
 
 - **Pure Rule Engine**: Evaluator functions take a `CaseContext` in and return a list of `RuleEvaluation` / `RuleResult` objects without database or network I/O.

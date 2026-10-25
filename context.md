@@ -96,13 +96,15 @@ This document serves as the single source of truth for **VeriScope**, an evidenc
 * **Repository Remote**: `https://github.com/suryakrishna17/Veriscope.git`
 * **Local Working Tree**: Clean (`nothing to commit, working tree clean`).
 * **Active Working Branch**: `main`
-* **HEAD Commit**: `073820c` (*"fix(deploy): allow demo seeding in production when SEED_DEMO=true and derive 32-byte secret"*, Author: `suryakrishna17`).
+* **HEAD Commit**: `d1ee1dd` (*"docs(roadmap): promote analytics dashboard and land acreage norm operators to production status"*, Author: `suryakrishna17`).
 * **Merged Milestones**:
   - **Step 2 (PR #1)**: [PR #1](https://github.com/suryakrishna17/Veriscope/pull/1) — **MERGED** via commit `7488b34` (24-rule catalogue `aicte_eoa_chapter2.v1.yaml`).
   - **Step 3A (PR #2)**: [PR #2](https://github.com/suryakrishna17/Veriscope/pull/2) — **MERGED** via commit `9bd893d` (4-outcome model and `evaluate_ruleset()`).
   - **Step 3B (Commit `9142deb`)**: **MERGED** into `main` (dynamic routing, migration `002`, Groq vision OCR engine, and `test_eoa_workflow.py`).
   - **Step 3C (Commit `bfce402`)**: **MERGED** into `main` (Reviewer desk, 4-outcome summary card, dynamic upload slots, and `test_step3c_e2e.mjs`).
   - **Step 4 (PR #3)**: [PR #3](https://github.com/suryakrishna17/Veriscope/pull/3) — **MERGED** via commit `d6c9e18` (production seed prohibition, Werkzeug `ProxyFix` middleware, 32-byte secret key enforcement, and `test_security_guards.py`).
+  - **Analytics & SLA Telemetry (Commit `2a9fdeb`)**: **MERGED** into `main` (Institutional Compliance Analytics service, `#analytics` dashboard, API telemetry, and `test_analytics.py`).
+  - **AICTE Land Norm Operators (Commit `0329a2b`)**: **MERGED** into `main` (`land_norm_by_category` and `numeric_min` operators in `operators.py`, tested in `test_rules.py`).
 
 ### Critical Historical Reconciliation
 
@@ -111,6 +113,7 @@ Code inspection confirms the exact current Git state:
 2. **Step 3A is Merged**: The 4-outcome evaluation model (`PASS`, `FAIL`, `REVIEW_REQUIRED`, `NOT_APPLICABLE`), typed dataclasses (`RuleEvaluation`, `RuleResult`), and helper methods are fully merged into `main` (commit `9bd893d` via PR #2).
 3. **Step 3B & Step 3C are Merged**: The backend review integration and frontend reviewer desk are fully operational on `main` (commits `9142deb` and `bfce402`). `AICTE_EOA` applications can be selected, multi-document uploaded, evaluated against 24 rules, and deep-linked to evidence pages.
 4. **Step 4 Security Hardening is Merged**: Seed protection, ProxyFix middleware, and production 32-byte secret validation are live on `main` via PR #3 (commit `d6c9e18`).
+5. **Analytics & Land Norm Operators are Merged**: Real-time SLA telemetry, systemic AICTE deficiency ranking, Three-Tier Trust distribution, and Appendix 4 Table 4.1 land category operators are active on `main` (commits `2a9fdeb` and `0329a2b`).
 
 ---
 
@@ -1439,6 +1442,8 @@ To ensure seamless collaboration across teammates and prevent accidental regress
 | **Step 3B: Backend Integration** | **COMPLETED & VERIFIED ON MAIN** | Commit `9142deb` on `main`. Dynamic ruleset routing, migration `002`, Groq OCR fallback, and `test_eoa_workflow.py`. | None — fully operational on `main`. | Done |
 | **Step 3C: Frontend Reviewer Desk**| **COMPLETED & VERIFIED ON MAIN** | Commit `bfce402` on `main`. 4-outcome summary banner, dynamic 6-document uploader, and E2E validation. | None — fully operational on `main`. | Done |
 | **Security Hardening** | **COMPLETED & VERIFIED ON MAIN** | PR #3 (`d6c9e18`). Seed production guard, ProxyFix middleware, 32-byte JWT enforcement, and `test_security_guards.py`. | None — verified and live on `main`. | Done |
+| **Institutional Analytics & SLA Telemetry** | **COMPLETED & VERIFIED ON MAIN** | Commit `2a9fdeb`. `analytics.py`, `AnalyticsPage.tsx`, `/api/v1/analytics`, and `test_analytics.py`. | None — fully operational on `main`. | Done |
+| **Mathematical Land Norm Operators** | **COMPLETED & VERIFIED ON MAIN** | Commit `0329a2b`. `land_norm_by_category` & `numeric_min` in `operators.py`, tested in `test_rules.py`. | None — verified and operational on `main`. | Done |
 | **Test Suite Health** | **COMPLETED & VERIFIED ON MAIN** | Over 100 tests across unit, integration, statutory rules (`test_eoa_rules.py` [40], `test_rules.py` [20], `test_normalize.py` [5]), security guards (`test_security_guards.py` [6]), workflow integration (`test_eoa_workflow.py`), and E2E Playwright (`test_step3c_e2e.mjs`). | None — all suites passing with 0 lint errors and 0 type errors. | Done |
 
 ---
