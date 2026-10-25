@@ -6,6 +6,34 @@ import { errorText, useAsync } from "../lib/hooks";
 import { navigate } from "../lib/router";
 import { useToast } from "../lib/toast";
 
+/* ── Premium step indicator ─────────────────────────────────────────────── */
+function StepIndicator({ current }: { current: 1 | 2 }) {
+  const steps = [
+    { label: "Application details", idx: 1 },
+    { label: "Statutory Documents", idx: 2 },
+  ];
+
+  return (
+    <div className="steps-premium" aria-label="Progress">
+      {steps.map((s, i) => {
+        const state =
+          s.idx < current ? "is-done" : s.idx === current ? "is-current" : "is-pending";
+        return (
+          <div key={s.idx} style={{ display: "contents" }}>
+            <div className={`step-item ${state}`}>
+              <div className="step-circle" />
+              <span className="step-label">{s.label}</span>
+            </div>
+            {i < steps.length - 1 && (
+              <div className={`step-connector ${s.idx < current ? "is-done" : ""}`} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function NewCasePage() {
   const toast = useToast();
   const [step, setStep] = useState<1 | 2>(1);
@@ -43,9 +71,11 @@ export function NewCasePage() {
   };
 
   const uploaded = docs.data?.documents ?? [];
+
   return (
     <Layout>
-      <div className="page-head">
+      {/* ── Premium gradient page header ── */}
+      <div className="page-head-3d">
         <div>
           <h1>New Application</h1>
           <p className="muted">
@@ -55,10 +85,9 @@ export function NewCasePage() {
           </p>
         </div>
       </div>
-      <ol className="steps" aria-label="Progress">
-        <li className={step === 1 ? "is-current" : "is-done"}>Application details</li>
-        <li className={step === 2 ? "is-current" : ""}>Statutory Documents</li>
-      </ol>
+
+      {/* ── Premium glowing step indicator ── */}
+      <StepIndicator current={step} />
 
       {step === 1 && (
         <form className="card form" onSubmit={(e) => void create(e)}>
@@ -113,8 +142,8 @@ export function NewCasePage() {
           </p>
           {err && <p className="inline-error" role="alert">{err}</p>}
           <div className="row-end">
-            <button className="btn btn-primary" disabled={busy}>
-              {busy ? "Creating dossier…" : "Continue to documents"}
+            <button className="btn-press" disabled={busy}>
+              {busy ? "Creating dossier…" : "Continue to documents →"}
             </button>
           </div>
         </form>
@@ -139,7 +168,7 @@ export function NewCasePage() {
               Save and finish later
             </button>
             <button
-              className="btn btn-primary"
+              className="btn-press"
               disabled={busy || uploaded.length === 0}
               onClick={() => void run()}
             >

@@ -1,19 +1,21 @@
 import type { ReactNode } from "react";
 import { useSession } from "../lib/session";
+import { useRoute } from "../lib/router";
 import { IconUser } from "./Icons";
 
 export function Layout({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   const { user, signOut } = useSession();
+  const route = useRoute();
   const isApplicant = user?.role === "applicant";
 
   return (
     <div className="shell">
       <a className="skip" href="#main">Skip to content</a>
-      <header className="topbar">
+      <header className="topbar" style={{ position: "relative" }}>
         <div className="topbar-left">
           <a href="#/cases" className="brand" aria-label="VeriScope home">
             <span className="brand-logo" aria-hidden>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                 <rect x="3" y="2.5" width="14" height="19" rx="2" stroke="currentColor" strokeWidth="2" />
                 <path d="M6.5 7.5h7M6.5 11.5h7M6.5 15.5h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 <circle cx="17.5" cy="17" r="4" fill="var(--surface)" stroke="var(--action)" strokeWidth="2" />
@@ -26,10 +28,16 @@ export function Layout({ children, wide = false }: { children: ReactNode; wide?:
         </div>
 
         <nav className="topnav" aria-label="Main">
-          <a href="#/cases" className="nav-item">
+          <a
+            href="#/cases"
+            className={`nav-item${route.name === "queue" ? " active" : ""}`}
+          >
             {isApplicant ? "My Applications" : "Review Queue"}
           </a>
-          <a href="#/cases/new" className="nav-item">
+          <a
+            href="#/cases/new"
+            className={`nav-item${route.name === "new" ? " active" : ""}`}
+          >
             New application
           </a>
         </nav>
@@ -52,7 +60,7 @@ export function Layout({ children, wide = false }: { children: ReactNode; wide?:
         <div className="caveat-inner">
           <span className="caveat-dot" aria-hidden />
           <span>
-            Automated checks assist human review. Documents are not issuer-authenticated unless marked “Issuer verified”. A person makes every final decision.
+            Automated checks assist human review. Documents are not issuer-authenticated unless marked "Issuer verified". A person makes every final decision.
           </span>
           <span className="caveat-sys">System operational · v1.0.0</span>
         </div>

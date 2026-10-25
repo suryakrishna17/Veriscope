@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { api } from "../api/client";
 import type { CaseStatus } from "../api/types";
 import { Spinner, StatusBadge } from "../components/Badges";
@@ -17,6 +17,78 @@ const FILTERS: { id: string; label: string }[] = [
   { id: "", label: "All" },
 ];
 
+/* ── 3D tilt stat card ─────────────────────────────────────────────────── */
+function Stat3DCard({
+  label,
+  value,
+  sub,
+  icon,
+  iconStyle,
+  valueStyle,
+  accentColor = "var(--action)",
+}: {
+  label: string;
+  value: number;
+  sub: string;
+  icon: React.ReactNode;
+  iconStyle?: React.CSSProperties;
+  valueStyle?: React.CSSProperties;
+  accentColor?: string;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const glareRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const rotateX = ((y - cy) / cy) * -8;
+    const rotateY = ((x - cx) / cx) * 8;
+    card.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+    card.style.boxShadow = `0 16px 40px -6px rgba(15,23,42,0.12), 0 8px 16px -4px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.8)`;
+    if (glareRef.current) {
+      const mx = (x / rect.width) * 100;
+      const my = (y / rect.height) * 100;
+      glareRef.current.style.background = `radial-gradient(circle at ${mx}% ${my}%, rgba(255,255,255,0.22) 0%, transparent 60%)`;
+      glareRef.current.style.opacity = "1";
+    }
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    const card = cardRef.current;
+    if (!card) return;
+    card.style.transform = "";
+    card.style.boxShadow = "";
+    if (glareRef.current) glareRef.current.style.opacity = "0";
+  }, []);
+
+  return (
+    <div
+      ref={cardRef}
+      className="stat-card"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ transition: "transform 0.08s ease, box-shadow 0.08s ease" }}
+    >
+      {/* Top accent bar */}
+      <div className="stat-accent-bar" style={{ background: accentColor }} />
+      {/* Glare overlay */}
+      <div ref={glareRef} className="stat-glare" />
+
+      <div className="stat-top">
+        <span>{label}</span>
+        <span className="stat-icon" style={iconStyle}>{icon}</span>
+      </div>
+      <div className="stat-num" style={valueStyle}>{value}</div>
+      <span className="stat-sub">{sub}</span>
+    </div>
+  );
+}
+
 export function QueuePage() {
   const { user } = useSession();
   const isApplicant = user?.role === "applicant";
@@ -28,7 +100,6 @@ export function QueuePage() {
     [status, q, page]
   );
 
-  // Compute stat metrics for the current view
   const stats = useMemo(() => {
     if (!data) return { total: 0, needsReview: 0, highFlags: 0, decided: 0 };
     let needsReview = 0;
@@ -39,17 +110,13 @@ export function QueuePage() {
       if (c.status === "approved" || c.status === "rejected") decided++;
       highFlags += c.open_findings.high || 0;
     }
-    return {
-      total: data.total,
-      needsReview,
-      highFlags,
-      decided,
-    };
+    return { total: data.total, needsReview, highFlags, decided };
   }, [data]);
 
   return (
     <Layout>
-      <div className="page-head">
+      {/* ── Page header with gradient title ── */}
+      <div className="page-head-3d">
         <div>
           <h1>{isApplicant ? "My Applications" : "Review Queue"}</h1>
           <p className="muted">
@@ -58,59 +125,53 @@ export function QueuePage() {
               : "Priority-ordered queue based on rule findings and required triage urgency."}
           </p>
         </div>
-        <button className="btn btn-primary" onClick={() => navigate("/cases/new")}>
+        <button
+          className="btn-press"
+          onClick={() => navigate("/cases/new")}
+        >
           <IconPlus width="14" height="14" />
           <span>New application</span>
         </button>
       </div>
 
+      {/* ── 3D tilt stat cards ── */}
       {!isApplicant && data && (
         <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-top">
-              <span>Total Applications</span>
-              <span className="stat-icon" style={{ background: "var(--surface-3)", color: "var(--ink-2)" }}>
-                <IconFileText width="16" height="16" />
-              </span>
-            </div>
-            <div className="stat-num">{stats.total}</div>
-            <span className="stat-sub">Across all approval categories</span>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-top">
-              <span>Needs Review</span>
-              <span className="stat-icon" style={{ background: "var(--action-soft)", color: "var(--action)" }}>
-                <IconAlert width="16" height="16" />
-              </span>
-            </div>
-            <div className="stat-num" style={{ color: "var(--action)" }}>{stats.needsReview}</div>
-            <span className="stat-sub">Awaiting officer determination</span>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-top">
-              <span>High-Severity Flags</span>
-              <span className="stat-icon" style={{ background: "var(--high-bg)", color: "var(--high)" }}>
-                <IconShield width="16" height="16" />
-              </span>
-            </div>
-            <div className="stat-num" style={{ color: stats.highFlags > 0 ? "var(--high)" : "var(--ink)" }}>
-              {stats.highFlags}
-            </div>
-            <span className="stat-sub">Rules requiring resolution or waiver</span>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-top">
-              <span>Decided / Closed</span>
-              <span className="stat-icon" style={{ background: "var(--ok-bg)", color: "var(--ok)" }}>
-                <IconCheck width="16" height="16" />
-              </span>
-            </div>
-            <div className="stat-num" style={{ color: "var(--ok)" }}>{stats.decided}</div>
-            <span className="stat-sub">Approved or recorded outcomes</span>
-          </div>
+          <Stat3DCard
+            label="Total Applications"
+            value={stats.total}
+            sub="Across all approval categories"
+            icon={<IconFileText width="16" height="16" />}
+            iconStyle={{ background: "var(--surface-3)", color: "var(--ink-2)" }}
+            accentColor="var(--ink-3)"
+          />
+          <Stat3DCard
+            label="Needs Review"
+            value={stats.needsReview}
+            sub="Awaiting officer determination"
+            icon={<IconAlert width="16" height="16" />}
+            iconStyle={{ background: "var(--action-soft)", color: "var(--action)" }}
+            valueStyle={{ color: "var(--action)" }}
+            accentColor="var(--action)"
+          />
+          <Stat3DCard
+            label="High-Severity Flags"
+            value={stats.highFlags}
+            sub="Rules requiring resolution or waiver"
+            icon={<IconShield width="16" height="16" />}
+            iconStyle={{ background: "var(--high-bg)", color: "var(--high)" }}
+            valueStyle={{ color: stats.highFlags > 0 ? "var(--high)" : "var(--ink)" }}
+            accentColor={stats.highFlags > 0 ? "var(--high)" : "var(--ink-3)"}
+          />
+          <Stat3DCard
+            label="Decided / Closed"
+            value={stats.decided}
+            sub="Approved or recorded outcomes"
+            icon={<IconCheck width="16" height="16" />}
+            iconStyle={{ background: "var(--ok-bg)", color: "var(--ok)" }}
+            valueStyle={{ color: "var(--ok)" }}
+            accentColor="var(--ok)"
+          />
         </div>
       )}
 
@@ -161,7 +222,7 @@ export function QueuePage() {
         <PageState
           title={q ? "No cases match this search" : "No applications found"}
           action={
-            <button className="btn btn-primary" onClick={() => navigate("/cases/new")}>
+            <button className="btn-press" onClick={() => navigate("/cases/new")}>
               <IconPlus width="14" height="14" />
               <span>Start an application</span>
             </button>
@@ -176,7 +237,7 @@ export function QueuePage() {
               <thead>
                 <tr>
                   <th scope="col">Case Reference</th>
-                  <th scope="col">Applicant & Institution</th>
+                  <th scope="col">Applicant &amp; Institution</th>
                   <th scope="col">Status</th>
                   {!isApplicant && <th scope="col">Open Findings</th>}
                   {!isApplicant && <th scope="col">Triage Priority</th>}
