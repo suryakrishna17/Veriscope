@@ -144,6 +144,11 @@ export function LanyardBadge({
     if (!ctx) return
 
     const draw = () => {
+      if (typeof document !== "undefined" && document.hidden) {
+        rafRef.current = requestAnimationFrame(draw)
+        return
+      }
+
       const swing = swingRef.current
 
       // Calculate target transforms based on state

@@ -33,11 +33,26 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   if (token) headers.set("Authorization", `Bearer ${token}`);
   if (init.body && !(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
+
+  const isUpload = init.body instanceof FormData;
+  const timeoutMs = isUpload ? 45000 : 8000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
   let res: Response;
   try {
-    res = await fetch(`${API_BASE}/api/v1${path}`, { ...init, headers });
-  } catch {
+    res = await fetch(`${API_BASE}/api/v1${path}`, {
+      ...init,
+      headers,
+      signal: init.signal ?? controller.signal,
+    });
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new ApiError(0, "TIMEOUT", "Request timed out. Please check your connection and try again.");
+    }
     throw new ApiError(0, "NETWORK", "The server could not be reached. Check that the API is running and try again.");
+  } finally {
+    clearTimeout(timer);
   }
   if (res.status === 401 && path !== "/auth/login") {
     auth.set(null);

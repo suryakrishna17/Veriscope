@@ -27,10 +27,34 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     auth.onUnauthorized(() => { setUser(null); navigate("/login"); });
     if (!auth.token) { setReady(true); return; }
-    Promise.all([api.me(), api.meta()])
-      .then(([u, m]) => { setUser(u); setMeta(m); })
-      .catch(() => auth.set(null))
+
+    const timer = setTimeout(() => {
+      setReady((prev) => {
+        if (!prev) {
+          auth.set(null);
+          return true;
+        }
+        return prev;
+      });
+    }, 3500);
+
+    Promise.allSettled([api.me(), api.meta()])
+      .then(([uRes, mRes]) => {
+        clearTimeout(timer);
+        if (uRes.status === "fulfilled") {
+          setUser(uRes.value);
+          if (mRes.status === "fulfilled") setMeta(mRes.value);
+        } else {
+          auth.set(null);
+        }
+      })
+      .catch(() => {
+        clearTimeout(timer);
+        auth.set(null);
+      })
       .finally(() => setReady(true));
+
+    return () => clearTimeout(timer);
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {
