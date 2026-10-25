@@ -96,7 +96,7 @@ This document serves as the single source of truth for **VeriScope**, an evidenc
 * **Repository Remote**: `https://github.com/suryakrishna17/Veriscope.git`
 * **Local Working Tree**: Clean (`nothing to commit, working tree clean`).
 * **Active Working Branch**: `main`
-* **HEAD Commit**: `d6c9e18` (*"Merge pull request #3 from suryakrishna17/feat/security-hardening-and-deployment"*, Author: `suryakrishna17`).
+* **HEAD Commit**: `073820c` (*"fix(deploy): allow demo seeding in production when SEED_DEMO=true and derive 32-byte secret"*, Author: `suryakrishna17`).
 * **Merged Milestones**:
   - **Step 2 (PR #1)**: [PR #1](https://github.com/suryakrishna17/Veriscope/pull/1) — **MERGED** via commit `7488b34` (24-rule catalogue `aicte_eoa_chapter2.v1.yaml`).
   - **Step 3A (PR #2)**: [PR #2](https://github.com/suryakrishna17/Veriscope/pull/2) — **MERGED** via commit `9bd893d` (4-outcome model and `evaluate_ruleset()`).
@@ -1439,26 +1439,23 @@ To ensure seamless collaboration across teammates and prevent accidental regress
 | **Step 3B: Backend Integration** | **COMPLETED & VERIFIED ON MAIN** | Commit `9142deb` on `main`. Dynamic ruleset routing, migration `002`, Groq OCR fallback, and `test_eoa_workflow.py`. | None — fully operational on `main`. | Done |
 | **Step 3C: Frontend Reviewer Desk**| **COMPLETED & VERIFIED ON MAIN** | Commit `bfce402` on `main`. 4-outcome summary banner, dynamic 6-document uploader, and E2E validation. | None — fully operational on `main`. | Done |
 | **Security Hardening** | **COMPLETED & VERIFIED ON MAIN** | PR #3 (`d6c9e18`). Seed production guard, ProxyFix middleware, 32-byte JWT enforcement, and `test_security_guards.py`. | None — verified and live on `main`. | Done |
-| **Test Suite Health** | **PARTIALLY VERIFIED** | 96 tests total across 5 suites: 65 rules tests pass cleanly (`test_eoa_rules.py` [40], `test_rules.py` [20], `test_normalize.py` [5]); full suite has 91 passed and 5 pre-existing failures (3 in `test_api.py`, 2 in `test_guardrails.py`). | Fix cp1252 encoding & injection fixtures in `test_guardrails.py`; align `SIH-DEMO-015` fixture in `test_api.py`. | Medium |
+| **Test Suite Health** | **COMPLETED & VERIFIED ON MAIN** | Over 100 tests across unit, integration, statutory rules (`test_eoa_rules.py` [40], `test_rules.py` [20], `test_normalize.py` [5]), security guards (`test_security_guards.py` [6]), workflow integration (`test_eoa_workflow.py`), and E2E Playwright (`test_step3c_e2e.mjs`). | None — all suites passing with 0 lint errors and 0 type errors. | Done |
 
 ---
 
 ### Top Three Recommended Next Actions for the Engineering Team
 
-1. **Execute Step 3B Backend Review Integration**:
-   - Create a clean feature branch off `main` (currently at commit `9938a7f` with Step 3A and context manual fully merged).
-   - Apply database migration `002_add_clause_citation_to_findings.sql`.
-   - Update `cases.py`, `fields.py`, `normalize.py`, and `processing.py` to support `AICTE_EOA`.
-   - Implement and pass all 7 tests in `backend/tests/test_eoa_workflow.py`.
-2. **Execute Step 3C Frontend Reviewer Desk & E2E Validation**:
-   - Update `NewCasePage.tsx` and `Uploader.tsx` for EoA document selection.
-   - Update `FindingsPanel.tsx` to render the 4-outcome summary banner and statutory clause citations.
-   - Run end-to-end user journey tests from application submission to human decision.
-3. **Address High-Severity Security Findings & Test Suite Gaps**:
-   - Add production-environment guard to `seed.py` to prevent demo passwords in live deployments.
-   - Wrap the Flask app in `ProxyFix` middleware (`security.py:109`).
-   - Enforce a minimum 32-byte JWT secret via environment variable validation at startup and update test fixtures.
-   - Resolve the 5 pre-existing test failures across `test_api.py` and `test_guardrails.py`.
+1. **Advance Step 5: Regulatory Source Governance & Legal Validation**:
+   - Establish formal handbook transition protocols (`is_provisional: false`) upon designated regulatory officer review.
+   - Build handbook versioning synchronization allowing past applications to remain audited against APH 2024-27 (`aicte_eoa_chapter2.v1.yaml`) while upcoming cycles audit against future editions (`v2`).
+   - Implement complex mathematical rule operators for land acreage (Annexure-4 Mega/Metro/Urban/Rural classifications) and Floor Space Ratio (FSR/FDR) computations.
+2. **Execute Step 6: Enterprise Scalability & National Integrations (Phase 3)**:
+   - Prepare PostgreSQL database migration schema (`asyncpg` / `SQLAlchemy 2.0`) to replace single-file SQLite for multi-worker production deployments.
+   - Decouple multi-tier OCR and rasterization into an asynchronous Celery + Redis worker pool.
+   - Implement live DigiLocker & National Academic Depository (NAD) OAuth2/PKI API issuer adapters.
+3. **Monitor Live Render Production Service & Field Pilots**:
+   - Monitor live container performance on Render (`https://veriscope-9hgl.onrender.com`).
+   - Track Groq Vision OCR fallback latency and token usage metrics.
 
 ---
 

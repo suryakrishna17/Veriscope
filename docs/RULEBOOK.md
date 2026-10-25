@@ -14,7 +14,7 @@ VeriScope maintains two distinct rulesets in `backend/app/rules/rulesets/`:
    - **Status**: `is_verified: true`, `verification_status: "VERIFIED_OFFICIAL"`.
    - **Scope**: AICTE Approval Process Handbook (APH 2024-25 to 2026-27), Chapter II (*Grant of Extension of Approval for Existing Institutions*), Annexure-2, and Appendix 6.
    - **Contents**: 24 deterministic rules covering Completeness, Statutory Committees, Safety Certifications, Format Norms, Cross-Document Consistency, and Document Signals.
-   - **Detailed Documentation**: See [docs/AICTE_EOA_RULE_CATALOGUE.md](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/docs/AICTE_EOA_RULE_CATALOGUE.md).
+   - **Detailed Documentation**: See [docs/AICTE_EOA_RULE_CATALOGUE.md](AICTE_EOA_RULE_CATALOGUE.md).
 
 2. **`student_support_lite.v1.yaml` (Prototype Student Support Ruleset)**:
    - **Status**: `is_verified: false`, `verification_status: "ILLUSTRATIVE"`.

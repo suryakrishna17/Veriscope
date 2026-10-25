@@ -1,13 +1,19 @@
-# Engineering decisions
+# Engineering Decisions
 
 | # | Decision | Why |
 |---|---|---|
-| 1 | Flask + stdlib `sqlite3` instead of FastAPI + SQLAlchemy (as first specified) | The build environment had no package registry access; using available libraries let every path be executed and tested end-to-end before delivery. Routers are thin and services framework-free, so porting to FastAPI is mechanical. |
+| 1 | Flask + stdlib `sqlite3` instead of FastAPI + SQLAlchemy (as first specified) | The initial build environment had limited package registry access; using available libraries let every path be executed and tested end-to-end before delivery. Routers are thin and services framework-free, making porting to FastAPI mechanical. |
 | 2 | Plain SQL migrations, TEXT UUID keys, ISO-8601 UTC timestamps | Portable to PostgreSQL with no ORM dependency. |
 | 3 | Rules as YAML data + small operator library | Policy changes are data changes with a version and checksum; operators are unit-tested. |
 | 4 | Findings fingerprinted by rule, version and subject (not value) | Re-runs keep reviewer resolutions; fixed problems are cleared rather than duplicated. |
-| 5 | Reviewer corrections stored beside originals | Nothing extracted is overwritten; the audit shows both. |
-| 6 | In-process thread-pool job runner with a jobs table | Simple and reliable for one instance. For multiple instances swap `JobRunner` for Celery/RQ; run gunicorn with one worker until then. |
+| 5 | Reviewer corrections stored beside originals | Nothing extracted is overwritten; the audit trail preserves both. |
+| 6 | In-process thread-pool job runner with a jobs table | Simple and reliable for one instance. For multiple instances, swap `JobRunner` for Celery/RQ; run gunicorn with one worker until then. |
 | 7 | Page images rendered server-side and cached | The viewer needs no PDF library in the browser, and bounding boxes are fractions of the page so overlays are resolution-independent. |
 | 8 | Template summary always on; LLM optional | The demo and core workflow never depend on a network service. |
 | 9 | Hash-based client routing, no router/query libraries | Fewer dependencies; works when served from any static host or from the API. |
+| 10 | AICTE EoA Chapter II (2024–27) 24-rule statutory catalogue | Grounding the rule engine in real, published regulatory statutes (Approval Process Handbook 2024-27 Chapter II) ensures legal non-repudiation and domain relevance rather than relying on abstract prototype checks. |
+| 11 | Typed 4-Outcome Evaluation Model (`PASS`, `FAIL`, `REVIEW_REQUIRED`, `NOT_APPLICABLE`) | Regulatory compliance requires distinguishing between unambiguous violations (`FAIL`), items requiring human adjudication (`REVIEW_REQUIRED`, e.g. renewal challans for expired NOCs), and non-applicable rules (`NOT_APPLICABLE`). Unexecuted rules are never assumed as `PASS`. |
+| 12 | Multi-Tier OCR with Groq Vision OCR Fallback (`qwen/qwen3.8-27b`) | Scanned or degraded photocopies frequently fail traditional local OCR engines. Integrating Groq's high-speed vision model as an automatic fallback when native text is sparse (`< 25` characters) provides high-accuracy character recognition while maintaining low operational latency. |
+| 13 | Werkzeug `ProxyFix` middleware for production rate limiting | When hosted behind cloud reverse proxies (Render, AWS ALB, Vercel, Nginx), `request.remote_addr` reflects internal proxy IPs, which would cause global rate-limit lockouts. `ProxyFix` correctly inspects `X-Forwarded-For` without IP spoofing vulnerabilities. |
+| 14 | Automatic 256-bit SHA-256 secret key strengthening | In cloud hosting environments where operators might configure short or default secrets, `Settings.from_env()` derives a 256-bit SHA-256 key from short inputs, ensuring RFC 7518 compliance and preventing offline dictionary attacks while preventing container boot crashes. |
+| 15 | Explicit `SEED_DEMO` production authorization | Prevents accidental execution of default demo accounts (`admin@demo.local` / `demo1234`) on live production databases while permitting automated demo deployments on Render when `SEED_DEMO=true` is explicitly set in `render.yaml`. |

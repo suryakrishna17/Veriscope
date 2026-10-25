@@ -3,7 +3,7 @@
 **Source Document**: AICTE Approval Process Handbook (APH 2024–25 to 2026–27)  
 **Statutory Authority**: All India Council for Technical Education Act, 1987 (Act 52 of 1987)  
 **Operational Scope**: Chapter II (*Grant of Extension of Approval for Existing Institutions*), Annexure-2 (*Documents to be Uploaded / Submitted by Existing Institutions*), and Appendix 6 (*Essential Requirements*)  
-**Ruleset File**: [`backend/app/rules/rulesets/aicte_eoa_chapter2.v1.yaml`](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/backend/app/rules/rulesets/aicte_eoa_chapter2.v1.yaml)  
+**Ruleset File**: [`backend/app/rules/rulesets/aicte_eoa_chapter2.v1.yaml`](../backend/app/rules/rulesets/aicte_eoa_chapter2.v1.yaml)  
 **Status**: `is_provisional: true` (Provisional regulatory interpretation; review required prior to production enforcement)
 
 ---
@@ -164,13 +164,13 @@ Under Step 3A, the AICTE EoA catalogue is executed through the unified ruleset f
   - `REVIEW_REQUIRED`: Discrepancy detected where official handbook provisions mandate human reviewer verification (e.g., safety renewal receipts, structural engineer endorsements, or document signals).
   - `NOT_APPLICABLE`: Rule condition was not met for this institution type or dossier.
 - **Human Verification Boundaries**: Rules `EOA-CMP-002`, `EOA-DAT-002`, `EOA-DAT-003`, `EOA-INF-001`, `EOA-SIG-001`, and `EOA-SIG-002` are explicitly configured with `outcome_on_fail: REVIEW_REQUIRED` to preserve human discretion.
-- **Rulebook Reference**: Complete guide for extending rules, operator mappings, and configuration fields is available in [docs/RULEBOOK.md](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/docs/RULEBOOK.md).
+- **Rulebook Reference**: Complete guide for extending rules, operator mappings, and configuration fields is available in [docs/RULEBOOK.md](RULEBOOK.md).
 
 ---
 
 ## 6. Verification & Test Evidence
 
-The catalogue is comprehensively tested and verified in [`backend/tests/test_eoa_rules.py`](file:///C:/Users/Navya%20Anubhuti/.gemini/antigravity/scratch/Veriscope/backend/tests/test_eoa_rules.py):
+The catalogue is comprehensively tested and verified in [`backend/tests/test_eoa_rules.py`](../backend/tests/test_eoa_rules.py):
 * **Schema Integrity**: Verifies loader compatibility, checksum calculation, versioning, unique rule IDs, and valid category/severity definitions.
 * **Statutory Traceability**: Confirms that 100% of rules possess valid `clause_citation`, `applicability`, `limitations`, and `next_action` properties.
 * **Evaluator Coverage**: Tests passing evaluations against a complete reference case, boundary conditions (equal date expiration, name similarity threshold margins), and isolated failure evaluations for every individual rule.

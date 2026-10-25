@@ -1,34 +1,52 @@
-# Architecture
+# VeriScope Architecture
 
 ```mermaid
 flowchart LR
-  UI[React + TS web app] -->|JSON / multipart| API[Flask API v1]
-  API --> SVC[Services: cases, decisions, audit, reports]
-  SVC --> DB[(SQLite · PostgreSQL-ready schema)]
+  UI[React 19 + TypeScript SPA] -->|JSON / multipart| API[Flask API v1 + ProxyFix]
+  API --> SVC[Services: cases, processing, decisions, audit, reports]
+  SVC --> DB[(SQLite WAL · PostgreSQL-ready schema)]
   SVC --> ST[Private file storage]
   SVC --> JOB[Job runner]
   JOB --> PIPE[Processing pipeline]
-  PIPE --> TXT[PDF text · Tesseract OCR]
-  PIPE --> SIG[Visual + metadata signals]
-  PIPE --> EXT[Label-anchored field extraction]
+  PIPE --> TXT[Multi-Tier OCR: PyMuPDF · Tesseract · Groq Vision Qwen 3.8-27B]
+  PIPE --> SIG[Visual heuristics + PDF trailer metadata signals]
+  PIPE --> EXT[Label-anchored extraction + Checkbox parsing]
   PIPE --> ISS[Issuer verifier adapter]
-  PIPE --> RULES[Rule engine · YAML ruleset]
-  RULES --> FIND[Findings + triage]
-  FIND --> AI[Summary adapter · template / optional LLM]
+  PIPE --> RULES[Deterministic Policy Engine: AICTE EoA Ch. II v1 / Lite v1]
+  RULES --> EVAL[4-Outcome Model: PASS, FAIL, REVIEW, N/A]
+  EVAL --> FIND[Findings + Triage Urgency Scoring]
+  FIND --> AI[Summary adapter: template / optional LLM guardrail]
 ```
 
-## Processing pipeline (per case run)
+## Processing Pipeline (Per Case Run)
 
-1. Each pending document: render pages, extract words with bounding boxes (native text, else OCR at 300 dpi).
-2. Extract fields by matching `Label: value` lines against per-document label synonyms (fuzzy for OCR). Each value keeps page, bbox, source line and confidence.
-3. Visual heuristics: ink density beside the last “Signature” label (printed words masked out), circular contour for seals, large type in the top band for letterheads.
-4. Quality (blur, resolution, OCR confidence) and metadata (modification gap, incremental saves, editing tools) signals.
-5. Issuer verifier records `NOT_VERIFIED` unless a real (or explicitly simulated) issuer confirms.
-6. Rules run against *effective* values (reviewer correction wins). Findings are upserted by fingerprint `rule_id|version|subject`, so re-runs keep reviewer resolutions and clear findings that no longer apply.
-7. Triage priority = weighted sum of open findings, with its components stored for display.
-8. Summary: template always; LLM only if configured and its output passes guardrails.
+1. **Document Intake & Hygiene**: MIME magic byte validation sniffs binary headers; SHA-256 digests identify cross-application file duplicates; password-encrypted or corrupt files are rejected.
+2. **Multi-Tier Text & Coordinate Extraction**:
+   - Native vector text extracted via PyMuPDF (`fitz`) in sub-second time.
+   - If native text is sparse (`< 25` characters) or document is an image, local Tesseract OCR processes pages at 300 DPI.
+   - If local OCR confidence is low or unavailable, Groq Vision OCR (`qwen/qwen3.8-27b`) is invoked via [`backend/app/processing/text.py`](../backend/app/processing/text.py).
+   - Every word and entity retains normalized bounding box coordinates `(x1, y1, x2, y2)`.
+3. **Field Extraction & Checkbox Detection**:
+   - Matches `Label: value` lines against document-specific label synonyms.
+   - Parses checkbox representations for statutory committee self-disclosures (Anti-Ragging, ICC, SGRC, SC/ST, IQAC, barrier-free access).
+4. **Visual & Structural Forensics**:
+   - Signature ink density analysis in bounding boxes adjacent to signature lines.
+   - Circular geometric contour transforms for institutional seals.
+   - PDF trailer dictionary parsing to identify incremental post-creation revisions.
+5. **Issuer Verification**: Default baseline status is `NOT_VERIFIED` unless a signed cryptographic response from an issuing authority is recorded.
+6. **Dynamic Ruleset Routing & Policy Evaluation**:
+   - Dynamic ruleset binding in [`backend/app/container.py`](../backend/app/container.py) routes `AICTE_EOA` cases to the 24-rule statutory catalogue (`aicte_eoa_chapter2.v1.yaml`) and prototype cases to `student_support_lite.v1.yaml`.
+   - Rules evaluate effective values (human reviewer corrections override extracted values).
+   - Rules output a typed 4-outcome breakdown (`PASS`, `FAIL`, `REVIEW_REQUIRED`, `NOT_APPLICABLE`).
+7. **Finding Persistence & Idempotency**:
+   - Discrepancies (`FAIL` and `REVIEW_REQUIRED`) are upserted into SQLite `findings` table by composite fingerprint `rule_id|version|subject`.
+   - Re-running checks preserves human reviewer resolutions and waives, while stale findings that no longer trigger are marked inactive.
+8. **Triage Prioritization**: Computes weighted urgency points based on open finding severities (`High = +40`, `Medium = +20`, `Low = +5`).
+9. **AI Advisory Summary**: Template-based summary is always generated; advisory LLM summary is generated only if configured and verified against strict anti-hallucination guardrails.
 
-## Case state machine
+---
+
+## Case State Machine
 
 ```mermaid
 stateDiagram-v2
@@ -48,10 +66,21 @@ stateDiagram-v2
   rejected --> needs_review: admin reopen
 ```
 
-Invalid transitions return `409 INVALID_STATE`.
+Invalid state transitions return `409 INVALID_STATE`.
 
-## Boundaries
+---
 
-- The rule engine is pure (no I/O): `CaseContext` in, `RuleResult` list out. This is what makes rules unit-testable with hand-built contexts.
-- Storage, LLM, issuer verification and the job runner are adapters wired in `app/container.py`.
-- Uploaded content is untrusted data throughout: never executed, never treated as instructions.
+## Security & Deployment Architecture
+
+- **Reverse-Proxy Rate Limiting**: In production deployments (`APP_ENV=prod`), Werkzeug's `ProxyFix` middleware (`x_for=1, x_proto=1, x_host=1, x_prefix=1`) ensures rate-limiting buckets evaluate client IPs accurately rather than reverse-proxy internal IPs.
+- **Production Seed Protection**: `scripts/seed.py` is prohibited from running in production environments unless explicitly authorized via `SEED_DEMO=true` or `ALLOW_DEMO_SEED=true`.
+- **Cryptographic Key Strengthening**: `Settings.from_env()` enforces a 32-byte secret key length in production, automatically strengthening short keys to 256-bit SHA-256 derived keys to satisfy RFC 7518 Section 3.2.
+- **Append-Only Audit Log**: SQLite database triggers block `UPDATE` and `DELETE` on the `audit_events` table, guaranteeing an immutable audit trail.
+
+---
+
+## System Boundaries
+
+- **Pure Rule Engine**: Evaluator functions take a `CaseContext` in and return a list of `RuleEvaluation` / `RuleResult` objects without database or network I/O.
+- **Adapter Wiring**: File storage, Groq vision OCR, LLM summarization, and job execution are swappable interfaces wired via dependency injection in `app/container.py`.
+- **Zero Verdict Authority for AI**: Machine learning and automated checks emit signals only; **binding determinations are reserved strictly for authorized human reviewers.**
