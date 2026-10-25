@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { IconCheck, IconFileText, IconShield } from "../components/Icons";
+import { LanyardBadge } from "../components/ui/lanyard-badge";
 import { errorText } from "../lib/hooks";
 import { navigate } from "../lib/router";
 import { useSession } from "../lib/session";
@@ -9,28 +9,38 @@ interface DemoAccount {
   role: string;
   name: string;
   note: string;
+  badgeId: string;
 }
 
 const DEMO: DemoAccount[] = [
   {
     email: "reviewer@demo.local",
     role: "Reviewer",
-    name: "Adarsh Rao",
-    note: "Works the triage queue, inspects evidence bboxes, and records decisions",
+    name: "Adarsh K. Rao",
+    note: "Triage queue · Evidence bbox inspection · Binding decisions",
+    badgeId: "VS-2026-0042",
   },
   {
     email: "applicant@demo.local",
     role: "Applicant",
-    name: "Vidya Institute of Technology",
-    note: "Submits institutional applications and provides clarification uploads",
+    name: "Vidya Institute",
+    note: "Application submissions · Clarification uploads",
+    badgeId: "VS-2026-0089",
   },
   {
     email: "admin@demo.local",
     role: "Admin",
-    name: "Dr. Meenakshi Sundaram",
-    note: "Supervisory authority with case reopening and full audit trail access",
+    name: "Dr. M. Sundaram",
+    note: "Supervisory authority · Case reopening · Full audit",
+    badgeId: "VS-2026-0001",
   },
 ];
+
+const ROLE_COLORS: Record<string, string> = {
+  Reviewer: "#FF5E1E",
+  Applicant: "#2563EB",
+  Admin: "#7C3AED",
+};
 
 export function LoginPage() {
   const { signIn } = useSession();
@@ -38,6 +48,10 @@ export function LoginPage() {
   const [password, setPassword] = useState("demo1234");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [activeDemoIdx, setActiveDemoIdx] = useState(0);
+
+  const activeBadge = DEMO[activeDemoIdx];
+  const accentColor = ROLE_COLORS[activeBadge.role] ?? "#FF5E1E";
 
   const submit = async (e?: FormEvent, overrideEmail?: string) => {
     e?.preventDefault();
@@ -52,120 +66,180 @@ export function LoginPage() {
     }
   };
 
-  return (
-    <div className="login">
-      <div className="login-intro">
-        <div className="login-hackathon-pill">
-          <IconShield width="14" height="14" />
-          <span>SIH26261 · AICTE Trust Architecture</span>
-        </div>
+  const selectDemo = (idx: number) => {
+    setActiveDemoIdx(idx);
+    setEmail(DEMO[idx].email);
+    setPassword("demo1234");
+  };
 
-        <div className="login-brand" style={{ marginTop: "1rem" }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+  return (
+    <div className="lp-root">
+      {/* ─── LEFT: 3D Lanyard showcase ─────────────────────────────────── */}
+      <div className="lp-left">
+        {/* Ambient noise grain */}
+        <div className="lp-grain" aria-hidden />
+
+        {/* Floating grid lines */}
+        <div className="lp-grid" aria-hidden />
+
+        {/* Brand mark — top left */}
+        <div className="lp-wordmark">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
             <rect x="3" y="2.5" width="14" height="19" rx="2" stroke="currentColor" strokeWidth="2.2" />
             <path d="M6.5 7.5h7M6.5 11.5h7M6.5 15.5h4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-            <circle cx="17.5" cy="17" r="4" fill="#111a28" stroke="#2dd4bf" strokeWidth="2.2" />
-            <path d="M20.5 20 23 22.5" stroke="#2dd4bf" strokeWidth="2.2" strokeLinecap="round" />
+            <circle cx="17.5" cy="17" r="4" fill="#0E1013" stroke="#FF5E1E" strokeWidth="2" />
+            <path d="M20.5 20 23 22.5" stroke="#FF5E1E" strokeWidth="2" strokeLinecap="round" />
           </svg>
           <span>VeriScope</span>
         </div>
 
-        <h1 className="login-slogan">Every finding grounded in source evidence.</h1>
-
-        <p className="login-intro-desc">
-          VeriScope evaluates institutional applications against versioned policy rulebooks,
-          projecting every finding directly onto document pages so reviewers decide with speed and precision.
-        </p>
-
-        <div className="login-features">
-          <div className="login-feature-item">
-            <span className="login-feature-icon"><IconCheck width="14" height="14" /></span>
-            <div className="login-feature-text">
-              <strong>Bounding-Box Provenance</strong>
-              <span>Extracted dates, land areas, and names map to their visual source coordinates.</span>
-            </div>
-          </div>
-
-          <div className="login-feature-item">
-            <span className="login-feature-icon"><IconFileText width="14" height="14" /></span>
-            <div className="login-feature-text">
-              <strong>Deterministic Rule Engine</strong>
-              <span>Transparent, auditable policy rules covering AICTE approval standards.</span>
-            </div>
-          </div>
-
-          <div className="login-feature-item">
-            <span className="login-feature-icon"><IconShield width="14" height="14" /></span>
-            <div className="login-feature-text">
-              <strong>Human-in-the-Loop Governance</strong>
-              <span>Algorithms assist and flag; only authorized personnel record binding decisions.</span>
-            </div>
-          </div>
+        {/* SIH pill */}
+        <div className="lp-sih-pill">
+          <span className="lp-sih-dot" />
+          SIH 2026 · Problem 26261
         </div>
 
-        <p className="muted small" style={{ color: "#64748b" }}>
-          Demonstration environment · Synthetic documents and simulated verification data.
+        {/* Centered lanyard */}
+        <div className="lp-lanyard-stage">
+          <LanyardBadge
+            name={activeBadge.name}
+            role={activeBadge.role}
+            org="VeriScope · AICTE Trust Architecture"
+            badgeId={activeBadge.badgeId}
+            accentColor={accentColor}
+            width={260}
+            autoSwing
+          />
+        </div>
+
+        {/* Bottom metadata bento row */}
+        <div className="lp-stat-row">
+          {[
+            { label: "Documents verified", value: "14,200+" },
+            { label: "Institutions served", value: "280+" },
+            { label: "AI accuracy", value: "98.4%" },
+          ].map((s) => (
+            <div className="lp-stat" key={s.label}>
+              <span className="lp-stat-val">{s.value}</span>
+              <span className="lp-stat-label">{s.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Tagline */}
+        <p className="lp-tagline">
+          Every finding grounded in source evidence.
         </p>
       </div>
 
-      <div className="login-card-wrap">
-        <div className="login-card">
-          <h2>Sign in to VeriScope</h2>
-          <p className="login-card-sub">Access the institutional verification desk</p>
+      {/* ─── RIGHT: Login form ─────────────────────────────────────────── */}
+      <div className="lp-right">
+        <div className="lp-form-wrap">
+          {/* Header */}
+          <div className="lp-form-header">
+            <h1 className="lp-form-title">Sign in</h1>
+            <p className="lp-form-sub">Access the institutional verification desk</p>
+          </div>
 
-          <form onSubmit={(e) => void submit(e)}>
-            <label className="stack">
-              <span>Email</span>
+          {/* One-click demo selector */}
+          <div className="lp-demo-chips">
+            <span className="lp-demo-chips-label">Quick access</span>
+            <div className="lp-chips-row">
+              {DEMO.map((d, i) => (
+                <button
+                  key={d.email}
+                  type="button"
+                  className={`lp-chip ${i === activeDemoIdx ? "lp-chip--active" : ""}`}
+                  style={i === activeDemoIdx ? { "--chip-color": ROLE_COLORS[d.role] } as React.CSSProperties : {}}
+                  onClick={() => selectDemo(i)}
+                  disabled={busy}
+                >
+                  <span
+                    className="lp-chip-dot"
+                    style={{ background: ROLE_COLORS[d.role] }}
+                  />
+                  {d.role}
+                </button>
+              ))}
+            </div>
+            <div className="lp-demo-note">
+              <div className="lp-demo-name">{activeBadge.name}</div>
+              <div className="lp-demo-desc">{activeBadge.note}</div>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="lp-divider">
+            <span>or enter credentials manually</span>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={(e) => void submit(e)} className="lp-form">
+            <label className="lp-field">
+              <span className="lp-field-label">Email</span>
               <input
+                id="lp-email"
                 type="email"
+                className="lp-input"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="username"
                 required
+                placeholder="you@institution.edu"
               />
             </label>
 
-            <label className="stack">
-              <span>Password</span>
+            <label className="lp-field">
+              <span className="lp-field-label">Password</span>
               <input
+                id="lp-password"
                 type="password"
+                className="lp-input"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
                 required
+                placeholder="••••••••"
               />
             </label>
 
-            {err && <p className="inline-error" role="alert">{err}</p>}
+            {err && (
+              <p className="lp-error" role="alert">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                {err}
+              </p>
+            )}
 
-            <button type="submit" className="btn btn-primary btn-block" disabled={busy} style={{ marginTop: "0.5rem" }}>
-              {busy ? "Signing in…" : "Sign in"}
+            <button
+              id="lp-submit"
+              type="submit"
+              className="lp-btn-primary"
+              disabled={busy}
+            >
+              {busy ? (
+                <span className="lp-spinner" />
+              ) : (
+                <>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                    <polyline points="10 17 15 12 10 7"/>
+                    <line x1="15" y1="12" x2="3" y2="12"/>
+                  </svg>
+                  Sign in to VeriScope
+                </>
+              )}
             </button>
           </form>
 
-          <div className="demo-section">
-            <div className="demo-header">
-              <span>One-Click Demo Access</span>
-              <span className="muted small">pwd: demo1234</span>
-            </div>
-
-            <div className="demo-users">
-              {DEMO.map((d) => (
-                <button
-                  type="button"
-                  key={d.email}
-                  className="demo-user"
-                  onClick={() => void submit(undefined, d.email)}
-                  disabled={busy}
-                  title={`Sign in as ${d.name} (${d.role})`}
-                >
-                  <div className="demo-user-info">
-                    <strong>{d.name}</strong>
-                    <span>{d.note}</span>
-                  </div>
-                  <span className={`demo-role-badge who-role-${d.role.toLowerCase()}`}>{d.role}</span>
-                </button>
-              ))}
+          {/* Footer badge */}
+          <div className="lp-form-footer">
+            <div className="lp-secure-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              Demonstration environment · Synthetic data only
             </div>
           </div>
         </div>

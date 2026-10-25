@@ -40,10 +40,18 @@
   --info: #475569;      --info-bg: rgba(248, 250, 252, 0.85);    --info-border: rgba(226, 232, 240, 0.85);
   --ok: #16a34a;        --ok-bg: rgba(240, 253, 244, 0.85);      --ok-border: rgba(187, 247, 208, 0.85);
 
-  /* Typography */
-  --font: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --serif: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  /* Typography — DESIGN-5.md: Space Grotesk + Hanken Grotesk + JetBrains Mono */
+  --font: "Space Grotesk", "Hanken Grotesk", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --serif: "Hanken Grotesk", "Space Grotesk", -apple-system, BlinkMacSystemFont, sans-serif;
   --mono: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+
+  /* DESIGN-5.md brand tokens */
+  --orange: #FF5E1E;
+  --orange-hover: #E04A0A;
+  --orange-soft: rgba(255, 94, 30, 0.08);
+  --orange-border: rgba(255, 94, 30, 0.2);
+  --canvas: #F9F8F5;
+  --obsidian: #0E1013;
 
   /* Geometry & Elevation */
   --r-sm: 8px;
@@ -647,132 +655,422 @@ input[aria-invalid="true"] {
   color: var(--ink-3);
 }
 
-/* Glass Login Screen */
-.login {
+/* ═══════════════════════════════════════════════════════════════════════════
+   LP — New 3D Lanyard Login Page (DESIGN-5.md system)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.lp-root {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 1.25fr 1fr;
-}
-.login-intro {
-  padding: 8vh 6vw 4rem;
-  background: linear-gradient(145deg, #090e17 0%, #111a28 100%);
-  color: #e2e8f0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  position: relative;
+  grid-template-columns: 1fr 1fr;
+  font-family: var(--font);
   overflow: hidden;
 }
-.login-intro::before {
-  content: "";
-  position: absolute;
-  top: -15%;
-  right: -10%;
-  width: 480px;
-  height: 480px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(13, 148, 136, 0.25) 0%, transparent 70%);
-  pointer-events: none;
-}
-.login-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: #2dd4bf;
-  letter-spacing: -0.02em;
-  margin-bottom: 0.5rem;
-}
-.login-slogan {
-  font-size: clamp(2rem, 3.2vw, 2.75rem);
-  font-weight: 800;
-  line-height: 1.15;
-  color: #ffffff;
-  letter-spacing: -0.03em;
-  margin: 0.75rem 0 1.25rem;
-  max-width: 16ch;
-}
-.login-intro-desc {
-  max-width: 52ch;
-  color: #94a3b8;
-  font-size: 1.02rem;
-  line-height: 1.6;
-  margin-bottom: 2rem;
-}
-.login-features {
-  display: grid;
-  gap: 1rem;
-  margin-bottom: 2.5rem;
-  max-width: 50ch;
-}
-.login-feature-item {
+
+/* ── Left panel: dark editorial showcase ─────────────────────────────────── */
+.lp-left {
+  position: relative;
+  background: #0E1013;
   display: flex;
-  gap: 0.75rem;
-  align-items: flex-start;
-}
-.login-feature-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: rgba(45, 212, 191, 0.15);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  color: #2dd4bf;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  margin-top: 0.15rem;
-  border: 1px solid rgba(45, 212, 191, 0.25);
-}
-.login-feature-text strong {
-  display: block;
-  color: #f1f5f9;
-  font-size: 0.92rem;
-}
-.login-feature-text span {
-  font-size: 0.82rem;
-  color: #94a3b8;
-}
-.login-hackathon-pill {
-  display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: #cbd5e1;
-  font-size: 0.78rem;
-  font-weight: 550;
-  width: fit-content;
+  justify-content: center;
+  padding: 3rem 2.5rem;
+  overflow: hidden;
+  gap: 0;
 }
 
-.login-card-wrap {
-  align-self: center;
-  justify-self: center;
-  width: min(440px, 90vw);
-  padding: 3rem 1rem;
+/* Noise grain overlay */
+.lp-grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.55;
 }
-.login-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur-heavy);
-  -webkit-backdrop-filter: var(--glass-blur-heavy);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--r-lg);
-  padding: 2.5rem;
-  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.15), var(--glass-highlight);
+
+/* Floating grid lines */
+.lp-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,94,30,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,94,30,0.04) 1px, transparent 1px);
+  background-size: 56px 56px;
+  pointer-events: none;
 }
-.login-card h2 {
-  font-size: 1.45rem;
-  margin-bottom: 0.25rem;
+
+/* Glow orb */
+.lp-left::before {
+  content: "";
+  position: absolute;
+  top: -10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(255,94,30,0.14) 0%, transparent 65%);
+  pointer-events: none;
+  animation: lp-glow-pulse 6s ease-in-out infinite;
 }
-.login-card-sub {
-  color: var(--ink-3);
+
+@keyframes lp-glow-pulse {
+  0%, 100% { opacity: 0.8; transform: translateX(-50%) scale(1); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+}
+
+/* Word mark */
+.lp-wordmark {
+  position: absolute;
+  top: 1.75rem;
+  left: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #F9F8F5;
+  letter-spacing: -0.03em;
+  font-family: "Space Grotesk", sans-serif;
+}
+.lp-wordmark svg { color: #F9F8F5; }
+
+/* SIH pill */
+.lp-sih-pill {
+  position: absolute;
+  top: 1.85rem;
+  right: 2rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.28rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(255,94,30,0.12);
+  border: 1px solid rgba(255,94,30,0.28);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #FF5E1E;
+  letter-spacing: 0.04em;
+  font-family: "Space Grotesk", sans-serif;
+}
+.lp-sih-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #FF5E1E;
+  animation: lp-blink 2s ease-in-out infinite;
+}
+@keyframes lp-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* Lanyard stage */
+.lp-lanyard-stage {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 3.5rem;
+  flex: 1;
+}
+
+/* Stats bento row */
+.lp-stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  width: 100%;
+  max-width: 340px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 2rem;
+  position: relative;
+  z-index: 2;
+}
+.lp-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.85rem 0.5rem;
+  background: rgba(14,16,19,0.8);
+  gap: 0.2rem;
+  transition: background 0.2s;
+}
+.lp-stat:hover { background: rgba(255,94,30,0.08); }
+.lp-stat-val {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #FF5E1E;
+  letter-spacing: -0.03em;
+  font-family: "Space Grotesk", sans-serif;
+  line-height: 1;
+}
+.lp-stat-label {
+  font-size: 0.65rem;
+  color: #5A6070;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+/* Tagline */
+.lp-tagline {
+  font-size: 0.78rem;
+  color: #3A3E48;
+  text-align: center;
+  margin-top: 1.2rem;
+  font-family: "Hanken Grotesk", sans-serif;
+  letter-spacing: 0.02em;
+  font-style: italic;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Right panel: form ───────────────────────────────────────────────────── */
+.lp-right {
+  background: var(--canvas, #F9F8F5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  position: relative;
+}
+
+/* Subtle limestone texture */
+.lp-right::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 80% 20%, rgba(255,94,30,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(14,16,19,0.04) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.lp-form-wrap {
+  width: min(400px, 90%);
+  position: relative;
+  z-index: 1;
+}
+
+/* Header */
+.lp-form-header {
+  margin-bottom: 2rem;
+}
+.lp-form-title {
+  font-size: clamp(2rem, 3.5vw, 2.8rem);
+  font-weight: 800;
+  color: #0E1013;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin: 0 0 0.4rem;
+  font-family: "Space Grotesk", sans-serif;
+}
+.lp-form-sub {
   font-size: 0.88rem;
-  margin-bottom: 1.5rem;
+  color: #7A7670;
+  font-family: "Hanken Grotesk", sans-serif;
+  margin: 0;
+}
+
+/* Demo chips */
+.lp-demo-chips {
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.1rem;
+  background: rgba(14,16,19,0.04);
+  border: 1px solid rgba(14,16,19,0.08);
+  border-radius: 12px;
+}
+.lp-demo-chips-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9A9590;
+  font-family: "Space Grotesk", sans-serif;
+  display: block;
+  margin-bottom: 0.6rem;
+}
+.lp-chips-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.7rem;
+}
+.lp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.32rem 0.8rem;
+  border-radius: 999px;
+  border: 1.5px solid rgba(14,16,19,0.14);
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #3A3832;
+  font-family: "Space Grotesk", sans-serif;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  letter-spacing: 0.02em;
+}
+.lp-chip:hover:not(:disabled) {
+  border-color: rgba(14,16,19,0.3);
+  background: rgba(14,16,19,0.05);
+}
+.lp-chip--active {
+  border-color: var(--chip-color, #FF5E1E);
+  background: color-mix(in srgb, var(--chip-color, #FF5E1E) 10%, transparent);
+  color: var(--chip-color, #FF5E1E);
+}
+.lp-chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.lp-demo-name {
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: #0E1013;
+  font-family: "Space Grotesk", sans-serif;
+  margin-bottom: 0.18rem;
+}
+.lp-demo-desc {
+  font-size: 0.76rem;
+  color: #7A7670;
+  font-family: "Hanken Grotesk", sans-serif;
+  line-height: 1.4;
+}
+
+/* Divider */
+.lp-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+.lp-divider::before,
+.lp-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(14,16,19,0.1);
+}
+.lp-divider span {
+  font-size: 0.72rem;
+  color: #9A9590;
+  white-space: nowrap;
+  font-family: "Hanken Grotesk", sans-serif;
+  letter-spacing: 0.04em;
+}
+
+/* Form fields */
+.lp-form { display: flex; flex-direction: column; gap: 1rem; }
+.lp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.38rem;
+}
+.lp-field-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #3A3832;
+  font-family: "Space Grotesk", sans-serif;
+  letter-spacing: 0.02em;
+}
+.lp-input {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border: 1.5px solid rgba(14,16,19,0.15);
+  border-radius: 10px;
+  background: #fff;
+  font-size: 0.9rem;
+  color: #0E1013;
+  font-family: "Hanken Grotesk", sans-serif;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+}
+.lp-input::placeholder { color: #C0BAB2; }
+.lp-input:focus {
+  border-color: #FF5E1E;
+  box-shadow: 0 0 0 3px rgba(255,94,30,0.12);
+}
+
+/* Error */
+.lp-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: #DC2626;
+  background: #FFF1F0;
+  border: 1px solid #FECACA;
+  border-radius: 8px;
+  padding: 0.55rem 0.8rem;
+  margin: 0;
+}
+
+/* Primary CTA */
+.lp-btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.78rem 1.2rem;
+  background: #FF5E1E;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  font-family: "Space Grotesk", sans-serif;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  box-shadow: 0 4px 16px rgba(255,94,30,0.3), inset 0 1px 1px rgba(255,255,255,0.2);
+  margin-top: 0.25rem;
+}
+.lp-btn-primary:hover:not(:disabled) {
+  background: #E04A0A;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(255,94,30,0.38);
+}
+.lp-btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(255,94,30,0.2);
+}
+.lp-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Spinner */
+.lp-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: lp-spin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes lp-spin { to { transform: rotate(360deg); } }
+
+/* Form footer */
+.lp-form-footer { margin-top: 1.5rem; display: flex; justify-content: center; }
+.lp-secure-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: #9A9590;
+  font-family: "Hanken Grotesk", sans-serif;
 }
 
 .demo-section {
@@ -1550,6 +1848,9 @@ tr.clickable:hover td { background: var(--surface-3); }
 @media (max-width: 860px) {
   .login { grid-template-columns: 1fr; }
   .login-intro { padding: 3rem 1.5rem; }
+  .lp-root { grid-template-columns: 1fr; }
+  .lp-left { min-height: 60vh; padding: 5rem 1.5rem 2.5rem; }
+  .lp-lanyard-stage { margin-top: 1.5rem; }
   .review { grid-template-columns: 1fr; }
   .pane { position: static; max-height: none; }
   .topbar { gap: 1rem; flex-wrap: wrap; padding: 0.6rem 1rem; }
