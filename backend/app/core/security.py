@@ -33,7 +33,13 @@ def verify_password(hashed: str, password: str) -> bool:
 
 def issue_token(user: dict[str, Any], secret: str, ttl_minutes: int) -> str:
     now = datetime.now(UTC)
-    claims = {"sub": user["id"], "role": user["role"], "iat": now, "exp": now + timedelta(minutes=ttl_minutes)}
+    claims = {
+        "sub": user["id"],
+        "role": user["role"],
+        "token_version": user.get("token_version", 1),
+        "iat": now,
+        "exp": now + timedelta(minutes=ttl_minutes),
+    }
     return jwt.encode(claims, secret, algorithm="HS256")
 
 
@@ -62,9 +68,11 @@ def require_auth(*roles: str) -> Callable[[F], F]:
                 raise ApiError(401, "UNAUTHENTICATED", "Sign in to continue.")
             svc = current_app.extensions["veriscope"]
             claims = decode_token(header[7:], svc.settings.secret_key)
-            user = svc.db.one("SELECT id, email, name, role FROM users WHERE id = ?", (claims["sub"],))
+            user = svc.db.one("SELECT id, email, name, role, token_version FROM users WHERE id = ?", (claims["sub"],))
             if user is None:
                 raise ApiError(401, "UNAUTHENTICATED", "Sign in to continue.")
+            if claims.get("token_version", 1) != user.get("token_version", 1):
+                raise ApiError(401, "TOKEN_REVOKED", "Your session has been invalidated. Please sign in again.")
             if roles and user["role"] not in roles:
                 raise ApiError(403, "FORBIDDEN", "Your role does not allow this action.")
             g.user = user

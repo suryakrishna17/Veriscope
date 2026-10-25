@@ -48,7 +48,7 @@ FIELDS: dict[str, FieldSpec] = {
         FieldSpec("academic_year", "Academic year", "text"),
         FieldSpec("principal_director_name", "Principal / Director name", "name"),
         FieldSpec("land_category", "Land category", "text"),
-        FieldSpec("total_built_up_area", "Total built-up area", "text"),
+        FieldSpec("total_built_up_area", "Total built-up area", "number"),
         FieldSpec("university_name", "University name", "org"),
         FieldSpec("affiliation_order_number", "Affiliation order number", "id"),
         FieldSpec("order_date", "Order date", "date"),
@@ -57,9 +57,9 @@ FIELDS: dict[str, FieldSpec] = {
         FieldSpec("building_coverage", "Building coverage", "text"),
         FieldSpec("structural_engineer_name", "Structural engineer name", "name"),
         FieldSpec("license_registration_number", "License / Registration number", "id"),
-        FieldSpec("land_area", "Land area", "text"),
+        FieldSpec("land_area", "Land area", "number"),
         FieldSpec("survey_number", "Survey number", "id"),
-        FieldSpec("building_area", "Building area", "text"),
+        FieldSpec("building_area", "Building area", "number"),
         FieldSpec("issuing_authority", "Issuing authority", "org"),
         # EoA committee self-disclosure boolean checkboxes
         FieldSpec("anti_ragging_committee_constituted", "Anti-Ragging Committee constituted", "bool"),
@@ -106,6 +106,18 @@ def parse_money(value: str) -> Decimal | None:
         return None
 
 
+def parse_number(value: str) -> Decimal | None:
+    """Parses numeric area or dimension strings (e.g. '3,200 sq.m', '15000', '1.5 acres')."""
+    v = re.sub(r"(?i)(sq\.?\s*m(?:eters?)?|sqm|sq\.?\s*ft|acres?|hectares?)", "", value).replace(",", "").strip()
+    m = re.search(r"-?\d+(\.\d+)?", v)
+    if not m:
+        return None
+    try:
+        return Decimal(m.group(0))
+    except InvalidOperation:
+        return None
+
+
 def normalize(key: str, raw: str | None) -> str | None:
     if raw is None:
         return None
@@ -120,6 +132,9 @@ def normalize(key: str, raw: str | None) -> str | None:
     if kind == "money":
         m = parse_money(v)
         return str(m) if m is not None else None
+    if kind == "number":
+        n = parse_number(v)
+        return str(n) if n is not None else v
     if kind == "email":
         return v.lower().replace(" ", "")
     if kind == "phone":

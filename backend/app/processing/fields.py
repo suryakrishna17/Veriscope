@@ -143,7 +143,9 @@ def group_lines(words: list[Word]) -> list[list[Word]]:
     return [sorted(line, key=lambda w: w.x0) for line in lines]
 
 
-def bbox_of(words: list[Word]) -> list[float]:
+def bbox_of(words: list[Word]) -> list[float] | None:
+    if not words or any(getattr(w, "source", "ocr") == "llm_suggestion" for w in words):
+        return None
     return [round(min(w.x0 for w in words), 5), round(min(w.y0 for w in words), 5), round(max(w.x1 for w in words), 5), round(max(w.y1 for w in words), 5)]
 
 

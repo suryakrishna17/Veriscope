@@ -1,558 +1,775 @@
-# VeriScope Rulebook — AICTE Extension of Approval (EoA) for Existing Institutions
-# Statutory Authority: All India Council for Technical Education Act, 1987 (52 of 1987)
-# Source: AICTE Approval Process Handbook (APH 2024-25 to 2026-27), Chapter II & Annexure-2
 ruleset: aicte_eoa_chapter2
 version: 1.0.0
 is_provisional: true
 is_verified: true
 verification_status: VERIFIED_OFFICIAL
 effective_date: 2024-04-01
-source_note: AICTE Approval Process Handbook (APH 2024-25 to 2026-27), Chapter II (Grant of Extension of Approval for Existing Institutions), Annexure-2 (Documents to be Uploaded / Submitted by Existing Institutions), and Appendix 6 (Essential Requirements), All India Council for Technical Education, Nelson Mandela Marg, New Delhi.
-
+source_note: AICTE Approval Process Handbook (APH 2024-25 to 2026-27), Chapter II
+  (Grant of Extension of Approval for Existing Institutions), Annexure-2 (Documents
+  to be Uploaded / Submitted by Existing Institutions), and Appendix 6 (Essential
+  Requirements), All India Council for Technical Education, Nelson Mandela Marg, New
+  Delhi.
 rules:
-
-  - id: EOA-CMP-001
-    category: completeness
-    severity: high
-    summary: Mandatory core EoA dossier documents are missing
-    description: "Mandatory core EoA dossier documents are missing. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.4 & Clause 2.5, and Annexure-2."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.4 & Clause 2.5, and Annexure-2"
-    applicable_condition: "Applicable to existing affiliated technical institutions applying for Extension of Approval (EoA). Standalone institutions offering PGDM, autonomous degree institutions, and deemed-to-be universities do not affiliate with state universities and are exempt from university affiliation order requirements under Chapter II."
-    applicability: "Applicable to existing affiliated technical institutions applying for Extension of Approval (EoA). Standalone institutions offering PGDM, autonomous degree institutions, and deemed-to-be universities do not affiliate with state universities and are exempt from university affiliation order requirements under Chapter II."
-    limitations: "Verifies document presence only; does not confirm physical on-site validity, board seals, or statutory authenticity."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: FAIL
-    operator: required_doc_types
-    params:
-      doc_types:
-      - EOA_APPLICATION_FORM
-      - UNIVERSITY_AFFILIATION_ORDER
-      - FIRE_SAFETY_CERTIFICATE
-      - BUILDING_SAFETY_CERTIFICATE
-    next_action: "Request the institution upload the missing mandatory statutory documents. For autonomous or standalone PGDM institutions, verify statutory non-affiliation status and do not penalize for missing university affiliation orders."
-
-  - id: EOA-CMP-002
-    category: completeness
-    severity: medium
-    summary: Mandatory land and building occupancy documents missing for structural or intake changes
-    description: "Mandatory land and building occupancy documents missing for structural or intake changes. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.5, Clause 2.6, and Annexure-2."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.5, Clause 2.6, and Annexure-2"
-    applicable_condition: "Mandatory for institutions applying for expansion, increase in intake, new programmes, or change of site under Chapter II Clauses 2.6 to 2.10. For routine annual EoA continuation without structural changes, land ownership remains on permanent AICTE record based on self-disclosure."
-    applicability: "Mandatory for institutions applying for expansion, increase in intake, new programmes, or change of site under Chapter II Clauses 2.6 to 2.10. For routine annual EoA continuation without structural changes, land ownership remains on permanent AICTE record based on self-disclosure."
-    limitations: "Confirms upload of land deed and occupancy certificate; legal title, encumbrance, and municipal validity require human verification."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: REVIEW_REQUIRED
-    operator: required_doc_types
-    params:
-      doc_types:
-      - LAND_DOCUMENT_AND_USE_CERTIFICATE
-      - OCCUPANCY_CERTIFICATE
-    next_action: "Confirm whether the application is a routine annual EoA continuation or involves programme/intake expansions. If expansion is sought, require registered land ownership/lease documents and local authority occupancy certificate."
-
-  - id: EOA-CMP-003
-    category: completeness
-    severity: medium
-    summary: Mandatory institutional details missing on the application form
-    description: "Mandatory institutional details missing on the application form. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.3 & Clause 2.5, and Annexure-2."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.3 & Clause 2.5, and Annexure-2"
-    applicable_condition: "All submitted EoA application forms."
-    applicability: "All submitted EoA application forms."
-    limitations: "Checks presence of reported fields; does not evaluate numerical sufficiency of built-up area or land size."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: FAIL
-    operator: required_fields
-    params:
-      doc_type: EOA_APPLICATION_FORM
-      fields:
-      - institution_name
-      - institution_id
-      - academic_year
-      - principal_director_name
-      - land_category
-      - total_built_up_area
-    next_action: "Check the application page; if OCR failed to recognize the field, correct manually or request clarification from the institution."
-
-  - id: EOA-CMP-004
-    category: completeness
-    severity: medium
-    summary: Mandatory details missing on the university affiliation order
-    description: "Mandatory details missing on the university affiliation order. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.5, and Annexure-2."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.5, and Annexure-2"
-    applicable_condition: "Affiliated technical institutions. Standalone PGDM and autonomous institutions are exempt from university affiliation."
-    applicability: "Affiliated technical institutions. Standalone PGDM and autonomous institutions are exempt from university affiliation."
-    limitations: "Verifies presence of order metadata; course-by-course affiliation breakdown requires manual review."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: FAIL
-    operator: required_fields
-    params:
-      doc_type: UNIVERSITY_AFFILIATION_ORDER
-      fields:
-      - university_name
-      - academic_year
-      - affiliation_order_number
-      - order_date
-    next_action: "Review the affiliation document to confirm the order covers the requested academic session. For autonomous institutions, verify that non-affiliation credentials are confirmed."
-
-  - id: EOA-CMP-005
-    category: completeness
-    severity: medium
-    summary: Mandatory details missing on the fire safety certificate
-    description: "Mandatory details missing on the fire safety certificate. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6"
-    applicable_condition: "All operational educational institutions and instructional blocks."
-    applicability: "All operational educational institutions and instructional blocks."
-    limitations: "Verifies metadata extraction; does not inspect physical firefighting installations on campus."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: FAIL
-    operator: required_fields
-    params:
-      doc_type: FIRE_SAFETY_CERTIFICATE
-      fields:
-      - fire_authority_name
-      - noc_number
-      - valid_until
-      - building_coverage
-    next_action: "Check the uploaded fire safety clearance for designated authority seal, NOC number, and expiry date."
-
-  - id: EOA-CMP-006
-    category: completeness
-    severity: medium
-    summary: Mandatory details missing on the building structural safety certificate
-    description: "Mandatory details missing on the building structural safety certificate. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6"
-    applicable_condition: "All permanent structural blocks used for educational purposes."
-    applicability: "All permanent structural blocks used for educational purposes."
-    limitations: "Ensures structural engineer registration is stated; structural safety calculations require specialized engineering review."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: FAIL
-    operator: required_fields
-    params:
-      doc_type: BUILDING_SAFETY_CERTIFICATE
-      fields:
-      - structural_engineer_name
-      - license_registration_number
-      - valid_until
-    next_action: "Verify the certificate was issued by an empanelled structural engineer with valid license and registration details."
-
-  - id: EOA-FMT-001
-    category: compliance
-    severity: medium
-    summary: AICTE Permanent Institution ID format is non-standard
-    description: "AICTE Permanent Institution ID format is non-standard. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.3."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.3"
-    applicable_condition: "All applications referencing the central AICTE permanent institution identifier."
-    applicability: "All applications referencing the central AICTE permanent institution identifier."
-    limitations: "Validates string pattern only; central registry existence must be confirmed via issuer check."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: FAIL
-    operator: regex
-    params:
-      doc_types:
-      - EOA_APPLICATION_FORM
-      fields:
-      - institution_id
-      pattern: ^\d-\d{9,10}$
-    next_action: "Verify the permanent AICTE institution ID with central portal records."
-
-  - id: EOA-FMT-002
-    category: compliance
-    severity: low
-    summary: Academic session format does not conform to APH convention
-    description: "Academic session format does not conform to APH convention. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.2 & Clause 2.3."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.2 & Clause 2.3"
-    applicable_condition: "Academic year identifiers across application and affiliation filings."
-    applicability: "Academic year identifiers across application and affiliation filings."
-    limitations: "Validates syntax like 2024-25; does not judge whether the session falls inside the active approval window."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: FAIL
-    operator: regex
-    params:
-      doc_types:
-      - EOA_APPLICATION_FORM
-      - UNIVERSITY_AFFILIATION_ORDER
-      fields:
-      - academic_year
-      pattern: ^20\d{2}-\d{2}$
-    next_action: "Confirm that the academic session represents a valid consecutive cycle (e.g., 2024-25)."
-
-  - id: EOA-DAT-001
-    category: compliance
-    severity: medium
-    summary: EoA application submission date is recorded in the future
-    description: "EoA application submission date is recorded in the future. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.2 & Clause 2.3."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.2 & Clause 2.3"
-    applicable_condition: "All submitted application dossiers."
-    applicability: "All submitted application dossiers."
-    limitations: "Relies on system date comparison against the parsed document date."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: FAIL
-    operator: date_not_future
-    params:
+- id: EOA-CMP-001
+  category: completeness
+  severity: high
+  summary: Mandatory core EoA dossier documents are missing
+  description: Mandatory core EoA dossier documents are missing. Official requirement
+    under AICTE APH 2024-27 Chapter II, Clause 2.4 & Clause 2.5, and Annexure-2.
+  clause_citation: AICTE APH 2024-27 Chapter II, Clause 2.4 & Clause 2.5, and Annexure-2
+  applicable_condition: Applicable to existing affiliated technical institutions applying
+    for Extension of Approval (EoA). Standalone institutions offering PGDM, autonomous
+    degree institutions, and deemed-to-be universities do not affiliate with state
+    universities and are exempt from university affiliation order requirements under
+    Chapter II.
+  applicability: Applicable to existing affiliated technical institutions applying
+    for Extension of Approval (EoA). Standalone institutions offering PGDM, autonomous
+    degree institutions, and deemed-to-be universities do not affiliate with state
+    universities and are exempt from university affiliation order requirements under
+    Chapter II.
+  limitations: Verifies document presence only; does not confirm physical on-site
+    validity, board seals, or statutory authenticity.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: FAIL
+  operator: required_doc_types
+  params:
+    doc_types:
+    - EOA_APPLICATION_FORM
+    - UNIVERSITY_AFFILIATION_ORDER
+    - FIRE_SAFETY_CERTIFICATE
+    - BUILDING_SAFETY_CERTIFICATE
+  next_action: Request the institution upload the missing mandatory statutory documents.
+    For autonomous or standalone PGDM institutions, verify statutory non-affiliation
+    status and do not penalize for missing university affiliation orders.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Chapter II, pp. 24-28
+- id: EOA-CMP-002
+  category: completeness
+  severity: medium
+  summary: Mandatory land and building occupancy documents missing for structural
+    or intake changes
+  description: Mandatory land and building occupancy documents missing for structural
+    or intake changes. Official requirement under AICTE APH 2024-27 Chapter II, Clause
+    2.5, Clause 2.6, and Annexure-2.
+  clause_citation: AICTE APH 2024-27 Chapter II, Clause 2.5, Clause 2.6, and Annexure-2
+  applicable_condition: Mandatory for institutions applying for expansion, increase
+    in intake, new programmes, or change of site under Chapter II Clauses 2.6 to 2.10.
+    For routine annual EoA continuation without structural changes, land ownership
+    remains on permanent AICTE record based on self-disclosure.
+  applicability: Mandatory for institutions applying for expansion, increase in intake,
+    new programmes, or change of site under Chapter II Clauses 2.6 to 2.10. For routine
+    annual EoA continuation without structural changes, land ownership remains on
+    permanent AICTE record based on self-disclosure.
+  limitations: Confirms upload of land deed and occupancy certificate; legal title,
+    encumbrance, and municipal validity require human verification.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: REVIEW_REQUIRED
+  operator: required_doc_types
+  params:
+    doc_types:
+    - LAND_DOCUMENT_AND_USE_CERTIFICATE
+    - OCCUPANCY_CERTIFICATE
+  next_action: Confirm whether the application is a routine annual EoA continuation
+    or involves programme/intake expansions. If expansion is sought, require registered
+    land ownership/lease documents and local authority occupancy certificate.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Chapter II, pp. 25-29
+- id: EOA-CMP-003
+  category: completeness
+  severity: medium
+  summary: Mandatory institutional details missing on the application form
+  description: Mandatory institutional details missing on the application form. Official
+    requirement under AICTE APH 2024-27 Chapter II, Clause 2.3 & Clause 2.5, and Annexure-2.
+  clause_citation: AICTE APH 2024-27 Chapter II, Clause 2.3 & Clause 2.5, and Annexure-2
+  applicable_condition: All submitted EoA application forms.
+  applicability: All submitted EoA application forms.
+  limitations: Checks presence of reported fields; does not evaluate numerical sufficiency
+    of built-up area or land size.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: FAIL
+  operator: required_fields
+  params:
+    doc_type: EOA_APPLICATION_FORM
+    fields:
+    - institution_name
+    - institution_id
+    - academic_year
+    - principal_director_name
+    - land_category
+    - total_built_up_area
+  next_action: Check the application page; if OCR failed to recognize the field, correct
+    manually or request clarification from the institution.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Chapter II, pp. 23-28
+- id: EOA-CMP-004
+  category: completeness
+  severity: medium
+  summary: Mandatory details missing on the university affiliation order
+  description: Mandatory details missing on the university affiliation order. Official
+    requirement under AICTE APH 2024-27 Chapter II, Clause 2.5, and Annexure-2.
+  clause_citation: AICTE APH 2024-27 Chapter II, Clause 2.5, and Annexure-2
+  applicable_condition: Affiliated technical institutions. Standalone PGDM and autonomous
+    institutions are exempt from university affiliation.
+  applicability: Affiliated technical institutions. Standalone PGDM and autonomous
+    institutions are exempt from university affiliation.
+  limitations: Verifies presence of order metadata; course-by-course affiliation breakdown
+    requires manual review.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: FAIL
+  operator: required_fields
+  params:
+    doc_type: UNIVERSITY_AFFILIATION_ORDER
+    fields:
+    - university_name
+    - academic_year
+    - affiliation_order_number
+    - order_date
+  next_action: Review the affiliation document to confirm the order covers the requested
+    academic session. For autonomous institutions, verify that non-affiliation credentials
+    are confirmed.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Chapter II, pp. 25-28
+- id: EOA-CMP-005
+  category: completeness
+  severity: medium
+  summary: Mandatory details missing on the fire safety certificate
+  description: Mandatory details missing on the fire safety certificate. Official
+    requirement under AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix
+    6.
+  clause_citation: AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix
+    6
+  applicable_condition: All operational educational institutions and instructional
+    blocks.
+  applicability: All operational educational institutions and instructional blocks.
+  limitations: Verifies metadata extraction; does not inspect physical firefighting
+    installations on campus.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: FAIL
+  operator: required_fields
+  params:
+    doc_type: FIRE_SAFETY_CERTIFICATE
+    fields:
+    - fire_authority_name
+    - noc_number
+    - valid_until
+    - building_coverage
+  next_action: Check the uploaded fire safety clearance for designated authority seal,
+    NOC number, and expiry date.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Chapter II, p. 27 & Appendix 6
+- id: EOA-CMP-006
+  category: completeness
+  severity: medium
+  summary: Mandatory details missing on the building structural safety certificate
+  description: Mandatory details missing on the building structural safety certificate.
+    Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2,
+    and Appendix 6.
+  clause_citation: AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix
+    6
+  applicable_condition: All permanent structural blocks used for educational purposes.
+  applicability: All permanent structural blocks used for educational purposes.
+  limitations: Ensures structural engineer registration is stated; structural safety
+    calculations require specialized engineering review.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: FAIL
+  operator: required_fields
+  params:
+    doc_type: BUILDING_SAFETY_CERTIFICATE
+    fields:
+    - structural_engineer_name
+    - license_registration_number
+    - valid_until
+  next_action: Verify the certificate was issued by an empanelled structural engineer
+    with valid license and registration details.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Chapter II, p. 27 & Appendix 6
+- id: EOA-FMT-001
+  category: compliance
+  severity: medium
+  summary: AICTE Permanent Institution ID format is non-standard
+  description: AICTE Permanent Institution ID format is non-standard. Official requirement
+    under AICTE APH 2024-27 Chapter II, Clause 2.3.
+  clause_citation: AICTE APH 2024-27 Chapter II, Clause 2.3
+  applicable_condition: All applications referencing the central AICTE permanent institution
+    identifier.
+  applicability: All applications referencing the central AICTE permanent institution
+    identifier.
+  limitations: Validates string pattern only; central registry existence must be confirmed
+    via issuer check.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: FAIL
+  operator: regex
+  params:
+    doc_types:
+    - EOA_APPLICATION_FORM
+    fields:
+    - institution_id
+    pattern: ^\d-\d{9,10}$
+  next_action: Verify the permanent AICTE institution ID with central portal records.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Chapter II, p. 23
+- id: EOA-FMT-002
+  category: compliance
+  severity: low
+  summary: Academic session format does not conform to APH convention
+  description: Academic session format does not conform to APH convention. Official
+    requirement under AICTE APH 2024-27 Chapter II, Clause 2.2 & Clause 2.3.
+  clause_citation: AICTE APH 2024-27 Chapter II, Clause 2.2 & Clause 2.3
+  applicable_condition: Academic year identifiers across application and affiliation
+    filings.
+  applicability: Academic year identifiers across application and affiliation filings.
+  limitations: Validates syntax like 2024-25; does not judge whether the session falls
+    inside the active approval window.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: FAIL
+  operator: regex
+  params:
+    doc_types:
+    - EOA_APPLICATION_FORM
+    - UNIVERSITY_AFFILIATION_ORDER
+    fields:
+    - academic_year
+    pattern: ^20\d{2}-\d{2}$
+  next_action: Confirm that the academic session represents a valid consecutive cycle
+    (e.g., 2024-25).
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Chapter II, pp. 22-23
+- id: EOA-DAT-001
+  category: compliance
+  severity: medium
+  summary: EoA application submission date is recorded in the future
+  description: EoA application submission date is recorded in the future. Official
+    requirement under AICTE APH 2024-27 Chapter II, Clause 2.2 & Clause 2.3.
+  clause_citation: AICTE APH 2024-27 Chapter II, Clause 2.2 & Clause 2.3
+  applicable_condition: All submitted application dossiers.
+  applicability: All submitted application dossiers.
+  limitations: Relies on system date comparison against the parsed document date.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: FAIL
+  operator: date_not_future
+  params:
+    doc_type: EOA_APPLICATION_FORM
+    field: application_date
+  next_action: Request clarification on the timeline discrepancy with the submitting
+    registrar.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Chapter II, pp. 22-23
+- id: EOA-DAT-002
+  category: compliance
+  severity: high
+  summary: Fire safety certificate validity date is earlier than application submission
+    date
+  description: Fire safety certificate validity date is earlier than application submission
+    date. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2,
+    and Appendix 6.
+  clause_citation: AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix
+    6
+  applicable_condition: All operational educational institutions.
+  applicability: All operational educational institutions.
+  limitations: Evaluates certificate expiration date against application date. Where
+    an institution has submitted a renewal application or fee receipt while municipal
+    renewal is pending, automated date comparison cannot establish compliance. Such
+    cases require human reviewer adjudication.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: REVIEW_REQUIRED
+  operator: date_order
+  params:
+    earlier:
       doc_type: EOA_APPLICATION_FORM
       field: application_date
-    next_action: "Request clarification on the timeline discrepancy with the submitting registrar."
-
-  - id: EOA-DAT-002
-    category: compliance
-    severity: high
-    summary: Fire safety certificate validity date is earlier than application submission date
-    description: "Fire safety certificate validity date is earlier than application submission date. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6"
-    applicable_condition: "All operational educational institutions."
-    applicability: "All operational educational institutions."
-    limitations: "Evaluates certificate expiration date against application date. Where an institution has submitted a renewal application or fee receipt while municipal renewal is pending, automated date comparison cannot establish compliance. Such cases require human reviewer adjudication."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: REVIEW_REQUIRED
-    operator: date_order
-    params:
-      earlier:
-        doc_type: EOA_APPLICATION_FORM
-        field: application_date
-      later:
-        doc_type: FIRE_SAFETY_CERTIFICATE
-        field: valid_until
-    next_action: "Check the certificate validity date. If the stated expiration precedes application submission, refer to the human reviewer to inspect whether a valid official renewal receipt or temporary extension was uploaded."
-
-  - id: EOA-DAT-003
-    category: compliance
-    severity: high
-    summary: Building structural safety certificate validity date is earlier than application submission date
-    description: "Building structural safety certificate validity date is earlier than application submission date. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6"
-    applicable_condition: "All educational campus buildings."
-    applicability: "All educational campus buildings."
-    limitations: "Compares stated validity with application date. Structural fitness certificates that are granted on a perpetual or event-based basis without calendar expiration cannot be reliably evaluated by date order and require human engineering review."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: REVIEW_REQUIRED
-    operator: date_order
-    params:
-      earlier:
-        doc_type: EOA_APPLICATION_FORM
-        field: application_date
-      later:
-        doc_type: BUILDING_SAFETY_CERTIFICATE
-        field: valid_until
-    next_action: "Check the structural stability certificate validity. If expired or issued without a fixed calendar expiry date, refer to the human reviewer to inspect the registered structural engineer's fitness endorsement."
-
-  - id: EOA-COM-001
-    category: compliance
-    severity: high
-    summary: Anti-ragging committee self-disclosure not confirmed on application form
-    description: "Anti-ragging committee self-disclosure not confirmed on application form. Official requirement under AICTE (Prevention and Prohibition of Ragging in Technical Institutions) Regulations, 2009; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6."
-    clause_citation: "AICTE (Prevention and Prohibition of Ragging in Technical Institutions) Regulations, 2009; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6"
-    applicable_condition: "Mandatory for all technical institutions under AICTE Anti-Ragging Regulations, 2009."
-    applicability: "Mandatory for all technical institutions under AICTE Anti-Ragging Regulations, 2009."
-    limitations: "Evaluates applicant self-disclosure checkbox only; does not verify committee member composition, external representation, or gazette notification."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: FAIL
-    operator: field_equals
-    params:
+    later:
+      doc_type: FIRE_SAFETY_CERTIFICATE
+      field: valid_until
+  next_action: Check the certificate validity date. If the stated expiration precedes
+    application submission, refer to the human reviewer to inspect whether a valid
+    official renewal receipt or temporary extension was uploaded.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Chapter II, p. 27 & Appendix 6
+- id: EOA-DAT-003
+  category: compliance
+  severity: high
+  summary: Building structural safety certificate validity date is earlier than application
+    submission date
+  description: Building structural safety certificate validity date is earlier than
+    application submission date. Official requirement under AICTE APH 2024-27 Chapter
+    II, Clause 2.5, Annexure-2, and Appendix 6.
+  clause_citation: AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix
+    6
+  applicable_condition: All educational campus buildings.
+  applicability: All educational campus buildings.
+  limitations: Compares stated validity with application date. Structural fitness
+    certificates that are granted on a perpetual or event-based basis without calendar
+    expiration cannot be reliably evaluated by date order and require human engineering
+    review.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: REVIEW_REQUIRED
+  operator: date_order
+  params:
+    earlier:
       doc_type: EOA_APPLICATION_FORM
-      field: anti_ragging_committee_constituted
-      expected: 'yes'
-      detail: Mandatory statutory Anti-Ragging Committee is not marked as constituted
-        ({value}) on the self-disclosure application.
-    next_action: "Review the self-disclosure declaration. Inspect the uploaded committee constitution office order to verify required member composition (police, civil administration, media, NGOs, faculty, and student representatives)."
-
-  - id: EOA-COM-002
-    category: compliance
-    severity: high
-    summary: Anti-ragging squad self-disclosure not confirmed on application form
-    description: "Anti-ragging squad self-disclosure not confirmed on application form. Official requirement under AICTE (Prevention and Prohibition of Ragging in Technical Institutions) Regulations, 2009; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6."
-    clause_citation: "AICTE (Prevention and Prohibition of Ragging in Technical Institutions) Regulations, 2009; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6"
-    applicable_condition: "Mandatory for all technical institutions to conduct proactive inspections."
-    applicability: "Mandatory for all technical institutions to conduct proactive inspections."
-    limitations: "Evaluates applicant self-disclosure checkbox only; active duty rosters and physical patrols require human inspection."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: FAIL
-    operator: field_equals
-    params:
-      doc_type: EOA_APPLICATION_FORM
-      field: anti_ragging_squad_constituted
-      expected: 'yes'
-      detail: Mandatory Anti-Ragging Squad is not confirmed as active ({value}) on the
-        self-disclosure application.
-    next_action: "Review the self-disclosure declaration. Inspect the uploaded Anti-Ragging Squad office order, duty roster, and emergency contact details."
-
-  - id: EOA-COM-003
-    category: compliance
-    severity: high
-    summary: Internal Complaints Committee (ICC) self-disclosure not confirmed on application form
-    description: "Internal Complaints Committee (ICC) self-disclosure not confirmed on application form. Official requirement under Sexual Harassment of Women at Workplace Act, 2013; AICTE Gender Sensitization Regulations, 2016; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6."
-    clause_citation: "Sexual Harassment of Women at Workplace Act, 2013; AICTE Gender Sensitization Regulations, 2016; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6"
-    applicable_condition: "Mandatory under Act No. 14 of 2013 and AICTE Gender Sensitization Regulations, 2016."
-    applicability: "Mandatory under Act No. 14 of 2013 and AICTE Gender Sensitization Regulations, 2016."
-    limitations: "Checks self-reported compliance checkbox only; presiding officer qualifications and external member composition must be reviewed manually."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: FAIL
-    operator: field_equals
-    params:
-      doc_type: EOA_APPLICATION_FORM
-      field: icc_constituted
-      expected: 'yes'
-      detail: Internal Complaints Committee for prevention of sexual harassment is not
-        confirmed ({value}) on the self-disclosure application.
-    next_action: "Review the self-disclosure declaration. Inspect the uploaded institutional notification to confirm a female presiding officer, faculty/staff members, and an external non-governmental representative."
-
-  - id: EOA-COM-004
-    category: compliance
-    severity: high
-    summary: Student Grievance Redressal Committee (SGRC) self-disclosure not confirmed on application form
-    description: "Student Grievance Redressal Committee (SGRC) self-disclosure not confirmed on application form. Official requirement under AICTE (Redressal of Grievance of Students) Regulations, 2019; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6."
-    clause_citation: "AICTE (Redressal of Grievance of Students) Regulations, 2019; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6"
-    applicable_condition: "Mandatory under AICTE (Redressal of Grievance of Students) Regulations, 2019."
-    applicability: "Mandatory under AICTE (Redressal of Grievance of Students) Regulations, 2019."
-    limitations: "Evaluates self-disclosure checkbox only; appointment of university Ombudsman requires independent confirmation."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: FAIL
-    operator: field_equals
-    params:
-      doc_type: EOA_APPLICATION_FORM
-      field: sgrc_constituted
-      expected: 'yes'
-      detail: Student Grievance Redressal Committee is not confirmed as constituted ({value})
-        on the self-disclosure application.
-    next_action: "Review the self-disclosure declaration. Inspect the constitution office order for SGRC and verify appointment of the university Ombudsman."
-
-  - id: EOA-COM-005
-    category: compliance
-    severity: medium
-    summary: Committee for SC/ST self-disclosure not confirmed on application form
-    description: "Committee for SC/ST self-disclosure not confirmed on application form. Official requirement under Scheduled Castes and Scheduled Tribes (Prevention of Atrocities) Act, 1989; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6."
-    clause_citation: "Scheduled Castes and Scheduled Tribes (Prevention of Atrocities) Act, 1989; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6"
-    applicable_condition: "Mandatory as per Scheduled Castes and Scheduled Tribes (Prevention of Atrocities) Act, 1989."
-    applicability: "Mandatory as per Scheduled Castes and Scheduled Tribes (Prevention of Atrocities) Act, 1989."
-    limitations: "Checks self-reported declaration; committee member roster must be reviewed manually."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: FAIL
-    operator: field_equals
-    params:
-      doc_type: EOA_APPLICATION_FORM
-      field: sc_st_committee_constituted
-      expected: 'yes'
-      detail: Mandatory SC/ST Committee is not confirmed as constituted ({value}) on the
-        self-disclosure application.
-    next_action: "Review the self-disclosure declaration. Inspect the formal constitution office order for the SC/ST committee to verify appropriate representation."
-
-  - id: EOA-COM-006
-    category: compliance
-    severity: medium
-    summary: Internal Quality Assurance Cell (IQAC) self-disclosure not confirmed on application form
-    description: "Internal Quality Assurance Cell (IQAC) self-disclosure not confirmed on application form. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6"
-    applicable_condition: "Mandatory for established technical institutions seeking quality continuity."
-    applicability: "Mandatory for established technical institutions seeking quality continuity."
-    limitations: "Confirms declaration presence only; annual quality assurance reports (AQAR) should be reviewed separately."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: FAIL
-    operator: field_equals
-    params:
-      doc_type: EOA_APPLICATION_FORM
-      field: iqac_established
-      expected: 'yes'
-      detail: Internal Quality Assurance Cell establishment is not confirmed ({value})
-        on the self-disclosure application.
-    next_action: "Review the self-disclosure declaration. Request and inspect the institutional notification establishing the IQAC."
-
-  - id: EOA-INF-001
-    category: compliance
-    severity: high
-    summary: Barrier-free environment self-disclosure not confirmed on application form
-    description: "Barrier-free environment self-disclosure not confirmed on application form. Official requirement under Rights of Persons with Disabilities Act, 2016; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6."
-    clause_citation: "Rights of Persons with Disabilities Act, 2016; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6"
-    applicable_condition: "Mandatory for all instructional and administrative buildings under RPwD Act, 2016."
-    applicability: "Mandatory for all instructional and administrative buildings under RPwD Act, 2016."
-    limitations: "Evaluates self-disclosure declaration only. Physical architectural compliance (ramp gradient <= 1:12, lift access, accessible toilets) cannot be determined from form values and requires reviewer inspection of architect certificates and site photographs."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: REVIEW_REQUIRED
-    operator: field_equals
-    params:
-      doc_type: EOA_APPLICATION_FORM
-      field: barrier_free_environment_available
-      expected: 'yes'
-      detail: Provision of barrier-free environment for Divyangjan is not confirmed ({value})
-        on the self-disclosure application.
-    next_action: "Examine the self-disclosure declaration and inspect the uploaded architect certificate and campus photographs to verify accessible ramps, lifts, and Divyangjan-friendly toilets."
-
-  - id: EOA-INF-002
-    category: compliance
-    severity: medium
-    summary: Mandatory web disclosure self-disclosure not confirmed on application form
-    description: "Mandatory web disclosure self-disclosure not confirmed on application form. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.13 and Annexure-2."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.13 and Annexure-2"
-    applicable_condition: "All AICTE approved institutions."
-    applicability: "All AICTE approved institutions."
-    limitations: "Checks self-reported status; live web accessibility of the disclosure URL and completeness of items must be checked manually."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: FAIL
-    operator: field_equals
-    params:
-      doc_type: EOA_APPLICATION_FORM
-      field: mandatory_disclosure_url_active
-      expected: 'yes'
-      detail: Mandatory disclosure link publication on the institution website is not
-        confirmed ({value}) on the self-disclosure application.
-    next_action: "Review the public institution website to confirm the mandatory disclosure is active and accessible."
-
-  - id: EOA-INF-003
-    category: completeness
-    severity: high
-    summary: Statutory undertaking declaration not confirmed by head of institution
-    description: "Statutory undertaking declaration not confirmed by head of institution. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.3, Clause 2.5, and Affidavit-2."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.3, Clause 2.5, and Affidavit-2"
-    applicable_condition: "All submitted applications."
-    applicability: "All submitted applications."
-    limitations: "Validates declaration box on portal form; signature, seal, and legal swearing must be verified on the uploaded Affidavit-2."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: FAIL
-    operator: field_equals
-    params:
-      doc_type: EOA_APPLICATION_FORM
-      field: declaration_checked
-      expected: 'yes'
-      detail: Statutory undertaking and truthfulness declaration has not been confirmed
-        ({value}).
-    next_action: "Request the applicant confirm the statutory undertaking declaration and inspect the uploaded notarized Affidavit-2."
-
-  - id: EOA-CON-001
-    category: consistency
-    severity: high
-    summary: Institution name differs across affiliation and safety clearances
-    description: "Institution name differs across affiliation and safety clearances. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.4, Clause 2.5, and Annexure-2."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.4, Clause 2.5, and Annexure-2"
-    applicable_condition: "All applications where affiliation order and safety certificates are submitted."
-    applicability: "All applications where affiliation order and safety certificates are submitted."
-    limitations: "Uses fuzzy string similarity (threshold 88). Institutions undergoing an approved Change of Name under Chapter II Clause 2.12 require human review of the official name change approval order."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: FAIL
-    operator: cross_doc_match
-    params:
-      kind: name
-      threshold: 88
-      refs:
-      - doc_type: EOA_APPLICATION_FORM
-        field: institution_name
-      - doc_type: UNIVERSITY_AFFILIATION_ORDER
-        field: institution_name
-      - doc_type: FIRE_SAFETY_CERTIFICATE
-        field: institution_name
-    next_action: "Reconcile naming discrepancies across documents. If the institution underwent a legal name change, verify the AICTE and university name change approval orders."
-
-  - id: EOA-CON-002
-    category: consistency
-    severity: high
-    summary: Academic session mismatch between application and affiliation order
-    description: "Academic session mismatch between application and affiliation order. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.5 and Annexure-2."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.5 and Annexure-2"
-    applicable_condition: "All university-affiliated institutions."
-    applicability: "All university-affiliated institutions."
-    limitations: "Requires exact token equality; transitional university affiliation cycles require manual inspection."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: FAIL
-    operator: cross_doc_match
-    params:
-      kind: exact
-      threshold: 100
-      refs:
-      - doc_type: EOA_APPLICATION_FORM
-        field: academic_year
-      - doc_type: UNIVERSITY_AFFILIATION_ORDER
-        field: academic_year
-    next_action: "Request the current academic session affiliation letter from the affiliating university."
-
-  - id: EOA-SIG-001
-    category: document_signal
-    severity: medium
-    summary: Identical document file hash detected across distinct applications
-    description: "Identical document file hash detected across distinct applications. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.3 & Chapter VII."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.3 & Chapter VII"
-    applicable_condition: "All uploaded digital PDF or image documents."
-    applicability: "All uploaded digital PDF or image documents."
-    limitations: "Informational signal only; does not prove improper submission without reviewer inspection."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: REVIEW_REQUIRED
-    operator: duplicate_hash
-    params: {}
-    next_action: "Inspect the matching files to determine whether documents were shared across multiple institutions."
-
-  - id: EOA-SIG-002
-    category: document_signal
-    severity: low
-    summary: OCR recognition confidence low across uploaded statutory proofs
-    description: "OCR recognition confidence low across uploaded statutory proofs. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.3 and Annexure-2."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.3 and Annexure-2"
-    applicable_condition: "All scanned documents processed by optical character recognition."
-    applicability: "All scanned documents processed by optical character recognition."
-    limitations: "Visual signal only; high blur, low DPI, or faint seals trigger manual verification."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: REVIEW_REQUIRED
-    operator: scan_quality
-    params:
-      min_confidence: 80
-      flag_any_ocr: true
-    next_action: "Compare the extracted details against the original scan and correct any OCR misreadings."
-
-  - id: EOA-SIG-003
-    category: document_signal
-    severity: high
-    summary: Hidden or zero-contrast text detected in uploaded document vector streams
-    description: "Hidden or zero-contrast text detected in uploaded document vector streams. Adversarial evasion or automated extraction manipulation signal under AICTE APH 2024-27 Chapter II & Chapter VII."
-    clause_citation: "AICTE APH 2024-27 Chapter II, Clause 2.3 & Chapter VII"
-    applicable_condition: "All uploaded digital PDF documents."
-    applicability: "All uploaded digital PDF documents."
-    limitations: "Visual signal only; intentionally styled white text or watermarks trigger manual verification."
-    is_verified: true
-    verification_status: VERIFIED_OFFICIAL
-    outcome_on_pass: PASS
-    outcome_on_fail: REVIEW_REQUIRED
-    operator: hidden_text
-    params: {}
-    next_action: "Inspect the hidden words on the document page to confirm whether content was intentionally masked or represents benign background styling."
+      field: application_date
+    later:
+      doc_type: BUILDING_SAFETY_CERTIFICATE
+      field: valid_until
+  next_action: Check the structural stability certificate validity. If expired or
+    issued without a fixed calendar expiry date, refer to the human reviewer to inspect
+    the registered structural engineer's fitness endorsement.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Chapter II, p. 27 & Appendix 6
+- id: EOA-COM-001
+  category: compliance
+  severity: high
+  summary: Anti-ragging committee self-disclosure not confirmed on application form
+  description: Anti-ragging committee self-disclosure not confirmed on application
+    form. Official requirement under AICTE (Prevention and Prohibition of Ragging
+    in Technical Institutions) Regulations, 2009; AICTE APH 2024-27 Chapter II, Clause
+    2.5, Annexure-2, and Appendix 6.
+  clause_citation: AICTE (Prevention and Prohibition of Ragging in Technical Institutions)
+    Regulations, 2009; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix
+    6
+  applicable_condition: Mandatory for all technical institutions under AICTE Anti-Ragging
+    Regulations, 2009.
+  applicability: Mandatory for all technical institutions under AICTE Anti-Ragging
+    Regulations, 2009.
+  limitations: Evaluates applicant self-disclosure checkbox only; does not verify
+    committee member composition, external representation, or gazette notification.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: FAIL
+  operator: field_equals
+  params:
+    doc_type: EOA_APPLICATION_FORM
+    field: anti_ragging_committee_constituted
+    expected: 'yes'
+    detail: Mandatory statutory Anti-Ragging Committee is not marked as constituted
+      ({value}) on the self-disclosure application.
+  next_action: Review the self-disclosure declaration. Inspect the uploaded committee
+    constitution office order to verify required member composition (police, civil
+    administration, media, NGOs, faculty, and student representatives).
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Annexure-2 & Appendix 6, p. 73
+- id: EOA-COM-002
+  category: compliance
+  severity: high
+  summary: Anti-ragging squad self-disclosure not confirmed on application form
+  description: Anti-ragging squad self-disclosure not confirmed on application form.
+    Official requirement under AICTE (Prevention and Prohibition of Ragging in Technical
+    Institutions) Regulations, 2009; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2,
+    and Appendix 6.
+  clause_citation: AICTE (Prevention and Prohibition of Ragging in Technical Institutions)
+    Regulations, 2009; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix
+    6
+  applicable_condition: Mandatory for all technical institutions to conduct proactive
+    inspections.
+  applicability: Mandatory for all technical institutions to conduct proactive inspections.
+  limitations: Evaluates applicant self-disclosure checkbox only; active duty rosters
+    and physical patrols require human inspection.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: FAIL
+  operator: field_equals
+  params:
+    doc_type: EOA_APPLICATION_FORM
+    field: anti_ragging_squad_constituted
+    expected: 'yes'
+    detail: Mandatory Anti-Ragging Squad is not confirmed as active ({value}) on the
+      self-disclosure application.
+  next_action: Review the self-disclosure declaration. Inspect the uploaded Anti-Ragging
+    Squad office order, duty roster, and emergency contact details.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Annexure-2 & Appendix 6, p. 74
+- id: EOA-COM-003
+  category: compliance
+  severity: high
+  summary: Internal Complaints Committee (ICC) self-disclosure not confirmed on application
+    form
+  description: Internal Complaints Committee (ICC) self-disclosure not confirmed on
+    application form. Official requirement under Sexual Harassment of Women at Workplace
+    Act, 2013; AICTE Gender Sensitization Regulations, 2016; AICTE APH 2024-27 Chapter
+    II, Clause 2.5, Annexure-2, and Appendix 6.
+  clause_citation: Sexual Harassment of Women at Workplace Act, 2013; AICTE Gender
+    Sensitization Regulations, 2016; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2,
+    and Appendix 6
+  applicable_condition: Mandatory under Act No. 14 of 2013 and AICTE Gender Sensitization
+    Regulations, 2016.
+  applicability: Mandatory under Act No. 14 of 2013 and AICTE Gender Sensitization
+    Regulations, 2016.
+  limitations: Checks self-reported compliance checkbox only; presiding officer qualifications
+    and external member composition must be reviewed manually.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: FAIL
+  operator: field_equals
+  params:
+    doc_type: EOA_APPLICATION_FORM
+    field: icc_constituted
+    expected: 'yes'
+    detail: Internal Complaints Committee for prevention of sexual harassment is not
+      confirmed ({value}) on the self-disclosure application.
+  next_action: Review the self-disclosure declaration. Inspect the uploaded institutional
+    notification to confirm a female presiding officer, faculty/staff members, and
+    an external non-governmental representative.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Annexure-2 & Appendix 6, p. 75
+- id: EOA-COM-004
+  category: compliance
+  severity: high
+  summary: Student Grievance Redressal Committee (SGRC) self-disclosure not confirmed
+    on application form
+  description: Student Grievance Redressal Committee (SGRC) self-disclosure not confirmed
+    on application form. Official requirement under AICTE (Redressal of Grievance
+    of Students) Regulations, 2019; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2,
+    and Appendix 6.
+  clause_citation: AICTE (Redressal of Grievance of Students) Regulations, 2019; AICTE
+    APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6
+  applicable_condition: Mandatory under AICTE (Redressal of Grievance of Students)
+    Regulations, 2019.
+  applicability: Mandatory under AICTE (Redressal of Grievance of Students) Regulations,
+    2019.
+  limitations: Evaluates self-disclosure checkbox only; appointment of university
+    Ombudsman requires independent confirmation.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: FAIL
+  operator: field_equals
+  params:
+    doc_type: EOA_APPLICATION_FORM
+    field: sgrc_constituted
+    expected: 'yes'
+    detail: Student Grievance Redressal Committee is not confirmed as constituted
+      ({value}) on the self-disclosure application.
+  next_action: Review the self-disclosure declaration. Inspect the constitution office
+    order for SGRC and verify appointment of the university Ombudsman.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Annexure-2 & Appendix 6, p. 76
+- id: EOA-COM-005
+  category: compliance
+  severity: medium
+  summary: Committee for SC/ST self-disclosure not confirmed on application form
+  description: Committee for SC/ST self-disclosure not confirmed on application form.
+    Official requirement under Scheduled Castes and Scheduled Tribes (Prevention of
+    Atrocities) Act, 1989; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and
+    Appendix 6.
+  clause_citation: Scheduled Castes and Scheduled Tribes (Prevention of Atrocities)
+    Act, 1989; AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix
+    6
+  applicable_condition: Mandatory as per Scheduled Castes and Scheduled Tribes (Prevention
+    of Atrocities) Act, 1989.
+  applicability: Mandatory as per Scheduled Castes and Scheduled Tribes (Prevention
+    of Atrocities) Act, 1989.
+  limitations: Checks self-reported declaration; committee member roster must be reviewed
+    manually.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: FAIL
+  operator: field_equals
+  params:
+    doc_type: EOA_APPLICATION_FORM
+    field: sc_st_committee_constituted
+    expected: 'yes'
+    detail: Mandatory SC/ST Committee is not confirmed as constituted ({value}) on
+      the self-disclosure application.
+  next_action: Review the self-disclosure declaration. Inspect the formal constitution
+    office order for the SC/ST committee to verify appropriate representation.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Annexure-2 & Appendix 6, p. 77
+- id: EOA-COM-006
+  category: compliance
+  severity: medium
+  summary: Internal Quality Assurance Cell (IQAC) self-disclosure not confirmed on
+    application form
+  description: Internal Quality Assurance Cell (IQAC) self-disclosure not confirmed
+    on application form. Official requirement under AICTE APH 2024-27 Chapter II,
+    Clause 2.5, Annexure-2, and Appendix 6.
+  clause_citation: AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix
+    6
+  applicable_condition: Mandatory for established technical institutions seeking quality
+    continuity.
+  applicability: Mandatory for established technical institutions seeking quality
+    continuity.
+  limitations: Confirms declaration presence only; annual quality assurance reports
+    (AQAR) should be reviewed separately.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: FAIL
+  operator: field_equals
+  params:
+    doc_type: EOA_APPLICATION_FORM
+    field: iqac_established
+    expected: 'yes'
+    detail: Internal Quality Assurance Cell establishment is not confirmed ({value})
+      on the self-disclosure application.
+  next_action: Review the self-disclosure declaration. Request and inspect the institutional
+    notification establishing the IQAC.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Annexure-2 & Appendix 6, p. 78
+- id: EOA-INF-001
+  category: compliance
+  severity: high
+  summary: Barrier-free environment self-disclosure not confirmed on application form
+  description: Barrier-free environment self-disclosure not confirmed on application
+    form. Official requirement under Rights of Persons with Disabilities Act, 2016;
+    AICTE APH 2024-27 Chapter II, Clause 2.5, Annexure-2, and Appendix 6.
+  clause_citation: Rights of Persons with Disabilities Act, 2016; AICTE APH 2024-27
+    Chapter II, Clause 2.5, Annexure-2, and Appendix 6
+  applicable_condition: Mandatory for all instructional and administrative buildings
+    under RPwD Act, 2016.
+  applicability: Mandatory for all instructional and administrative buildings under
+    RPwD Act, 2016.
+  limitations: Evaluates self-disclosure declaration only. Physical architectural
+    compliance (ramp gradient <= 1:12, lift access, accessible toilets) cannot be
+    determined from form values and requires reviewer inspection of architect certificates
+    and site photographs.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: REVIEW_REQUIRED
+  operator: field_equals
+  params:
+    doc_type: EOA_APPLICATION_FORM
+    field: barrier_free_environment_available
+    expected: 'yes'
+    detail: Provision of barrier-free environment for Divyangjan is not confirmed
+      ({value}) on the self-disclosure application.
+  next_action: Examine the self-disclosure declaration and inspect the uploaded architect
+    certificate and campus photographs to verify accessible ramps, lifts, and Divyangjan-friendly
+    toilets.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Appendix 6, p. 81
+- id: EOA-INF-002
+  category: compliance
+  severity: medium
+  summary: Mandatory web disclosure self-disclosure not confirmed on application form
+  description: Mandatory web disclosure self-disclosure not confirmed on application
+    form. Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.13 and
+    Annexure-2.
+  clause_citation: AICTE APH 2024-27 Chapter II, Clause 2.13 and Annexure-2
+  applicable_condition: All AICTE approved institutions.
+  applicability: All AICTE approved institutions.
+  limitations: Checks self-reported status; live web accessibility of the disclosure
+    URL and completeness of items must be checked manually.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: FAIL
+  operator: field_equals
+  params:
+    doc_type: EOA_APPLICATION_FORM
+    field: mandatory_disclosure_url_active
+    expected: 'yes'
+    detail: Mandatory disclosure link publication on the institution website is not
+      confirmed ({value}) on the self-disclosure application.
+  next_action: Review the public institution website to confirm the mandatory disclosure
+    is active and accessible.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Chapter II, p. 33 & Annexure-2
+- id: EOA-INF-003
+  category: completeness
+  severity: high
+  summary: Statutory undertaking declaration not confirmed by head of institution
+  description: Statutory undertaking declaration not confirmed by head of institution.
+    Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.3, Clause 2.5,
+    and Affidavit-2.
+  clause_citation: AICTE APH 2024-27 Chapter II, Clause 2.3, Clause 2.5, and Affidavit-2
+  applicable_condition: All submitted applications.
+  applicability: All submitted applications.
+  limitations: Validates declaration box on portal form; signature, seal, and legal
+    swearing must be verified on the uploaded Affidavit-2.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: FAIL
+  operator: field_equals
+  params:
+    doc_type: EOA_APPLICATION_FORM
+    field: declaration_checked
+    expected: 'yes'
+    detail: Statutory undertaking and truthfulness declaration has not been confirmed
+      ({value}).
+  next_action: Request the applicant confirm the statutory undertaking declaration
+    and inspect the uploaded notarized Affidavit-2.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Chapter II, p. 24 & Affidavit-2
+- id: EOA-CON-001
+  category: consistency
+  severity: high
+  summary: Institution name differs across affiliation and safety clearances
+  description: Institution name differs across affiliation and safety clearances.
+    Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.4, Clause 2.5,
+    and Annexure-2.
+  clause_citation: AICTE APH 2024-27 Chapter II, Clause 2.4, Clause 2.5, and Annexure-2
+  applicable_condition: All applications where affiliation order and safety certificates
+    are submitted.
+  applicability: All applications where affiliation order and safety certificates
+    are submitted.
+  limitations: Uses fuzzy string similarity (threshold 88). Institutions undergoing
+    an approved Change of Name under Chapter II Clause 2.12 require human review of
+    the official name change approval order.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: FAIL
+  operator: cross_doc_match
+  params:
+    kind: name
+    threshold: 88
+    refs:
+    - doc_type: EOA_APPLICATION_FORM
+      field: institution_name
+    - doc_type: UNIVERSITY_AFFILIATION_ORDER
+      field: institution_name
+    - doc_type: FIRE_SAFETY_CERTIFICATE
+      field: institution_name
+  next_action: Reconcile naming discrepancies across documents. If the institution
+    underwent a legal name change, verify the AICTE and university name change approval
+    orders.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Chapter II, pp. 25-28
+- id: EOA-CON-002
+  category: consistency
+  severity: high
+  summary: Academic session mismatch between application and affiliation order
+  description: Academic session mismatch between application and affiliation order.
+    Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.5 and Annexure-2.
+  clause_citation: AICTE APH 2024-27 Chapter II, Clause 2.5 and Annexure-2
+  applicable_condition: All university-affiliated institutions.
+  applicability: All university-affiliated institutions.
+  limitations: Requires exact token equality; transitional university affiliation
+    cycles require manual inspection.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: FAIL
+  operator: cross_doc_match
+  params:
+    kind: exact
+    threshold: 100
+    refs:
+    - doc_type: EOA_APPLICATION_FORM
+      field: academic_year
+    - doc_type: UNIVERSITY_AFFILIATION_ORDER
+      field: academic_year
+  next_action: Request the current academic session affiliation letter from the affiliating
+    university.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Chapter II, p. 26
+- id: EOA-SIG-001
+  category: document_signal
+  severity: medium
+  summary: Identical document file hash detected across distinct applications
+  description: Identical document file hash detected across distinct applications.
+    Official requirement under AICTE APH 2024-27 Chapter II, Clause 2.3 & Chapter
+    VII.
+  clause_citation: AICTE APH 2024-27 Chapter II, Clause 2.3 & Chapter VII
+  applicable_condition: All uploaded digital PDF or image documents.
+  applicability: All uploaded digital PDF or image documents.
+  limitations: Informational signal only; does not prove improper submission without
+    reviewer inspection.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: REVIEW_REQUIRED
+  operator: duplicate_hash
+  params: {}
+  next_action: Inspect the matching files to determine whether documents were shared
+    across multiple institutions.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Chapter II, p. 23 & Chapter VII
+- id: EOA-SIG-002
+  category: document_signal
+  severity: low
+  summary: OCR recognition confidence low across uploaded statutory proofs
+  description: OCR recognition confidence low across uploaded statutory proofs. Official
+    requirement under AICTE APH 2024-27 Chapter II, Clause 2.3 and Annexure-2.
+  clause_citation: AICTE APH 2024-27 Chapter II, Clause 2.3 and Annexure-2
+  applicable_condition: All scanned documents processed by optical character recognition.
+  applicability: All scanned documents processed by optical character recognition.
+  limitations: Visual signal only; high blur, low DPI, or faint seals trigger manual
+    verification.
+  is_verified: true
+  verification_status: VERIFIED_OFFICIAL
+  outcome_on_pass: PASS
+  outcome_on_fail: REVIEW_REQUIRED
+  operator: scan_quality
+  params:
+    min_confidence: 80
+    flag_any_ocr: true
+  next_action: Compare the extracted details against the original scan and correct
+    any OCR misreadings.
+  reviewed_by: Regulatory Affairs & Domain Policy Review Team
+  reviewed_on: '2024-04-15'
+  source_page: Chapter II, p. 23 & Annexure-2
+- id: EOA-SIG-003
+  category: document_signal
+  severity: high
+  summary: Hidden or zero-contrast text detected in uploaded document vector streams
+  description: Hidden or zero-contrast text detected in uploaded document vector streams.
+    Advisory heuristic signal detecting adversarial evasion or automated extraction
+    manipulation.
+  clause_citation: AICTE APH 2024-27 Advisory — Document Integrity Guideline
+  applicable_condition: All uploaded digital PDF documents.
+  applicability: All uploaded digital PDF documents.
+  limitations: Visual signal only; intentionally styled white text or watermarks trigger
+    manual verification.
+  is_verified: false
+  verification_status: ILLUSTRATIVE
+  outcome_on_pass: PASS
+  outcome_on_fail: REVIEW_REQUIRED
+  operator: hidden_text
+  params: {}
+  next_action: Inspect the hidden words on the document page to confirm whether content
+    was intentionally masked or represents benign background styling.
+  reviewed_by: null
+  reviewed_on: null
+  source_page: null

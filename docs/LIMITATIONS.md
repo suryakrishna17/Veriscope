@@ -13,7 +13,7 @@ To maintain full transparency with evaluation officers, auditors, and engineerin
    - Signature ink stroke analysis, circular municipal seal detection, and letterhead identification confirm the physical presence and geometric characteristics of ink and stamps on the page. They do not perform biometric signature matching or cryptographic stamp authentication.
 4. **Layout and Extraction Assumptions**:
    - Document field extraction relies on label-anchored patterns and synonym dictionaries alongside checkbox detection. Highly handwritten, unstructured free-form prose, or multi-column newspaper layouts require human reviewer verification using the Extracted Values Desk.
-   - Multi-tier OCR utilizes native PyMuPDF vector streams first, falling back to local Tesseract OCR (English by default) and Groq Vision OCR (`qwen/qwen3.8-27b`) for degraded scans. Non-English regional languages require configuring additional Tesseract language packs (`OCR_LANG`).
+   - Multi-tier OCR utilizes native pdfplumber / pypdfium2 vector streams first, falling back to local Tesseract OCR (English by default) and Groq Vision OCR (`qwen/qwen3.8-27b`) for degraded scans. Non-English regional languages require configuring additional Tesseract language packs (`OCR_LANG`).
 5. **Distributed Task Queue Architecture**:
    - The system defaults to an in-process Python `ThreadPoolExecutor` for zero-dependency local runs, and seamlessly scales to a distributed Celery + Redis worker pool when configured with `REDIS_URL` in production multi-worker environments.
 6. **Dual-Mode Database Architecture**:

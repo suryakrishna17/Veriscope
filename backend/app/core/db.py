@@ -37,9 +37,11 @@ def dumps(value: Any) -> str:
     return json.dumps(value, separators=(",", ":"), default=str)
 
 
-def loads(value: str | None, default: Any = None) -> Any:
+def loads(value: Any, default: Any = None) -> Any:
     if value in (None, ""):
         return default
+    if isinstance(value, (dict, list)):
+        return value
     return json.loads(value)  # type: ignore[arg-type]
 
 

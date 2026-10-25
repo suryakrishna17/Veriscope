@@ -8,8 +8,14 @@ CREATE TABLE IF NOT EXISTS users (
     name TEXT NOT NULL,
     role TEXT NOT NULL CHECK (role IN ('applicant', 'reviewer', 'admin')),
     password_hash TEXT NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    token_version INTEGER DEFAULT 1,
+    failed_attempts INTEGER DEFAULT 0,
+    locked_until TEXT
 );
+ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER DEFAULT 1;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_attempts INTEGER DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TEXT;
 
 -- 2. Rulesets
 CREATE TABLE IF NOT EXISTS rulesets (

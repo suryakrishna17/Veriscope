@@ -9,6 +9,7 @@ import base64
 import io
 import logging
 import os
+import re
 from dataclasses import dataclass, field
 
 try:
@@ -41,6 +42,7 @@ class Word:
     x1: float
     y1: float
     c: float = 100.0
+    source: str = "ocr"  # pdf_text | ocr | llm_suggestion
 
     def as_dict(self) -> dict[str, float | str]:
         return {"t": self.t, "x0": round(self.x0, 5), "y0": round(self.y0, 5), "x1": round(self.x1, 5), "y1": round(self.y1, 5), "c": round(self.c, 1)}
@@ -93,10 +95,17 @@ def render_pdf_page(data: bytes, page_index: int, scale: float) -> Image.Image:
 
 
 def groq_ocr_image(img: Image.Image) -> list[Word] | None:
+    """Invokes Groq Vision OCR as an emergency fallback when enabled with explicit third-party consent."""
+    groq_enabled = os.environ.get("GROQ_OCR_ENABLED", "").lower() in {"1", "true", "yes"}
+    consent = os.environ.get("OCR_THIRD_PARTY_CONSENT", "").lower() in {"1", "true", "yes"}
+    if not (groq_enabled and consent):
+        return None
+
     api_key = os.environ.get("GROQ_API_KEY") or (os.environ.get("LLM_API_KEY") if os.environ.get("LLM_PROVIDER") == "groq" else "")
     if not api_key:
         return None
     try:
+        log.info("groq_vision_ocr_dispatch", extra={"model": "qwen/qwen3.8-27b"})
         max_dim = 1600
         w, h = img.size
         scale = min(1.0, max_dim / max(w, h))
@@ -134,23 +143,18 @@ def groq_ocr_image(img: Image.Image) -> list[Word] | None:
         if r.status_code != 200:
             log.warning("groq_ocr_http_failed", extra={"status": r.status_code, "text": r.text[:100]})
             return None
-        text = r.json()["choices"][0]["message"]["content"]
-        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        raw_text = r.json()["choices"][0]["message"]["content"]
+        # Strip reasoning blocks (e.g. <think>...</think>) before parsing
+        cleaned_text = re.sub(r"(?i)<think>[\s\S]*?</think>", "", raw_text).strip()
+        lines = [line.strip() for line in cleaned_text.split("\n") if line.strip()]
         if not lines:
             return []
         words: list[Word] = []
-        num_lines = len(lines)
-        for line_idx, line in enumerate(lines):
+        for line in lines:
             line_words = line.split()
-            if not line_words:
-                continue
-            y0 = (line_idx + 0.1) / num_lines
-            y1 = (line_idx + 0.9) / num_lines
-            num_words = len(line_words)
-            for word_idx, w_txt in enumerate(line_words):
-                x0 = word_idx / num_words
-                x1 = (word_idx + 0.9) / num_words
-                words.append(Word(w_txt, x0, y0, x1, y1, 95.0))
+            for w_txt in line_words:
+                # LLM OCR suggestions carry no synthetic pixel bbox and capped confidence <= 0.60
+                words.append(Word(w_txt, 0.0, 0.0, 0.0, 0.0, 60.0, source="llm_suggestion"))
         return words
     except Exception as e:
         log.warning("groq_ocr_failed", extra={"error": str(e)})

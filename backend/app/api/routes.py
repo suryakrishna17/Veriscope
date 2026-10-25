@@ -6,6 +6,7 @@ from typing import Any
 from flask import Blueprint, Response, current_app, jsonify, request
 
 from ..container import Services
+from ..core.db import new_id, utcnow
 from ..core.errors import ApiError, bad_request, not_found
 from ..core.security import current_user, hash_password, issue_token, rate_limit, require_auth, verify_password
 from ..processing.fields import DOC_TYPES
@@ -51,12 +52,106 @@ def login():  # type: ignore[no-untyped-def]
     email = str(b.get("email", "")).strip().lower()
     pw = str(b.get("password", ""))
     user = svc().db.one("SELECT * FROM users WHERE email = ?", (email,))
+
+    # Account lockout check (5 failures -> 15 min lock)
+    if user and user.get("locked_until"):
+        try:
+            from datetime import datetime, timezone
+            locked_dt = datetime.fromisoformat(str(user["locked_until"]).replace("Z", "+00:00"))
+            if datetime.now(timezone.utc) < locked_dt:
+                raise ApiError(423, "ACCOUNT_LOCKED", "Account temporarily locked due to excessive failed attempts. Try again in 15 minutes.")
+        except ApiError:
+            raise
+        except Exception:
+            pass
+
     hash_to_verify = user["password_hash"] if user else DUMMY_PASSWORD_HASH
     valid = verify_password(hash_to_verify, pw)
     if user is None or not valid:
+        if user:
+            from datetime import datetime, timedelta, timezone
+            attempts = (user.get("failed_attempts") or 0) + 1
+            lock_ts = (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat() if attempts >= 5 else None
+            svc().db.update("users", user["id"], {"failed_attempts": attempts, "locked_until": lock_ts})
+            if attempts >= 5:
+                raise ApiError(423, "ACCOUNT_LOCKED", "Account temporarily locked due to excessive failed attempts. Try again in 15 minutes.")
         raise ApiError(401, "INVALID_CREDENTIALS", "Email or password is incorrect.")
+
+    # Successful login: reset failed attempts
+    svc().db.update("users", user["id"], {"failed_attempts": 0, "locked_until": None})
     token = issue_token(user, svc().settings.secret_key, svc().settings.jwt_ttl_minutes)
     return jsonify({"access_token": token, "token_type": "bearer", "user": {k: user[k] for k in ("id", "email", "name", "role")}})
+
+
+@api.post("/auth/change-password")
+@require_auth()
+def change_password():  # type: ignore[no-untyped-def]
+    b = body()
+    cur_pw = str(b.get("current_password", ""))
+    new_pw = str(b.get("new_password", ""))
+    u = svc().db.one("SELECT * FROM users WHERE id = ?", (current_user()["id"],))
+    if not u or not verify_password(u["password_hash"], cur_pw):
+        raise ApiError(400, "INVALID_REQUEST", "Current password is incorrect.")
+    if len(new_pw) < 8:
+        raise ApiError(400, "INVALID_REQUEST", "New password must be at least 8 characters.")
+    new_version = (u.get("token_version") or 1) + 1
+    svc().db.update("users", u["id"], {"password_hash": hash_password(new_pw), "token_version": new_version})
+    return jsonify({"message": "Password updated successfully. Existing sessions have been revoked."})
+
+
+@api.post("/users")
+@require_auth("admin")
+def create_user_endpoint():  # type: ignore[no-untyped-def]
+    b = body()
+    email = str(b.get("email", "")).strip().lower()
+    name = str(b.get("name", "")).strip()
+    role = str(b.get("role", "reviewer")).strip().lower()
+    pw = str(b.get("password", "")).strip()
+    if not email or "@" not in email:
+        raise ApiError(400, "INVALID_REQUEST", "A valid email is required.")
+    if not name:
+        raise ApiError(400, "INVALID_REQUEST", "User name is required.")
+    if role not in ("applicant", "reviewer", "admin"):
+        raise ApiError(400, "INVALID_REQUEST", "Role must be applicant, reviewer, or admin.")
+    if len(pw) < 8:
+        raise ApiError(400, "INVALID_REQUEST", "Password must be at least 8 characters.")
+    if svc().db.one("SELECT 1 FROM users WHERE email = ?", (email,)):
+        raise ApiError(409, "USER_EXISTS", "A user with this email already exists.")
+    user_id = new_id()
+    new_user = {
+        "id": user_id,
+        "email": email,
+        "name": name,
+        "role": role,
+        "password_hash": hash_password(pw),
+        "created_at": utcnow(),
+        "token_version": 1,
+        "failed_attempts": 0,
+        "locked_until": None,
+    }
+    svc().db.insert("users", new_user)
+    return jsonify({"id": user_id, "email": email, "name": name, "role": role}), 201
+
+
+@api.patch("/users/<user_id>")
+@require_auth("admin")
+def update_user_endpoint(user_id: str):  # type: ignore[no-untyped-def]
+    b = body()
+    u = svc().db.one("SELECT * FROM users WHERE id = ?", (user_id,))
+    if not u:
+        raise not_found("User")
+    changes: dict[str, Any] = {}
+    if "name" in b:
+        changes["name"] = str(b["name"]).strip()
+    if "role" in b and b["role"] in ("applicant", "reviewer", "admin"):
+        changes["role"] = b["role"]
+    if "password" in b and len(str(b["password"])) >= 8:
+        changes["password_hash"] = hash_password(str(b["password"]))
+        changes["token_version"] = (u.get("token_version") or 1) + 1
+    if changes:
+        svc().db.update("users", user_id, changes)
+    updated = svc().db.one("SELECT id, email, name, role FROM users WHERE id = ?", (user_id,))
+    return jsonify(updated)
 
 
 @api.get("/auth/me")

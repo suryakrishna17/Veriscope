@@ -3,7 +3,7 @@
 
   <br>
 
-  [![Typing SVG](https://readme-typing-svg.demolab.com?font=Plus+Jakarta+Sans&weight=800&size=29&pause=1000&color=0D9488&center=true&vCenter=true&width=780&lines=Smart+Automation+for+AICTE+Application+Validation;Evidence-Grounded+Reviewer+Copilot;Automated+Extraction+%26+Deterministic+Rules;Incorruptible+Audit+Dossiers+%26+Human+Authority)](https://git.io/typing-svg)
+  [![Typing SVG](https://readme-typing-svg.demolab.com?font=Plus+Jakarta+Sans&weight=800&size=29&pause=1000&color=0D9488&center=true&vCenter=true&width=780&lines=Smart+Automation+for+AICTE+Application+Validation;Evidence-Grounded+Reviewer+Copilot;Automated+Extraction+%26+Deterministic+Rules;Hash-Chained+Audit+Dossiers+%26+Human+Authority)](https://git.io/typing-svg)
 
   <br>
 
@@ -143,7 +143,7 @@ VeriScope enforces strict governance standards:
 
 | Evaluation Dimension | Generic Cloud OCR (Textract / DocAI) | Computer Vision CNNs (ELA / Noise Classifiers) | Pure Generative AI (GPT-4V / Claude) | **VeriScope Platform** |
 |---|---|---|---|---|
-| **Evidence Grounding** | Text bounding boxes only | Anomaly heatmaps (no field data) | Non-grounded or hallucinated | **Exact pixel bounding box per entity** |
+| **Evidence Grounding** | Text bounding boxes only | Anomaly heatmaps (no field data) | Non-grounded or hallucinated | **Exact pixel bounding box per entity (PDF vector & OCR; approximate on LLM fallback)** |
 | **Multi-Document Auditing** | ❌ Single-document only | ❌ Single-document only | ⚠️ Unreliable correlation | **✅ Automated cross-document relational graph** |
 | **Statutory Rulebook** | ❌ None | ❌ None | ⚠️ Hallucinates regulations | **✅ 25-rule statutory AICTE APH 2024-27 catalogue** |
 | **Outcome Model** | ❌ None | ❌ Binary score | ⚠️ Inconsistent | **✅ Typed 4-outcome model (PASS/FAIL/REVIEW/NA)** |
@@ -174,7 +174,7 @@ VeriScope enforces strict governance standards:
 | **Backend API** | Python 3.12, Flask, WSGI, Werkzeug | REST API v1, session JWTs, `ProxyFix` reverse-proxy rate limiting |
 | **Automated Extraction** | pdfplumber, pypdfium2, Tesseract OCR, Groq Vision OCR | Asynchronous text extraction, rasterization, and multi-tier OCR fallback |
 | **Rulebook Engine** | Pure Python + YAML Rulesets | Millisecond evaluation of 25 statutory EoA rules across 9 document types |
-| **Audit & Persistence** | SQLite with Database Triggers | Incorruptible, append-only tamper-evident audit logging |
+| **Audit & Persistence** | SQLite with Database Triggers | Hash-chained, verifiable, append-only audit log |
 | **Automated Testing** | Pytest, Unittest, Playwright, GitHub Actions | Automated CI test matrix, type checking, security guards, and E2E browser walkthroughs |
 | **Cloud Deployments** | Vercel (Frontend) · Render (Backend) | Live production environments with automated CI/CD deployment |
 
@@ -255,7 +255,7 @@ cd frontend && npm run e2e
 │   ├── app/
 │   │   ├── api/routes.py          # REST endpoints (auth, cases, documents, findings, decisions)
 │   │   ├── core/                  # Security (ProxyFix, JWT), config, rate limiting, SQLite trigger layer
-│   │   ├── processing/            # Tesseract OCR, PyMuPDF engine, Groq vision OCR, field normalizers
+│   │   ├── processing/            # Tesseract OCR, pdfplumber / pypdfium2, Groq vision OCR, field normalizers
 │   │   ├── rules/                 # Pure deterministic rule engine & YAML policy rulesets
 │   │   │   └── rulesets/          # aicte_eoa_chapter2.v1.yaml (24 rules), student_support_lite.v1.yaml
 │   │   ├── services/              # Case lifecycle, analytics engine, job runner, audit logger, report generator

@@ -200,7 +200,7 @@ export function EvidenceViewer({ documents, activeDocId, page, highlight, onNavi
 
       <div className="viewer-foot">
         {highlight && highlight.documentId === doc.id ? (
-          <span className="hl-caption">Source: {highlight.label}</span>
+          <span className="hl-caption">Source: {highlight.label}{boxes.length === 0 ? " · Approximate location unavailable (LLM suggestion)" : ""}</span>
         ) : (
           <span className="muted">Click any extracted field or finding to highlight its source location.</span>
         )}

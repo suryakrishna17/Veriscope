@@ -324,8 +324,12 @@ class EoaFoundationTests(unittest.TestCase):
             self.assertEqual(len(ev.findings), 0)
             self.assertTrue(ev.rule_id.startswith("EOA-"))
             self.assertTrue(ev.clause_citation)
-            self.assertTrue(ev.is_verified)
-            self.assertEqual(ev.verification_status, "VERIFIED_OFFICIAL")
+            if ev.rule_id == "EOA-SIG-003":
+                self.assertFalse(ev.is_verified)
+                self.assertEqual(ev.verification_status, "ILLUSTRATIVE")
+            else:
+                self.assertTrue(ev.is_verified)
+                self.assertEqual(ev.verification_status, "VERIFIED_OFFICIAL")
 
     def test_evaluate_ruleset_distinguishes_fail_and_review_required(self) -> None:
         """Strict non-compliance yields FAIL, while conditions requiring human inspection yield REVIEW_REQUIRED."""
@@ -413,12 +417,15 @@ class EoaFoundationTests(unittest.TestCase):
     def test_verified_official_vs_illustrative_ruleset_distinction(self) -> None:
         """Ruleset loader cleanly distinguishes verified official AICTE rules from illustrative prototypes."""
         self.assertTrue(RS.is_provisional)
-        self.assertEqual(len(RS.verified_rules), 25)
-        self.assertEqual(len(RS.illustrative_rules), 0)
+        self.assertEqual(len(RS.verified_rules), 24)
+        self.assertEqual(len(RS.illustrative_rules), 1)
+        self.assertEqual(RS.illustrative_rules[0]["id"], "EOA-SIG-003")
 
         for r in RS.verified_rules:
             self.assertTrue(r["is_verified"])
             self.assertEqual(r["verification_status"], "VERIFIED_OFFICIAL")
+            self.assertTrue(r.get("reviewed_by"), f"Rule {r['id']} missing reviewed_by")
+            self.assertTrue(r.get("source_page"), f"Rule {r['id']} missing source_page")
             self.assertTrue(r["clause_citation"])
             self.assertIn("AICTE", r["clause_citation"])
 

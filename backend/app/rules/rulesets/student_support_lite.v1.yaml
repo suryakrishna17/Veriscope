@@ -181,3 +181,12 @@ rules:
     operator: field_equals
     params: {doc_type: INSTITUTION_AUTHORIZATION_LETTER, field: seal_present, expected: "yes"}
     next_action: Check the letter for an institution seal or stamp.
+
+  - id: SIG-005
+    category: document_signal
+    severity: medium
+    summary: Hidden or zero-contrast text detected in uploaded document vector streams
+    clause_citation: "AICTE Advisory Signal — Document Integrity Guideline"
+    operator: hidden_text
+    params: {}
+    next_action: Inspect the hidden words on the document page to confirm whether content was intentionally masked or represents benign background styling.

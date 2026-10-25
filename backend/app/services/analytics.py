@@ -75,12 +75,19 @@ def get_analytics_summary(svc: Services) -> dict[str, Any]:
     mean_ocr_conf = svc.db.scalar("SELECT AVG(mean_confidence) FROM pages WHERE mean_confidence IS NOT NULL") or 0.0
 
     # 7. SLA & Turnaround Times (average hours from creation to first decision)
-    # SQLite julianday subtraction yields days; multiply by 24 for hours
-    avg_tat_hours = svc.db.scalar(
-        """SELECT AVG((julianday(d.decided_at) - julianday(c.created_at)) * 24.0)
-           FROM decisions d
-           JOIN cases c ON c.id = d.case_id"""
-    ) or 0.0
+    # Dialect-aware: PostgreSQL EXTRACT(EPOCH ...) vs SQLite julianday
+    if svc.db.is_postgres:
+        avg_tat_hours = svc.db.scalar(
+            """SELECT AVG(EXTRACT(EPOCH FROM (d.decided_at - c.created_at)) / 3600.0)
+               FROM decisions d
+               JOIN cases c ON c.id = d.case_id"""
+        ) or 0.0
+    else:
+        avg_tat_hours = svc.db.scalar(
+            """SELECT AVG((julianday(d.decided_at) - julianday(c.created_at)) * 24.0)
+               FROM decisions d
+               JOIN cases c ON c.id = d.case_id"""
+        ) or 0.0
 
     return {
         "overview": {
