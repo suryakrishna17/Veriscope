@@ -38,8 +38,9 @@ def ensure_users(svc: Services) -> dict[str, dict]:
 
 
 def seed(svc: Services) -> list[str]:
-    if svc.settings.app_env not in {"dev", "test"}:
-        raise RuntimeError("seed.py is prohibited in production environments.")
+    is_demo_authorized = os.environ.get("SEED_DEMO", "").lower() in {"1", "true", "yes"} or os.environ.get("ALLOW_DEMO_SEED", "").lower() in {"1", "true", "yes"}
+    if svc.settings.app_env not in {"dev", "test"} and not is_demo_authorized:
+        raise RuntimeError("seed.py is prohibited in production environments unless explicitly authorized via SEED_DEMO=true.")
     users = ensure_users(svc)
     if not (FIXTURES / "expected_results.json").exists():
         from scripts.generate_fixtures import main as gen

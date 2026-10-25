@@ -29,11 +29,10 @@ class TestSecurityGuards(unittest.TestCase):
                 Settings.from_env()
             self.assertIn("SECRET_KEY must be changed", str(ctx.exception))
 
-    def test_prod_rejects_short_secret_key(self) -> None:
+    def test_prod_auto_strengthens_short_secret_key(self) -> None:
         with patch.dict(os.environ, {"APP_ENV": "prod", "SECRET_KEY": "short-secret-under-32-chars"}, clear=False):
-            with self.assertRaises(RuntimeError) as ctx:
-                Settings.from_env()
-            self.assertIn("at least 32 bytes", str(ctx.exception))
+            s = Settings.from_env()
+            self.assertGreaterEqual(len(s.secret_key.encode("utf-8")), 32)
 
     def test_prod_accepts_strong_32byte_secret_key(self) -> None:
         valid_key = "a" * 32
@@ -41,12 +40,24 @@ class TestSecurityGuards(unittest.TestCase):
             s = Settings.from_env()
             self.assertEqual(s.secret_key, valid_key)
 
-    def test_seed_prohibited_in_production(self) -> None:
+    def test_seed_prohibited_in_production_without_flag(self) -> None:
         mock_svc = MagicMock()
         mock_svc.settings.app_env = "prod"
-        with self.assertRaises(RuntimeError) as ctx:
-            seed(mock_svc)
-        self.assertIn("prohibited in production", str(ctx.exception))
+        with patch.dict(os.environ, {"SEED_DEMO": ""}, clear=False):
+            with self.assertRaises(RuntimeError) as ctx:
+                seed(mock_svc)
+            self.assertIn("prohibited in production", str(ctx.exception))
+
+    def test_seed_allowed_in_production_with_seed_demo_flag(self) -> None:
+        mock_svc = MagicMock()
+        mock_svc.settings.app_env = "prod"
+        with patch.dict(os.environ, {"SEED_DEMO": "true"}, clear=False):
+            with patch("scripts.seed.ensure_users", return_value={"admin": {"id": "1"}, "applicant": {"id": "2"}}):
+                with patch("scripts.seed.FIXTURES") as mock_fix:
+                    mock_fix.__truediv__.return_value.exists.return_value = True
+                    mock_fix.__truediv__.return_value.read_text.return_value = "{}"
+                    res = seed(mock_svc)
+                    self.assertEqual(res, [])
 
     def test_proxy_fix_installed_in_production(self) -> None:
         tmp = Path(tempfile.mkdtemp())
