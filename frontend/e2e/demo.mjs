@@ -25,11 +25,15 @@ await p.waitForSelector(".finding");
 await p.waitForSelector(".page img");
 await p.screenshot({ path: "03-case.png" });
 // click CMP-001 finding -> highlight signature region
-await p.click(".finding:has-text('CMP-001') .finding-main");
+const cmpFinding = p.locator(".finding:has-text('CMP-001') .finding-main");
+await cmpFinding.scrollIntoViewIfNeeded();
+await cmpFinding.click();
 await p.waitForTimeout(900);
 await p.screenshot({ path: "04-finding-highlight.png" });
 // click CON-001 -> letter
-await p.click(".finding:has-text('CON-001') .chip >> nth=1");
+const conChip = p.locator(".finding:has-text('CON-001') .chip >> nth=1");
+await conChip.scrollIntoViewIfNeeded();
+await conChip.click();
 await p.waitForTimeout(1000);
 await p.screenshot({ path: "05-con001.png" });
 // correct total field

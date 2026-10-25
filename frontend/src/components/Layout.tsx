@@ -1,12 +1,23 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useSession } from "../lib/session";
 import { useRoute } from "../lib/router";
 import { IconUser } from "./Icons";
+import { Modal } from "./Modal";
+import { LanyardBadge } from "./ui/lanyard-badge";
+
+const ROLE_COLORS: Record<string, string> = {
+  reviewer: "#FF5E1E",
+  applicant: "#2563EB",
+  admin: "#7C3AED",
+};
 
 export function Layout({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   const { user, signOut } = useSession();
   const route = useRoute();
+  const [showBadge, setShowBadge] = useState(false);
   const isApplicant = user?.role === "applicant";
+
+  const accentColor = user ? ROLE_COLORS[user.role] ?? "#FF5E1E" : "#FF5E1E";
 
   return (
     <div className="shell">
@@ -44,6 +55,14 @@ export function Layout({ children, wide = false }: { children: ReactNode; wide?:
 
         {user && (
           <div className="who">
+            <button
+              type="button"
+              className="btn btn-small btn-badge-toggle"
+              onClick={() => setShowBadge(true)}
+              title="Inspect interactive 3D Lanyard ID Badge"
+            >
+              <span>🪪 3D Badge</span>
+            </button>
             <div className="who-user">
               <span className="who-avatar" aria-hidden><IconUser width="14" height="14" /></span>
               <span className="who-name">{user.name}</span>
@@ -53,6 +72,32 @@ export function Layout({ children, wide = false }: { children: ReactNode; wide?:
           </div>
         )}
       </header>
+
+      {/* ── Interactive 3D ID Badge Inspection Modal ── */}
+      {user && (
+        <Modal
+          open={showBadge}
+          title={`3D Inspector Credential · ${user.name}`}
+          onClose={() => setShowBadge(false)}
+        >
+          <div className="modal-badge-stage">
+            <p className="muted small" style={{ textAlign: "center", marginBottom: "0.5rem" }}>
+              Interactive 3D Verlet rope badge. Hover to dip &amp; tilt, click/drag to swing, double-click to flip.
+            </p>
+            <div style={{ display: "flex", justifyContent: "center", width: "100%", overflow: "hidden" }}>
+              <LanyardBadge
+                name={user.name}
+                role={user.role === "reviewer" ? "Reviewer" : user.role === "admin" ? "Admin" : "Applicant"}
+                org="SIH26261 · AICTE"
+                badgeId={`VS-2026-${user.id.slice(0, 4)}`}
+                accentColor={accentColor}
+                width={360}
+                autoSwing={true}
+              />
+            </div>
+          </div>
+        </Modal>
+      )}
 
       <main id="main" className={wide ? "main main-wide" : "main"}>{children}</main>
 

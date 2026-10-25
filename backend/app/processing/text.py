@@ -112,7 +112,7 @@ def groq_ocr_image(img: Image.Image) -> list[Word] | None:
                 "temperature": 0,
                 "max_tokens": 1500,
             },
-            timeout=8,
+            timeout=18,
         )
         if r.status_code != 200:
             log.warning("groq_ocr_http_failed", extra={"status": r.status_code, "text": r.text[:100]})
