@@ -4,14 +4,14 @@
 flowchart LR
   UI[React 19 + TypeScript SPA] -->|JSON / multipart| API[Flask API v1 + ProxyFix]
   API --> SVC[Services: cases, processing, decisions, audit, reports]
-  SVC --> DB[(SQLite WAL · PostgreSQL-ready schema)]
+  SVC --> DB[(Dual-Mode: SQLite WAL / PostgreSQL 16)]
   SVC --> ST[Private file storage]
-  SVC --> JOB[Job runner]
+  SVC --> JOB[Job Runner: Celery + Redis / ThreadPool Fallback]
   JOB --> PIPE[Processing pipeline]
   PIPE --> TXT[Multi-Tier OCR: PyMuPDF · Tesseract · Groq Vision Qwen 3.8-27B]
   PIPE --> SIG[Visual heuristics + PDF trailer metadata signals]
   PIPE --> EXT[Label-anchored extraction + Checkbox parsing]
-  PIPE --> ISS[Issuer verifier adapter]
+  PIPE --> ISS[DigiLocker DPI Adapter & Issuer Verification]
   PIPE --> RULES[Deterministic Policy Engine: AICTE EoA Ch. II v1 / Lite v1]
   RULES --> EVAL[4-Outcome Model: PASS, FAIL, REVIEW, N/A]
   EVAL --> FIND[Findings + Triage Urgency Scoring]
@@ -33,7 +33,7 @@ flowchart LR
    - Signature ink density analysis in bounding boxes adjacent to signature lines.
    - Circular geometric contour transforms for institutional seals.
    - PDF trailer dictionary parsing to identify incremental post-creation revisions.
-5. **Issuer Verification**: Default baseline status is `NOT_VERIFIED` unless a signed cryptographic response from an issuing authority is recorded.
+5. **Issuer Verification & DigiLocker DPI Gateway**: Default baseline status is `NOT_VERIFIED` unless pulled through the DigiLocker / NAD gateway or validated via signed cryptographic authority response, which transitions the document to `ISSUER_VERIFIED`.
 6. **Dynamic Ruleset Routing & Policy Evaluation**:
    - Dynamic ruleset binding in [`backend/app/container.py`](../backend/app/container.py) routes `AICTE_EOA` cases to the 24-rule statutory catalogue (`aicte_eoa_chapter2.v1.yaml`) and prototype cases to `student_support_lite.v1.yaml`.
    - Rules evaluate effective values (human reviewer corrections override extracted values).
@@ -75,7 +75,8 @@ Invalid state transitions return `409 INVALID_STATE`.
 - **Reverse-Proxy Rate Limiting**: In production deployments (`APP_ENV=prod`), Werkzeug's `ProxyFix` middleware (`x_for=1, x_proto=1, x_host=1, x_prefix=1`) ensures rate-limiting buckets evaluate client IPs accurately rather than reverse-proxy internal IPs.
 - **Production Seed Protection**: `scripts/seed.py` is prohibited from running in production environments unless explicitly authorized via `SEED_DEMO=true` or `ALLOW_DEMO_SEED=true`.
 - **Cryptographic Key Strengthening**: `Settings.from_env()` enforces a 32-byte secret key length in production, automatically strengthening short keys to 256-bit SHA-256 derived keys to satisfy RFC 7518 Section 3.2.
-- **Append-Only Audit Log**: SQLite database triggers block `UPDATE` and `DELETE` on the `audit_events` table, guaranteeing an immutable audit trail.
+- **Append-Only Audit Log**: Native database triggers (SQLite triggers and PostgreSQL PL/pgSQL function `audit_immutable_guard`) block `UPDATE` and `DELETE` on the `audit_events` table, guaranteeing an immutable audit trail.
+- **Cryptographic Merkle Tree Notarization**: Every audit entry contributes to a SHA-256 Merkle tree notarization badge, guaranteeing mathematical tamper-evidence for administrative integrity.
 
 ---
 
