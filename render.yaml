@@ -10,6 +10,6 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: SEED_DEMO
-        value: "false"
+        value: "true"
       - key: CORS_ORIGINS
-        value: "https://veriscope.vercel.app"
+        value: "http://localhost:5173,https://*.vercel.app,https://veriscope.vercel.app"

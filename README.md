@@ -195,15 +195,21 @@ docker compose up --build
 
 Access the desk at **`http://localhost:8000`**.
 
-### One-Click Interactive Demo Accounts
+### One-Click Interactive Demo Accounts (Development & Staging)
 
-Password for all demo accounts is **`demo1234`**:
+Password for default synthetic demo accounts is **`demo1234`**:
 
 | Account | Role | Permissions |
 |---|---|---|
 | `reviewer@demo.local` | **Reviewer** | Triage queue inspection, coordinate verification, decision recording |
 | `applicant@demo.local` | **Applicant** | Application submission, file uploads, clarification responses |
 | `admin@demo.local` | **Admin** | Supervisory review authority and closed-case reopening |
+
+> 🔒 **Production Provisioning**: In production environments (`APP_ENV=prod`), synthetic demo credentials are disabled by default. Administrators provision authorized accounts using the secure CLI utility:
+> ```bash
+> python -m scripts.create_user --email officer@aicte.gov.in --name "Scrutiny Officer" --role reviewer --password "<SECURE_PASSPHRASE>"
+> ```
+> Frontend demo chips are strictly gated behind `VITE_DEMO_MODE=true`.
 
 ---
 
@@ -227,7 +233,7 @@ npm run dev                       # Starts Vite dev server on http://localhost:5
 ### Running Automated Test Suites
 
 ```bash
-# Backend: Run unit, statutory rulebook, security guard, and workflow tests
+# Backend: Run unit, statutory rulebook, security guard, audit chain, and workflow tests (147 passing tests)
 cd backend && pytest -q
 
 # Dedicated Security Guard Test Suite (RFC 7518 secret length, seed protection, ProxyFix)
@@ -255,8 +261,9 @@ cd frontend && npm run e2e
 │   │   ├── services/              # Case lifecycle, analytics engine, job runner, audit logger, report generator
 │   │   └── ai/adapter.py          # AI summarization adapter with strict anti-hallucination guard
 │   ├── fixtures/                  # Synthetic institutional test applications (SIH-DEMO-013..016)
-│   ├── migrations/                # Database migrations (001_init.sql, 002_add_clause_citation_to_findings.sql)
-│   └── tests/                     # Automated test suite (test_eoa_rules, test_eoa_workflow, test_security_guards)
+│   ├── migrations/                # Migrations (001_init, 002_citation, 003_audit_chain, 004_job_heartbeat)
+│   ├── scripts/                   # CLI tools (seed.py, create_user.py)
+│   └── tests/                     # Automated test suite (147 tests: rules, security, audit chain, reaper, DPI)
 ├── frontend/
 │   ├── src/
 │   │   ├── components/            # EvidenceViewer, FindingsPanel (Summary Card), DecisionBar, Badges, Uploader
@@ -290,8 +297,9 @@ All endpoints reside under `/api/v1`, accept JSON payloads, and authenticate via
 | `POST` | `/cases/{id}/reopen` | Reopen closed case (Admin only) |
 | `GET` | `/analytics` | Institutional compliance analytics, SLA turnaround times, and statutory deficiency rankings |
 | `GET` | `/cases/{id}/audit/merkle` | Cryptographic SHA-256 Merkle tree root hash and tree depth of the audit log |
+| `GET` | `/cases/{id}/audit/verify` | Cryptographically verify sequential SHA-256 hash-chain integrity across case audit records |
 | `GET` | `/integrations/digilocker/certificates` | List pre-verified statutory certificates available in DigiLocker DPI sandbox |
-| `POST` | `/cases/{id}/digilocker/pull` | Import officially certified document into case with `ISSUER_VERIFIED` trust |
+| `POST` | `/cases/{id}/digilocker/pull` | Import sandbox document into case (`NOT_VERIFIED`, marked `simulated` for officer audit) |
 | `GET` | `/rulesets/active` | Inspect active ruleset metadata and statutory clause citations |
 | `GET` | `/cases/{id}/report?format=pdf` | Generate comprehensive regulatory audit dossier |
 

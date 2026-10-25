@@ -19,4 +19,8 @@ To maintain full transparency with evaluation officers, auditors, and engineerin
 6. **Dual-Mode Database Architecture**:
    - The system defaults to SQLite in WAL (Write-Ahead Logging) mode with busy timeouts for instant local dev and zero-config testing. In enterprise deployments, it automatically engages PostgreSQL 16 with connection pooling and PL/pgSQL append-only immutable triggers when `DATABASE_URL` is configured.
 7. **DigiLocker & NAD DPI Sandbox Integration**:
-   - The issuer verification adapter provides a mock/null baseline for offline applications and an interactive DigiLocker & NAD DPI Gateway with cryptographic X.509 metadata, enabling instant pull of verified statutory certificates with the `ISSUER_VERIFIED` trust state.
+   - The issuer verification adapter provides a mock/null baseline for offline applications and an interactive DigiLocker & NAD DPI Gateway.
+   - In sandbox mode without production national PKI certificates, imported documents are explicitly assigned the `NOT_VERIFIED` trust state with `simulated: true` metadata. The system strictly disallows synthetic elevation to `ISSUER_VERIFIED` and requires authorized human scrutiny officer validation.
+8. **Bounded Document Dimensions and Memory Safety**:
+   - PDF pages are strictly bounded between `36 pt` (0.5 inch minimum) and `3400 pt` (~47 inches maximum). Oversized canvas bombs or micro-dimensioned pages trigger `PAGE_SIZE_UNSUPPORTED` and are safely rejected without exhausting worker memory.
+   - Image and page rendering is capped at `12,000,000` pixels per page to prevent raster decompression denial-of-service.

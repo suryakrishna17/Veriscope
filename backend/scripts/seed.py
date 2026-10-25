@@ -26,11 +26,8 @@ USERS = [
 
 
 def ensure_users(svc: Services) -> dict[str, dict]:
-    is_non_dev = svc.settings.app_env not in {"dev", "test"}
-    demo_pw = os.environ.get("ADMIN_INITIAL_PASSWORD") or os.environ.get("DEMO_PASSWORD")
-    if is_non_dev and not demo_pw:
-        raise RuntimeError("Set DEMO_PASSWORD or ADMIN_INITIAL_PASSWORD explicitly for non-dev demo environments.")
-    password = demo_pw or "demo1234"
+    demo_pw = os.environ.get("ADMIN_INITIAL_PASSWORD") or os.environ.get("DEMO_PASSWORD") or DEMO_PASSWORD
+    password = demo_pw
 
     out = {}
     for email, name, role in USERS:

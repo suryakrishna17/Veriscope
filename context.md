@@ -2,7 +2,7 @@
 
 > **Document Status**: Authoritative Project Master Reference  
 > **Repository**: [https://github.com/suryakrishna17/Veriscope.git](https://github.com/suryakrishna17/Veriscope.git)  
-> **Active Working Tree**: `main` (HEAD: `871b3f6` — *"fix(ocr): add hermetic test fallback for scanned fixtures when tesseract is uninstalled and update LIMITATIONS.md"*)  
+> **Active Working Tree**: `main` (HEAD: `556c375` — *"feat(security): implement comprehensive audit fix plan (F1-F9)"*, with Render container startup fix and 147/147 test suite verification)  
 > **Target Production Branch**: `main` (Latest Remote Tip: `871b3f6`)  
 > **Author**: VeriScope Core Engineering Team  
 > **Target Audience**: Core Contributors, Regulatory Domain Experts, SIH Evaluators, and Incoming Engineers  
@@ -107,6 +107,8 @@ This document serves as the single source of truth for **VeriScope**, an evidenc
   - **AICTE Land Norm Operators (Commit `0329a2b`)**: **MERGED** into `main` (`land_norm_by_category` and `numeric_min` operators in `operators.py`, tested in `test_rules.py`).
   - **Versioning, Built-Up Area, & Merkle Notarization (Commit `009a2f9`)**: **MERGED** into `main` (resubmission version tracking, visual diffing, built-up area norm calculator, and cryptographic SHA-256 Merkle audit trail).
   - **Enterprise Scalability & DPI Integrations**: **COMPLETED** (Dual-mode PostgreSQL & SQLite data layer, asynchronous Celery + Redis task queue with graceful fallback, and DigiLocker/NAD interactive DPI sandbox gateway).
+  - **Comprehensive Security & Audit Hardening (F1–F9, Commit `556c375`)**: **COMPLETED** (Production CLI provisioning, honest DigiLocker sandbox labeling, bounded PDF processing geometry, fail-closed regulatory operators, strict case adjudication invariants, zero-contrast hidden text detection, sequential SHA-256 hash-chained audit trails, and background job heartbeat/reaper).
+  - **Render Container Startup & Deployment Fix**: **COMPLETED** (Safe demo password fallback during authorized production seeding, multi-origin CORS, package-lock preservation, and idempotent PostgreSQL schema alterations).
 
 ### Critical Historical Reconciliation
 
@@ -1454,7 +1456,16 @@ To ensure seamless collaboration across teammates and prevent accidental regress
 | **Distributed Task Queue (Celery + Redis)** | **COMPLETED & VERIFIED ON MAIN** | `celery_app.py`, `tasks.py`, `jobs.py` distributed dispatch with thread fallback, `test_workers.py`. | None — verified on `main`. | Done |
 | **DigiLocker DPI Interactive Gateway** | **COMPLETED & VERIFIED ON MAIN** | `digilocker.py` sandbox certificates & pull endpoint, `Uploader.tsx` 1-click pull, `test_digilocker_service.py`. | None — operational on `main`. | Done |
 | **P0 Rules Missing-Evidence Safeguard** | **COMPLETED & VERIFIED ON MAIN** | `required_fields` and `field_equals` in `operators.py` yield explicit failures when target documents are absent. Tested in `test_empty_dossier_rules.py`. | None — verified on `main`. | Done |
-| **Test Suite Health** | **COMPLETED & VERIFIED ON MAIN** | 129 tests across all 12 test modules (`test_empty_dossier_rules.py`, `test_api.py`, `test_guardrails.py`, `test_eoa_rules.py`, `test_rules.py`, `test_workers.py`, `test_digilocker_service.py`, `test_analytics.py`, `test_merkle_audit.py`, `test_issuer.py`, `test_normalize.py`, `test_security_guards.py`). | None — 129/129 passing with 0 lint errors and 0 type errors. | Done |
+| **Production CLI Provisioning (F1)** | **COMPLETED & VERIFIED ON MAIN** | `create_user.py` provisioner CLI; demo login chips gated behind `VITE_DEMO_MODE`. Tested in `test_security_guards.py`. | None — operational. | Done |
+| **Honest DigiLocker Sandbox (F2)** | **COMPLETED & VERIFIED ON MAIN** | Sandbox imports marked `NOT_VERIFIED` with `simulated: true`; gated to reviewer/admin; heuristic `DL-` bypass eliminated. Tested in `test_issuer_integrity.py`. | None — verified on `main`. | Done |
+| **Bounded PDF Processing & Memory Safety (F3)** | **COMPLETED & VERIFIED ON MAIN** | Dimensions capped (36-3400 pt, `PAGE_SIZE_UNSUPPORTED`); 12M pixel render limit. Tested in `test_processing_bounds.py`. | None — verified on `main`. | Done |
+| **Fail-Closed Statutory Engine (F4)** | **COMPLETED & VERIFIED ON MAIN** | Missing documents/fields never evaluate to PASS; unhandled exceptions preserve rule severity. Tested in `test_rules_fail_closed.py`. | None — verified on `main`. | Done |
+| **Strict Case Adjudication Invariants (F5)** | **COMPLETED & VERIFIED ON MAIN** | 0 unanalyzed docs required for approval; 20+ char justification for high-severity waivers; uploads locked in `needs_review`. Tested in `test_hardened_gates.py`. | None — verified on `main`. | Done |
+| **Zero-Contrast Hidden Text Defense (F6)** | **COMPLETED & VERIFIED ON MAIN** | Low-contrast text isolated into `hidden_words` and flagged as `hidden_text_detected`. Tested in `test_processing_bounds.py`. | None — verified on `main`. | Done |
+| **Sequential Hash-Chained Audit Trail (F7)** | **COMPLETED & VERIFIED ON MAIN** | Migration `003_audit_chain.sql`; SHA-256 sequential hashing (`seq`, `prev_hash`, `event_hash`); verification via `/audit/verify`. Tested in `test_audit_chain.py`. | None — verified on `main`. | Done |
+| **Job Heartbeat & Stale Task Reaper (F8)** | **COMPLETED & VERIFIED ON MAIN** | Migration `004_job_heartbeat.sql`; `reap_stale_jobs()` sweeps tasks idle >300s. Tested in `test_reaper.py`. | None — verified on `main`. | Done |
+| **Render Container Startup Resilience (F9)** | **COMPLETED & VERIFIED ON MAIN** | Safe demo password fallback in `seed.py`, `render.yaml` CORS & demo seed configuration, `Dockerfile` lockfile preservation, PostgreSQL schema idempotency. | None — operational on Render. | Done |
+| **Test Suite Health** | **COMPLETED & VERIFIED ON MAIN** | 147 tests across all 19 test modules (`test_analytics.py`, `test_api.py`, `test_audit_chain.py`, `test_digilocker_service.py`, `test_empty_dossier_rules.py`, `test_eoa_rules.py`, `test_eoa_workflow.py`, `test_guardrails.py`, `test_hardened_gates.py`, `test_issuer.py`, `test_issuer_integrity.py`, `test_merkle_audit.py`, `test_normalize.py`, `test_processing_bounds.py`, `test_reaper.py`, `test_rules.py`, `test_rules_fail_closed.py`, `test_security_guards.py`, `test_workers.py`). | None — 147/147 passing (100% green), 0 ruff lint errors, 0 type errors. | Done |
 
 ---
 
