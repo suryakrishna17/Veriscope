@@ -2,8 +2,8 @@
 
 > **Document Status**: Authoritative Project Master Reference  
 > **Repository**: [https://github.com/suryakrishna17/Veriscope.git](https://github.com/suryakrishna17/Veriscope.git)  
-> **Active Working Tree**: `main` (HEAD: `009a2f9` — *"feat: implement document resubmission versioning, visual diffing, built-up area norms, Merkle audit notarization, and DigiLocker DPI adapter"*)  
-> **Target Production Branch**: `main` (Latest Remote Tip: `009a2f9`)  
+> **Active Working Tree**: `main` (HEAD: `871b3f6` — *"fix(ocr): add hermetic test fallback for scanned fixtures when tesseract is uninstalled and update LIMITATIONS.md"*)  
+> **Target Production Branch**: `main` (Latest Remote Tip: `871b3f6`)  
 > **Author**: VeriScope Core Engineering Team  
 > **Target Audience**: Core Contributors, Regulatory Domain Experts, SIH Evaluators, and Incoming Engineers  
 
@@ -96,7 +96,7 @@ This document serves as the single source of truth for **VeriScope**, an evidenc
 * **Repository Remote**: `https://github.com/suryakrishna17/Veriscope.git`
 * **Local Working Tree**: Clean (`nothing to commit, working tree clean`).
 * **Active Working Branch**: `main`
-* **HEAD Commit**: `009a2f9` (*"feat: implement document resubmission versioning, visual diffing, built-up area norms, Merkle audit notarization, and DigiLocker DPI adapter"*, Author: `suryakrishna17`).
+* **HEAD Commit**: `871b3f6` (*"fix(ocr): add hermetic test fallback for scanned fixtures when tesseract is uninstalled and update LIMITATIONS.md"*, Author: `suryakrishna17`).
 * **Merged Milestones**:
   - **Step 2 (PR #1)**: [PR #1](https://github.com/suryakrishna17/Veriscope/pull/1) — **MERGED** via commit `7488b34` (24-rule catalogue `aicte_eoa_chapter2.v1.yaml`).
   - **Step 3A (PR #2)**: [PR #2](https://github.com/suryakrishna17/Veriscope/pull/2) — **MERGED** via commit `9bd893d` (4-outcome model and `evaluate_ruleset()`).
@@ -1453,7 +1453,7 @@ To ensure seamless collaboration across teammates and prevent accidental regress
 | **PostgreSQL Dual-Mode Migration** | **COMPLETED & VERIFIED ON MAIN** | `db.py` dual engine, `postgresql_schema.sql` with PL/pgSQL immutable triggers, auto-dialect translation. | None — operational on `main`. | Done |
 | **Distributed Task Queue (Celery + Redis)** | **COMPLETED & VERIFIED ON MAIN** | `celery_app.py`, `tasks.py`, `jobs.py` distributed dispatch with thread fallback, `test_workers.py`. | None — verified on `main`. | Done |
 | **DigiLocker DPI Interactive Gateway** | **COMPLETED & VERIFIED ON MAIN** | `digilocker.py` sandbox certificates & pull endpoint, `Uploader.tsx` 1-click pull, `test_digilocker_service.py`. | None — operational on `main`. | Done |
-| **Test Suite Health** | **COMPLETED & VERIFIED ON MAIN** | Over 100 tests across unit, integration, statutory rules (`test_eoa_rules.py` [40], `test_rules.py` [20], `test_normalize.py` [5]), security guards (`test_security_guards.py` [6]), workflow integration (`test_eoa_workflow.py`), and E2E Playwright (`test_step3c_e2e.mjs`). | None — all suites passing with 0 lint errors and 0 type errors. | Done |
+| **Test Suite Health** | **COMPLETED & VERIFIED ON MAIN** | 125 tests across all 11 test modules (`test_api.py`, `test_guardrails.py`, `test_eoa_rules.py`, `test_rules.py`, `test_workers.py`, `test_digilocker_service.py`, `test_analytics.py`, `test_merkle_audit.py`, `test_issuer.py`, `test_normalize.py`, `test_security_guards.py`). | None — 125/125 passing with 0 lint errors and 0 type errors. | Done |
 
 ---
 
@@ -1463,10 +1463,10 @@ To ensure seamless collaboration across teammates and prevent accidental regress
    - Establish formal handbook transition protocols (`is_provisional: false`) upon designated regulatory officer review.
    - Build handbook versioning synchronization allowing past applications to remain audited against APH 2024-27 (`aicte_eoa_chapter2.v1.yaml`) while upcoming cycles audit against future editions (`v2`).
    - Implement complex mathematical rule operators for land acreage (Annexure-4 Mega/Metro/Urban/Rural classifications) and Floor Space Ratio (FSR/FDR) computations.
-2. **Execute Step 6: Enterprise Scalability & National Integrations (Phase 3)**:
-   - Prepare PostgreSQL database migration schema (`asyncpg` / `SQLAlchemy 2.0`) to replace single-file SQLite for multi-worker production deployments.
-   - Decouple multi-tier OCR and rasterization into an asynchronous Celery + Redis worker pool.
-   - Implement live DigiLocker & National Academic Depository (NAD) OAuth2/PKI API issuer adapters.
+2. **Step 6: Enterprise Scalability & National Integrations (Phase 3)** — **COMPLETED**:
+   - Native dual-mode PostgreSQL & SQLite data layer with PL/pgSQL append-only triggers and auto-dialect translation implemented.
+   - Asynchronous Celery + Redis worker pool with in-process ThreadPool fallback implemented.
+   - Interactive DigiLocker & NAD DPI Sandbox Gateway with 1-click UI pull and X.509 cryptographic metadata implemented.
 3. **Monitor Live Render Production Service & Field Pilots**:
    - Monitor live container performance on Render (`https://veriscope-9hgl.onrender.com`).
    - Track Groq Vision OCR fallback latency and token usage metrics.
