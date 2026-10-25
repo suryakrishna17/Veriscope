@@ -51,6 +51,14 @@ export function Layout({ children, wide = false }: { children: ReactNode; wide?:
           >
             New application
           </a>
+          {!isApplicant && (
+            <a
+              href="#/analytics"
+              className={`nav-item${route.name === "analytics" ? " active" : ""}`}
+            >
+              Analytics
+            </a>
+          )}
         </nav>
 
         {user && (

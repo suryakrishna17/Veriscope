@@ -8,8 +8,15 @@ import unicodedata
 from dataclasses import dataclass
 
 from PIL import Image, UnidentifiedImageError
-from pypdf import PdfReader
-from pypdf.errors import PdfReadError
+
+try:
+    from pypdf import PdfReader
+    from pypdf.errors import PdfReadError
+except ImportError:
+    PdfReader = None  # type: ignore[assignment]
+
+    class PdfReadError(Exception):  # type: ignore[no-redef]
+        pass
 
 from ..core.errors import ApiError
 
@@ -36,7 +43,7 @@ def sniff_mime(data: bytes) -> str | None:
     return None
 
 
-def safe_filename(name: str, ext: str) -> str:
+def sanitize_filename(name: str, ext: str) -> str:
     name = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode()
     name = name.replace("\\", "/").rsplit("/", 1)[-1]
     stem = re.sub(r"[^A-Za-z0-9._-]+", "_", name.rsplit(".", 1)[0]).strip("._") or "document"
@@ -54,15 +61,18 @@ def validate_upload(data: bytes, filename: str, max_bytes: int, max_pages: int) 
 
     pages = 1
     if mime == "application/pdf":
-        try:
-            reader = PdfReader(io.BytesIO(data))
-            if reader.is_encrypted:
-                raise ApiError(422, "DOC_ENCRYPTED", "The PDF is password-protected. Upload an unlocked copy.")
-            pages = len(reader.pages)
-        except ApiError:
-            raise
-        except (PdfReadError, ValueError, KeyError, OSError) as e:
-            raise ApiError(422, "DOC_CORRUPT", "The PDF could not be read. It may be damaged; export it again and re-upload.") from e
+        if PdfReader is not None:
+            try:
+                reader = PdfReader(io.BytesIO(data))
+                if reader.is_encrypted:
+                    raise ApiError(422, "DOC_ENCRYPTED", "The PDF is password-protected. Upload an unlocked copy.")
+                pages = len(reader.pages)
+            except ApiError:
+                raise
+            except (PdfReadError, ValueError, KeyError, OSError) as e:
+                raise ApiError(422, "DOC_CORRUPT", "The PDF could not be read. It may be damaged; export it again and re-upload.") from e
+        else:
+            pages = max(1, len(re.findall(rb"/Type\s*/Page\b", data)))
         if pages == 0:
             raise ApiError(422, "DOC_EMPTY", "The PDF has no pages.")
         if pages > max_pages:
@@ -77,13 +87,13 @@ def validate_upload(data: bytes, filename: str, max_bytes: int, max_pages: int) 
                     raise ApiError(422, "IMAGE_TOO_SMALL", "The image is too small to read. Upload a scan of at least 200 pixels per side.")
         except ApiError:
             raise
-        except (UnidentifiedImageError, OSError, SyntaxError, Image.DecompressionBombError) as e:
-            raise ApiError(422, "DOC_CORRUPT", "The image could not be read. It may be damaged; scan it again and re-upload.") from e
+        except (UnidentifiedImageError, OSError, ValueError) as e:
+            raise ApiError(422, "DOC_CORRUPT", "The image could not be read. Check the file and re-upload.") from e
 
     return ValidatedFile(
         data=data,
         mime_type=mime,
-        safe_name=safe_filename(filename or "document", ALLOWED[mime]),
+        safe_name=sanitize_filename(filename, ALLOWED[mime]),
         sha256=hashlib.sha256(data).hexdigest(),
         page_count=pages,
     )

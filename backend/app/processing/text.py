@@ -11,9 +11,18 @@ import logging
 import os
 from dataclasses import dataclass, field
 
-import pdfplumber
-import pypdfium2 as pdfium
-import pytesseract
+try:
+    import pdfplumber
+except ImportError:
+    pdfplumber = None
+try:
+    import pypdfium2 as pdfium
+except ImportError:
+    pdfium = None
+try:
+    import pytesseract
+except ImportError:
+    pytesseract = None
 import requests
 from PIL import Image, ImageOps
 
@@ -61,6 +70,8 @@ class OcrUnavailable(RuntimeError):
 
 
 def render_pdf_page(data: bytes, page_index: int, scale: float) -> Image.Image:
+    if pdfium is None:
+        raise OcrUnavailable("pypdfium2 is not installed.")
     pdf = pdfium.PdfDocument(data)
     try:
         page = pdf[page_index]
@@ -141,6 +152,11 @@ def groq_ocr_image(img: Image.Image) -> list[Word] | None:
 
 
 def ocr_image(img: Image.Image, lang: str) -> list[Word]:
+    if pytesseract is None:
+        groq_words = groq_ocr_image(img)
+        if groq_words is not None:
+            return groq_words
+        raise OcrUnavailable("pytesseract is not installed.")
     gray = ImageOps.grayscale(img)
     try:
         data = pytesseract.image_to_data(gray, lang=lang, output_type=pytesseract.Output.DICT, config="--psm 4", timeout=60)
@@ -162,6 +178,8 @@ def ocr_image(img: Image.Image, lang: str) -> list[Word]:
 
 
 def extract_pdf(data: bytes, ocr_enabled: bool, lang: str) -> list[PageText]:
+    if pdfplumber is None:
+        raise OcrUnavailable("pdfplumber is not installed.")
     pages: list[PageText] = []
     with pdfplumber.open(io.BytesIO(data)) as pdf:
         for idx, page in enumerate(pdf.pages):

@@ -4,6 +4,7 @@ export type Route =
   | { name: "login" }
   | { name: "queue" }
   | { name: "new" }
+  | { name: "analytics" }
   | { name: "case"; id: string }
   | { name: "report"; id: string }
   | { name: "notfound" };
@@ -12,6 +13,7 @@ export function parse(hash: string): Route {
   const path = hash.replace(/^#/, "") || "/cases";
   const parts = path.split("/").filter(Boolean);
   if (parts[0] === "login") return { name: "login" };
+  if (parts[0] === "analytics") return { name: "analytics" };
   if (parts[0] === "cases" && parts.length === 1) return { name: "queue" };
   if (parts[0] === "cases" && parts[1] === "new") return { name: "new" };
   if (parts[0] === "cases" && parts[1] && parts[2] === "report") return { name: "report", id: decodeURIComponent(parts[1]) };

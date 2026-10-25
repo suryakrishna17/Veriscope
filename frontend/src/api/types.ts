@@ -150,3 +150,30 @@ export interface Meta {
 }
 
 export interface Paged<T> { items: T[]; total: number; page: number; page_size: number }
+
+export interface TopDeficiency {
+  rule_id: string;
+  summary: string;
+  category: string;
+  severity: Severity;
+  clause_citation: string | null;
+  count: number;
+}
+
+export interface AnalyticsData {
+  overview: {
+    total_cases: number;
+    active_cases: number;
+    decided_cases: number;
+    approval_rate_percent: number;
+    automated_pass_rate_percent: number;
+    mean_urgency_score: number;
+    mean_ocr_confidence: number;
+    mean_tat_hours: number;
+  };
+  status_distribution: Record<string, number>;
+  application_type_distribution: Record<string, number>;
+  outcome_distribution: Record<string, number>;
+  trust_distribution: Record<string, number>;
+  top_deficiencies: TopDeficiency[];
+}

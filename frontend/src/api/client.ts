@@ -1,4 +1,4 @@
-import type { CaseDetail, CaseSummary, Field, Finding, Job, Meta, Paged, User } from "./types";
+import type { AnalyticsData, CaseDetail, CaseSummary, Field, Finding, Job, Meta, Paged, User } from "./types";
 
 export class ApiError extends Error {
   constructor(
@@ -100,6 +100,7 @@ export const api = {
   decide: (caseId: string, outcome: string, reason_code: string, note: string) =>
     request<{ status: string }>(`/cases/${caseId}/decisions`, { method: "POST", body: json({ outcome, reason_code, note }) }),
   reopen: (caseId: string, note: string) => request<{ status: string }>(`/cases/${caseId}/reopen`, { method: "POST", body: json({ note }) }),
+  analytics: () => request<AnalyticsData>("/analytics"),
   report: (caseId: string) => request<Record<string, unknown>>(`/cases/${caseId}/report`),
   reportPdf: (caseId: string) => request<Blob>(`/cases/${caseId}/report?format=pdf`),
 };

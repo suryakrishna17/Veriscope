@@ -9,6 +9,7 @@ from ..container import Services
 from ..core.errors import ApiError, bad_request
 from ..core.security import current_user, issue_token, rate_limit, require_auth, verify_password
 from ..processing.fields import DOC_TYPES
+from ..services import analytics as analytics_svc
 from ..services import cases as case_svc
 from ..services import reports
 from ..services.audit import list_events
@@ -204,6 +205,12 @@ def report(case_id: str):  # type: ignore[no-untyped-def]
         name = f"{rep['case']['case_ref']}-report.pdf"
         return Response(reports.render_pdf(rep), mimetype="application/pdf", headers={"Content-Disposition": f'attachment; filename="{name}"'})
     return jsonify(rep)
+
+
+@api.get("/analytics")
+@require_auth("reviewer", "admin")
+def analytics():  # type: ignore[no-untyped-def]
+    return jsonify(analytics_svc.get_analytics_summary(svc()))
 
 
 # ------------------------------------------------------------------ health

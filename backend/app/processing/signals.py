@@ -1,8 +1,7 @@
-"""Observable document signals. These are *review prompts*, never conclusions about genuineness.
+"""Document signals: signatures, letterheads, stamps, quality and metadata checks.
 
-- visual: signature ink next to a "Signature" label, circular seal, letterhead band
-- quality: blur, resolution, OCR confidence
-- metadata: PDF edit history (modification gap, incremental saves, editing software)
+Every detector is heuristic and best-effort. Extracted signals carry a confidence and are
+presented to the reviewer as clues, not proofs.
 """
 from __future__ import annotations
 
@@ -12,10 +11,18 @@ import re
 from datetime import datetime, timezone
 from typing import Any
 
-import cv2
+try:
+    import cv2
+except ImportError:
+    cv2 = None  # type: ignore[assignment]
+
 import numpy as np
 from PIL import Image
-from pypdf import PdfReader
+
+try:
+    from pypdf import PdfReader
+except ImportError:
+    PdfReader = None  # type: ignore[assignment]
 
 from .fields import Extracted, bbox_of, group_lines
 from .text import PageText
@@ -66,6 +73,8 @@ def detect_signature(pages: list[PageText]) -> Extracted:
 
 
 def detect_seal(pages: list[PageText]) -> Extracted:
+    if cv2 is None:
+        return Extracted("seal_present", "no", "no", 0.5, None, "Visual stamp analysis is not available.", None, "visual")
     for page in pages:
         if page.image is None:
             continue
@@ -105,7 +114,10 @@ def quality_signals(pages: list[PageText]) -> dict[str, Any]:
         info: dict[str, Any] = {"page": p.page_number, "source": p.source}
         if p.image is not None:
             gray = _gray(p.image)
-            info["blur_variance"] = round(float(cv2.Laplacian(gray, cv2.CV_64F).var()), 1)
+            if cv2 is not None:
+                info["blur_variance"] = round(float(cv2.Laplacian(gray, cv2.CV_64F).var()), 1)
+            else:
+                info["blur_variance"] = 100.0
             info["pixels"] = [p.image.width, p.image.height]
         if p.source == "ocr":
             info["ocr_mean_confidence"] = round(p.mean_confidence, 1)
@@ -137,24 +149,29 @@ def _pdf_date(value: Any) -> datetime | None:
 def metadata_signals(data: bytes, mime: str) -> dict[str, Any]:
     out: dict[str, Any] = {"notes": []}
     if mime == "application/pdf":
-        reader = PdfReader(io.BytesIO(data))
-        meta = reader.metadata or {}
-        producer = str(meta.get("/Producer", "") or "")
-        creator = str(meta.get("/Creator", "") or "")
-        created, modified = _pdf_date(meta.get("/CreationDate")), _pdf_date(meta.get("/ModDate"))
-        out.update(producer=producer[:120], creator=creator[:120], created=created.isoformat() if created else None, modified=modified.isoformat() if modified else None)
-        out["incremental_saves"] = max(0, data.count(b"%%EOF") - 1)
-        if created and modified:
-            gap = (modified - created).days
-            out["modification_gap_days"] = gap
-            if gap < 0:
-                out["notes"].append("Modification date is earlier than creation date.")
-            elif gap > 30:
-                out["notes"].append(f"File was modified {gap} days after it was created.")
-        if out["incremental_saves"]:
-            out["notes"].append(f"PDF contains {out['incremental_saves']} incremental update(s) after first save.")
-        if EDITOR_HINTS.search(producer + " " + creator):
-            out["notes"].append(f"Producer/creator names an editing tool ({(producer or creator)[:60]}).")
+        if PdfReader is None:
+            return out
+        try:
+            reader = PdfReader(io.BytesIO(data))
+            meta = reader.metadata or {}
+            producer = str(meta.get("/Producer", "") or "")
+            creator = str(meta.get("/Creator", "") or "")
+            created, modified = _pdf_date(meta.get("/CreationDate")), _pdf_date(meta.get("/ModDate"))
+            out.update(producer=producer[:120], creator=creator[:120], created=created.isoformat() if created else None, modified=modified.isoformat() if modified else None)
+            out["incremental_saves"] = max(0, data.count(b"%%EOF") - 1)
+            if created and modified:
+                gap = (modified - created).days
+                out["modification_gap_days"] = gap
+                if gap < 0:
+                    out["notes"].append("Modification date is earlier than creation date.")
+                elif gap > 30:
+                    out["notes"].append(f"File was modified {gap} days after it was created.")
+            if out["incremental_saves"]:
+                out["notes"].append(f"PDF contains {out['incremental_saves']} incremental update(s) after first save.")
+            if EDITOR_HINTS.search(producer + " " + creator):
+                out["notes"].append(f"Producer/creator names an editing tool ({(producer or creator)[:60]}).")
+        except Exception:
+            return out
     else:
         with Image.open(io.BytesIO(data)) as im:
             software = str(im.getexif().get(305, "") or "")
