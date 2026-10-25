@@ -9,11 +9,68 @@ services:
     environment:
       APP_ENV: ${APP_ENV:-dev}
       SEED_DEMO: ${SEED_DEMO:-true}
+      DATABASE_URL: ${DATABASE_URL:-}
       DATABASE_PATH: /data/veriscope.db
       STORAGE_PATH: /data/storage
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
     volumes:
       - veriscope-data:/data
+    depends_on:
+      redis:
+        condition: service_started
+        required: false
+    restart: unless-stopped
+
+  worker:
+    build: .
+    command: celery -A app.workers.celery_app.celery_app worker --loglevel=info -c 4
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      DATABASE_URL: ${DATABASE_URL:-}
+      DATABASE_PATH: /data/veriscope.db
+      STORAGE_PATH: /data/storage
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+    volumes:
+      - veriscope-data:/data
+    depends_on:
+      redis:
+        condition: service_started
+        required: false
+    profiles:
+      - enterprise
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    profiles:
+      - enterprise
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: veriscope
+      POSTGRES_USER: veriscope
+      POSTGRES_PASSWORD: veriscope_secure_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./backend/migrations/postgresql_schema.sql:/docker-entrypoint-initdb.d/init.sql
+    profiles:
+      - enterprise
     restart: unless-stopped
 
 volumes:
   veriscope-data:
+  redis-data:
+  postgres-data:

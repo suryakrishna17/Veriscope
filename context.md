@@ -2,8 +2,8 @@
 
 > **Document Status**: Authoritative Project Master Reference  
 > **Repository**: [https://github.com/suryakrishna17/Veriscope.git](https://github.com/suryakrishna17/Veriscope.git)  
-> **Active Working Tree**: `main` (HEAD: `9938a7f` — *"docs: add comprehensive VeriScope project context and roadmap"*)  
-> **Target Production Branch**: `main` (Latest Remote Tip: `9938a7f`)  
+> **Active Working Tree**: `main` (HEAD: `009a2f9` — *"feat: implement document resubmission versioning, visual diffing, built-up area norms, Merkle audit notarization, and DigiLocker DPI adapter"*)  
+> **Target Production Branch**: `main` (Latest Remote Tip: `009a2f9`)  
 > **Author**: VeriScope Core Engineering Team  
 > **Target Audience**: Core Contributors, Regulatory Domain Experts, SIH Evaluators, and Incoming Engineers  
 
@@ -96,7 +96,7 @@ This document serves as the single source of truth for **VeriScope**, an evidenc
 * **Repository Remote**: `https://github.com/suryakrishna17/Veriscope.git`
 * **Local Working Tree**: Clean (`nothing to commit, working tree clean`).
 * **Active Working Branch**: `main`
-* **HEAD Commit**: `d1ee1dd` (*"docs(roadmap): promote analytics dashboard and land acreage norm operators to production status"*, Author: `suryakrishna17`).
+* **HEAD Commit**: `009a2f9` (*"feat: implement document resubmission versioning, visual diffing, built-up area norms, Merkle audit notarization, and DigiLocker DPI adapter"*, Author: `suryakrishna17`).
 * **Merged Milestones**:
   - **Step 2 (PR #1)**: [PR #1](https://github.com/suryakrishna17/Veriscope/pull/1) — **MERGED** via commit `7488b34` (24-rule catalogue `aicte_eoa_chapter2.v1.yaml`).
   - **Step 3A (PR #2)**: [PR #2](https://github.com/suryakrishna17/Veriscope/pull/2) — **MERGED** via commit `9bd893d` (4-outcome model and `evaluate_ruleset()`).
@@ -105,6 +105,8 @@ This document serves as the single source of truth for **VeriScope**, an evidenc
   - **Step 4 (PR #3)**: [PR #3](https://github.com/suryakrishna17/Veriscope/pull/3) — **MERGED** via commit `d6c9e18` (production seed prohibition, Werkzeug `ProxyFix` middleware, 32-byte secret key enforcement, and `test_security_guards.py`).
   - **Analytics & SLA Telemetry (Commit `2a9fdeb`)**: **MERGED** into `main` (Institutional Compliance Analytics service, `#analytics` dashboard, API telemetry, and `test_analytics.py`).
   - **AICTE Land Norm Operators (Commit `0329a2b`)**: **MERGED** into `main` (`land_norm_by_category` and `numeric_min` operators in `operators.py`, tested in `test_rules.py`).
+  - **Versioning, Built-Up Area, & Merkle Notarization (Commit `009a2f9`)**: **MERGED** into `main` (resubmission version tracking, visual diffing, built-up area norm calculator, and cryptographic SHA-256 Merkle audit trail).
+  - **Enterprise Scalability & DPI Integrations**: **COMPLETED** (Dual-mode PostgreSQL & SQLite data layer, asynchronous Celery + Redis task queue with graceful fallback, and DigiLocker/NAD interactive DPI sandbox gateway).
 
 ### Critical Historical Reconciliation
 
@@ -1448,6 +1450,9 @@ To ensure seamless collaboration across teammates and prevent accidental regress
 | **Built-Up Area & FSR Calculator** | **COMPLETED & VERIFIED ON MAIN** | `built_up_area_norm` operator in `operators.py`, tested in `test_rules.py`. | None — verified on `main`. | Done |
 | **Merkle Audit Notarization** | **COMPLETED & VERIFIED ON MAIN** | SHA-256 Merkle tree in `audit.py`, `/audit/merkle` route, `AuditTimeline.tsx` badge, and `test_merkle_audit.py`. | None — verified on `main`. | Done |
 | **DigiLocker DPI Adapter** | **COMPLETED & VERIFIED ON MAIN** | `DigiLockerIssuerVerifier` in `verifier.py`, `ISSUER_VERIFIED` state, tested in `test_issuer.py`. | None — operational on `main`. | Done |
+| **PostgreSQL Dual-Mode Migration** | **COMPLETED & VERIFIED ON MAIN** | `db.py` dual engine, `postgresql_schema.sql` with PL/pgSQL immutable triggers, auto-dialect translation. | None — operational on `main`. | Done |
+| **Distributed Task Queue (Celery + Redis)** | **COMPLETED & VERIFIED ON MAIN** | `celery_app.py`, `tasks.py`, `jobs.py` distributed dispatch with thread fallback, `test_workers.py`. | None — verified on `main`. | Done |
+| **DigiLocker DPI Interactive Gateway** | **COMPLETED & VERIFIED ON MAIN** | `digilocker.py` sandbox certificates & pull endpoint, `Uploader.tsx` 1-click pull, `test_digilocker_service.py`. | None — operational on `main`. | Done |
 | **Test Suite Health** | **COMPLETED & VERIFIED ON MAIN** | Over 100 tests across unit, integration, statutory rules (`test_eoa_rules.py` [40], `test_rules.py` [20], `test_normalize.py` [5]), security guards (`test_security_guards.py` [6]), workflow integration (`test_eoa_workflow.py`), and E2E Playwright (`test_step3c_e2e.mjs`). | None — all suites passing with 0 lint errors and 0 type errors. | Done |
 
 ---

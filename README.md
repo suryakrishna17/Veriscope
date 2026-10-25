@@ -290,6 +290,8 @@ All endpoints reside under `/api/v1`, accept JSON payloads, and authenticate via
 | `POST` | `/cases/{id}/reopen` | Reopen closed case (Admin only) |
 | `GET` | `/analytics` | Institutional compliance analytics, SLA turnaround times, and statutory deficiency rankings |
 | `GET` | `/cases/{id}/audit/merkle` | Cryptographic SHA-256 Merkle tree root hash and tree depth of the audit log |
+| `GET` | `/integrations/digilocker/certificates` | List pre-verified statutory certificates available in DigiLocker DPI sandbox |
+| `POST` | `/cases/{id}/digilocker/pull` | Import officially certified document into case with `ISSUER_VERIFIED` trust |
 | `GET` | `/rulesets/active` | Inspect active ruleset metadata and statutory clause citations |
 | `GET` | `/cases/{id}/report?format=pdf` | Generate comprehensive regulatory audit dossier |
 

@@ -19,6 +19,8 @@ class Settings:
     app_env: str = "dev"
     secret_key: str = "dev-only-change-me"
     database_path: Path = BACKEND_ROOT / "var" / "veriscope.db"
+    database_url: str = ""
+    redis_url: str = ""
     storage_path: Path = BACKEND_ROOT / "var" / "storage"
     max_upload_mb: int = 10
     max_pages: int = 20
@@ -73,6 +75,8 @@ class Settings:
             app_env=env.get("APP_ENV", cls.app_env),
             secret_key=env.get("SECRET_KEY", cls.secret_key),
             database_path=_resolve_repo_path(env.get("DATABASE_PATH"), cls.database_path),
+            database_url=env.get("DATABASE_URL", cls.database_url),
+            redis_url=env.get("REDIS_URL", env.get("CELERY_BROKER_URL", cls.redis_url)),
             storage_path=_resolve_repo_path(env.get("STORAGE_PATH"), cls.storage_path),
             max_upload_mb=int(env.get("MAX_UPLOAD_MB", cls.max_upload_mb)),
             max_pages=int(env.get("MAX_PAGES", cls.max_pages)),

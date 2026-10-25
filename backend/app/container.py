@@ -39,7 +39,7 @@ def build_services(settings: Settings) -> Services:
         import pytesseract
 
         pytesseract.pytesseract.tesseract_cmd = settings.tesseract_cmd
-    db = Database(settings.database_path)
+    db = Database(settings.database_url or settings.database_path)
     db.migrate()
     default_ruleset = load_ruleset(settings.ruleset_file)
     return Services(
@@ -49,7 +49,7 @@ def build_services(settings: Settings) -> Services:
         ruleset=default_ruleset,
         llm=build_llm(settings.llm_provider, settings.llm_base_url, settings.llm_api_key, settings.llm_model, settings.llm_timeout_s),
         issuer=build_verifier(settings.issuer_verifier),
-        jobs=JobRunner(sync=settings.sync_jobs),
+        jobs=JobRunner(sync=settings.sync_jobs, redis_url=settings.redis_url),
         rate_limiter=RateLimiter(),
         _ruleset_cache={settings.ruleset_file: default_ruleset},
     )

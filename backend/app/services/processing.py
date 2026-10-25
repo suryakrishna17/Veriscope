@@ -37,7 +37,15 @@ def start_processing(svc: Services, user: dict[str, Any], case_id: str, force: b
         transition(svc, case, "processing", user, "processing requested")
         svc.db.insert("jobs", {"id": job_id, "case_id": case["id"], "kind": "process_case", "status": "queued", "progress": 0, "created_at": utcnow()})
         audit.record(svc.db, case["id"], user, "job.queued", "job", job_id, {"force": force})
-    svc.jobs.submit(lambda: run_job(svc, job_id, case["id"], force))
+    dispatched = False
+    if svc.jobs.is_distributed:
+        try:
+            from ..workers.tasks import process_case_task
+            dispatched = svc.jobs.submit_celery(process_case_task, job_id, case["id"], force)
+        except Exception:
+            dispatched = False
+    if not dispatched:
+        svc.jobs.submit(lambda: run_job(svc, job_id, case["id"], force))
     return {"job_id": job_id, "status": "queued"}
 
 

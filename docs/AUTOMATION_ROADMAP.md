@@ -125,8 +125,8 @@ VeriScope executes pure, deterministic YAML rulesets (`aicte_eoa_chapter2.v1.yam
 | **Reviewer Operations & Institutional Analytics** | ✅ Production | Frontend / API | SLA turnaround times, deficiency rankings, pipeline telemetry |
 | **Live DigiLocker / NAD API Integration**| ✅ Production | Integrations | PKI X.509 certificate validation via DigiLocker URI / certificate ref |
 | **AICTE Land & Built-Up Norms (Annexure-4 & Appx 4)** | ✅ Production | Rules | Acreage operators (Mega/Metro/Urban/Rural) & built-up area norm |
-| **Asynchronous Task Queue (Celery)** | ⏳ Phase 3 | Infrastructure | Distributed bulk document processing with Redis broker |
-| **PostgreSQL Database Migration** | ⏳ Phase 3 | Database | Multi-worker connection-pooled relational storage |
+| **Asynchronous Task Queue (Celery)** | ✅ Production | Infrastructure | Distributed bulk document processing with Redis broker & thread fallback |
+| **PostgreSQL Database Migration** | ✅ Production | Database | Dual-mode Database layer + PostgreSQL schema with PL/pgSQL triggers |
 | **Merkle Audit Notarization** | ✅ Production | Security | Cryptographic SHA-256 Merkle root hash verification of audit trail |
 
 ---

@@ -96,9 +96,30 @@ function Slot({ caseId, type, existing, onUploaded }: { caseId: string; type: Do
         {state.phase === "error" && <p className="inline-error" role="alert">{state.message}</p>}
       </div>
       <input ref={input} type="file" accept={ACCEPT} hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void send(f); e.target.value = ""; }} aria-label={`Upload ${DOC_LABEL[type]}`} />
-      <button className="btn btn-small" onClick={() => input.current?.click()} disabled={state.phase === "uploading"}>
-        {existing.length ? "Replace or add" : "Choose file"}
-      </button>
+      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+        <button className="btn btn-small" onClick={() => input.current?.click()} disabled={state.phase === "uploading"}>
+          {existing.length ? "Replace or add" : "Choose file"}
+        </button>
+        <button
+          type="button"
+          className="btn btn-small btn-secondary"
+          style={{ background: "rgba(16, 185, 129, 0.12)", color: "#10b981", borderColor: "rgba(16, 185, 129, 0.3)" }}
+          disabled={state.phase === "uploading"}
+          onClick={async () => {
+            setState({ phase: "uploading", name: "DigiLocker DPI Gateway" });
+            try {
+              const res = await api.pullDigiLocker(caseId, type);
+              setState({ phase: "done", name: res.original_name, message: "Imported with ISSUER_VERIFIED trust via DigiLocker DPI." });
+              onUploaded();
+            } catch (err) {
+              setState({ phase: "error", message: errorText(err) });
+            }
+          }}
+          title="Import officially signed document directly from National DigiLocker Gateway"
+        >
+          🪪 DigiLocker Pull
+        </button>
+      </div>
     </div>
   );
 }

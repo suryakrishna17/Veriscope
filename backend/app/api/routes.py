@@ -11,6 +11,7 @@ from ..core.security import current_user, issue_token, rate_limit, require_auth,
 from ..processing.fields import DOC_TYPES
 from ..services import analytics as analytics_svc
 from ..services import cases as case_svc
+from ..services import digilocker as digilocker_svc
 from ..services import reports
 from ..services.audit import compute_merkle_root, list_events
 from ..services.processing import start_processing
@@ -218,6 +219,25 @@ def report(case_id: str):  # type: ignore[no-untyped-def]
 @require_auth("reviewer", "admin")
 def analytics():  # type: ignore[no-untyped-def]
     return jsonify(analytics_svc.get_analytics_summary(svc()))
+
+
+# ------------------------------------------------------------------ digilocker dpi
+@api.get("/integrations/digilocker/certificates")
+@require_auth()
+def digilocker_certificates():  # type: ignore[no-untyped-def]
+    return jsonify(digilocker_svc.list_sandbox_certificates())
+
+
+@api.post("/cases/<case_id>/digilocker/pull")
+@require_auth()
+@rate_limit("digilocker_pull", 30)
+def digilocker_pull(case_id: str):  # type: ignore[no-untyped-def]
+    b = body()
+    doc_type = str(b.get("doc_type") or "").strip()
+    cert_num = str(b.get("certificate_number") or "").strip() or None
+    if not doc_type:
+        raise bad_request("Provide 'doc_type' to pull from DigiLocker.")
+    return jsonify(digilocker_svc.pull_document_from_digilocker(svc(), current_user(), case_id, doc_type, cert_num)), 201
 
 
 # ------------------------------------------------------------------ health
