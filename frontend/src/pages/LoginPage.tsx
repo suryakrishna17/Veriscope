@@ -134,7 +134,7 @@ export function LoginPage() {
 
       {/* ─── RIGHT: Login form ─────────────────────────────────────────── */}
       <div className="lp-right">
-        <div className="lp-form-wrap">
+        <div className="lp-form-wrap login-card">
           {/* Header */}
           <div className="lp-form-header">
             <h1 className="lp-form-title">Sign in</h1>
@@ -142,17 +142,22 @@ export function LoginPage() {
           </div>
 
           {/* One-click demo selector */}
-          <div className="lp-demo-chips">
+          <div className="lp-demo-chips demo-section">
             <span className="lp-demo-chips-label">Quick access</span>
-            <div className="lp-chips-row">
+            <div className="lp-chips-row demo-users">
               {DEMO.map((d, i) => (
                 <button
                   key={d.email}
                   type="button"
-                  className={`lp-chip ${i === activeDemoIdx ? "lp-chip--active" : ""}`}
+                  className={`lp-chip demo-user ${i === activeDemoIdx ? "lp-chip--active" : ""}`}
                   style={i === activeDemoIdx ? { "--chip-color": ROLE_COLORS[d.role] } as React.CSSProperties : {}}
-                  onClick={() => selectDemo(i)}
+                  onClick={() => {
+                    selectDemo(i);
+                    void submit(undefined, d.email);
+                  }}
+                  onMouseEnter={() => selectDemo(i)}
                   disabled={busy}
+                  title={`Sign in as ${d.name} (${d.role})`}
                 >
                   <span
                     className="lp-chip-dot"

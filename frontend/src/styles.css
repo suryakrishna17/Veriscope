@@ -927,6 +927,31 @@ input[aria-invalid="true"] {
   background: color-mix(in srgb, var(--chip-color, #FF5E1E) 10%, transparent);
   color: var(--chip-color, #FF5E1E);
 }
+.lp-chip.demo-user {
+  text-align: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.4rem;
+  padding: 0.32rem 0.8rem;
+  border-radius: 999px;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transform: none;
+  box-shadow: none;
+}
+.lp-chip.demo-user:hover:not(:disabled) {
+  border-color: rgba(14,16,19,0.3);
+  background: rgba(14,16,19,0.05);
+  transform: none;
+  box-shadow: none;
+}
+.lp-chip.demo-user.lp-chip--active {
+  border-color: var(--chip-color, #FF5E1E);
+  background: color-mix(in srgb, var(--chip-color, #FF5E1E) 10%, transparent);
+  color: var(--chip-color, #FF5E1E);
+}
 .lp-chip-dot {
   width: 6px;
   height: 6px;
