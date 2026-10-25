@@ -26,12 +26,17 @@ USERS = [
 
 
 def ensure_users(svc: Services) -> dict[str, dict]:
+    is_non_dev = svc.settings.app_env not in {"dev", "test"}
+    demo_pw = os.environ.get("ADMIN_INITIAL_PASSWORD") or os.environ.get("DEMO_PASSWORD")
+    if is_non_dev and not demo_pw:
+        raise RuntimeError("Set DEMO_PASSWORD or ADMIN_INITIAL_PASSWORD explicitly for non-dev demo environments.")
+    password = demo_pw or "demo1234"
+
     out = {}
     for email, name, role in USERS:
         u = svc.db.one("SELECT id, email, name, role FROM users WHERE email = ?", (email,))
         if u is None:
             u = {"id": new_id(), "email": email, "name": name, "role": role}
-            password = os.environ.get("ADMIN_INITIAL_PASSWORD") or os.environ.get("DEMO_PASSWORD") or DEMO_PASSWORD
             svc.db.insert("users", {**u, "password_hash": hash_password(password), "created_at": utcnow()})
         out[role] = u
     return out
@@ -66,7 +71,8 @@ def main() -> None:
     settings = replace(Settings.from_env(), sync_jobs=True)
     svc = build_services(settings)
     created = seed(svc)
-    print(f"Seeded users ({', '.join(e for e, _, _ in USERS)}; password '{DEMO_PASSWORD}') and cases: {', '.join(created) or 'none (already present)'}")
+    masked_pw = "***" if svc.settings.app_env not in {"dev", "test"} else "demo1234"
+    print(f"Seeded users ({', '.join(e for e, _, _ in USERS)}; password '{masked_pw}') and cases: {', '.join(created) or 'none (already present)'}")
 
 
 if __name__ == "__main__":

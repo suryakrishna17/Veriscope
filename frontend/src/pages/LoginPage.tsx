@@ -43,9 +43,12 @@ const ROLE_COLORS: Record<string, string> = {
 };
 
 export function LoginPage() {
+  const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
+  const DEMO_PW = import.meta.env.VITE_DEMO_PASSWORD ?? "";
+
   const { signIn } = useSession();
-  const [email, setEmail] = useState("reviewer@demo.local");
-  const [password, setPassword] = useState("demo1234");
+  const [email, setEmail] = useState(DEMO_MODE ? "reviewer@demo.local" : "");
+  const [password, setPassword] = useState(DEMO_MODE ? DEMO_PW : "");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [activeDemoIdx, setActiveDemoIdx] = useState(0);
@@ -58,7 +61,7 @@ export function LoginPage() {
     setBusy(true);
     setErr(null);
     try {
-      await signIn(overrideEmail ?? email, overrideEmail ? "demo1234" : password);
+      await signIn(overrideEmail ?? email, overrideEmail ? DEMO_PW : password);
       navigate("/cases");
     } catch (x) {
       setErr(errorText(x));
@@ -69,7 +72,7 @@ export function LoginPage() {
   const selectDemo = (idx: number) => {
     setActiveDemoIdx(idx);
     setEmail(DEMO[idx].email);
-    setPassword("demo1234");
+    setPassword(DEMO_PW);
   };
 
   return (
@@ -141,42 +144,45 @@ export function LoginPage() {
             <p className="lp-form-sub">Access the institutional verification desk</p>
           </div>
 
-          {/* One-click demo selector */}
-          <div className="lp-demo-chips demo-section">
-            <span className="lp-demo-chips-label">Quick access</span>
-            <div className="lp-chips-row demo-users">
-              {DEMO.map((d, i) => (
-                <button
-                  key={d.email}
-                  type="button"
-                  className={`lp-chip demo-user ${i === activeDemoIdx ? "lp-chip--active" : ""}`}
-                  style={i === activeDemoIdx ? { "--chip-color": ROLE_COLORS[d.role] } as React.CSSProperties : {}}
-                  onClick={() => {
-                    selectDemo(i);
-                    void submit(undefined, d.email);
-                  }}
-                  onMouseEnter={() => selectDemo(i)}
-                  disabled={busy}
-                  title={`Sign in as ${d.name} (${d.role})`}
-                >
-                  <span
-                    className="lp-chip-dot"
-                    style={{ background: ROLE_COLORS[d.role] }}
-                  />
-                  {d.role}
-                </button>
-              ))}
-            </div>
-            <div className="lp-demo-note">
-              <div className="lp-demo-name">{activeBadge.name}</div>
-              <div className="lp-demo-desc">{activeBadge.note}</div>
-            </div>
-          </div>
+          {/* One-click demo selector only when DEMO_MODE enabled */}
+          {DEMO_MODE && (
+            <>
+              <div className="lp-demo-chips demo-section">
+                <span className="lp-demo-chips-label">Quick access (Demo Mode)</span>
+                <div className="lp-chips-row demo-users">
+                  {DEMO.map((d, i) => (
+                    <button
+                      key={d.email}
+                      type="button"
+                      className={`lp-chip demo-user ${i === activeDemoIdx ? "lp-chip--active" : ""}`}
+                      style={i === activeDemoIdx ? { "--chip-color": ROLE_COLORS[d.role] } as React.CSSProperties : {}}
+                      onClick={() => {
+                        selectDemo(i);
+                        void submit(undefined, d.email);
+                      }}
+                      onMouseEnter={() => selectDemo(i)}
+                      disabled={busy}
+                      title={`Sign in as ${d.name} (${d.role})`}
+                    >
+                      <span
+                        className="lp-chip-dot"
+                        style={{ background: ROLE_COLORS[d.role] }}
+                      />
+                      {d.role}
+                    </button>
+                  ))}
+                </div>
+                <div className="lp-demo-note">
+                  <div className="lp-demo-name">{activeBadge.name}</div>
+                  <div className="lp-demo-desc">{activeBadge.note}</div>
+                </div>
+              </div>
 
-          {/* Divider */}
-          <div className="lp-divider">
-            <span>or enter credentials manually</span>
-          </div>
+              <div className="lp-divider">
+                <span>or enter credentials manually</span>
+              </div>
+            </>
+          )}
 
           {/* Form */}
           <form onSubmit={(e) => void submit(e)} className="lp-form">
@@ -244,7 +250,7 @@ export function LoginPage() {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
               </svg>
-              Demonstration environment · Synthetic data only
+              {DEMO_MODE ? "Demonstration environment · Synthetic data only" : "Government & Regulatory Compliance Architecture"}
             </div>
           </div>
         </div>

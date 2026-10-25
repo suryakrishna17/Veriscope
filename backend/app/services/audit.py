@@ -6,22 +6,74 @@ from typing import Any
 from ..core.db import Database, dumps, loads, new_id, utcnow
 
 SYSTEM_ACTOR = {"id": "system", "role": "system", "name": "VeriScope"}
+GENESIS_HASH = "0000000000000000000000000000000000000000000000000000000000000000"
 
 
-def record(db: Database, case_id: str | None, actor: dict[str, Any], action: str, entity_type: str, entity_id: str | None, payload: dict[str, Any] | None = None) -> str:
+def compute_event_hash(
+    eid: str,
+    case_id: str | None,
+    seq: int,
+    prev_hash: str,
+    actor_ref: str,
+    action: str,
+    entity_type: str,
+    entity_id: str | None,
+    created_at: str,
+    payload_json: str,
+) -> str:
+    payload_canonical = dumps(loads(payload_json)) if payload_json else "{}"
+    canonical = f"{eid}|{case_id or ''}|{seq}|{prev_hash}|{actor_ref}|{action}|{entity_type}|{entity_id or ''}|{created_at}|{payload_canonical}"
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def record(
+    db: Database,
+    case_id: str | None,
+    actor: dict[str, Any],
+    action: str,
+    entity_type: str,
+    entity_id: str | None,
+    payload: dict[str, Any] | None = None,
+) -> str:
     eid = new_id()
+    now = utcnow()
+    payload_json = dumps(payload or {})
+    actor_id = actor.get("id", "system")
+
+    if case_id:
+        last = db.one(
+            "SELECT seq, event_hash FROM audit_events WHERE case_id = ? ORDER BY seq DESC, created_at DESC LIMIT 1",
+            (case_id,),
+        )
+        if last and last.get("event_hash"):
+            seq = int(last.get("seq") or 0) + 1
+            prev_hash = str(last["event_hash"])
+        else:
+            seq = 1
+            prev_hash = GENESIS_HASH
+    else:
+        seq = 0
+        prev_hash = GENESIS_HASH
+
+    event_hash = compute_event_hash(
+        eid, case_id, seq, prev_hash, actor_id, action, entity_type, entity_id, now, payload_json
+    )
+
     db.insert(
         "audit_events",
         {
             "id": eid,
             "case_id": case_id,
-            "actor_ref": actor.get("id", "system"),
+            "actor_ref": actor_id,
             "actor_role": actor.get("role", "system"),
             "action": action,
             "entity_type": entity_type,
             "entity_id": entity_id,
-            "payload_json": dumps(payload or {}),
-            "created_at": utcnow(),
+            "payload_json": payload_json,
+            "created_at": now,
+            "seq": seq,
+            "prev_hash": prev_hash,
+            "event_hash": event_hash,
         },
     )
     return eid
@@ -36,6 +88,7 @@ def list_events(db: Database, case_id: str, limit: int = 200, offset: int = 0) -
     return [
         {
             "id": r["id"],
+            "seq": r.get("seq", 0),
             "action": r["action"],
             "actor": r["actor_name"] or ("VeriScope" if r["actor_ref"] == "system" else r["actor_ref"]),
             "actor_role": r["actor_role"],
@@ -43,9 +96,70 @@ def list_events(db: Database, case_id: str, limit: int = 200, offset: int = 0) -
             "entity_id": r["entity_id"],
             "payload": loads(r["payload_json"], {}),
             "created_at": r["created_at"],
+            "prev_hash": r.get("prev_hash"),
+            "event_hash": r.get("event_hash"),
         }
         for r in rows
     ]
+
+
+def verify_audit_chain(db: Database, case_id: str) -> dict[str, Any]:
+    rows = db.all(
+        "SELECT id, case_id, seq, prev_hash, event_hash, actor_ref, action, entity_type, entity_id, payload_json, created_at "
+        "FROM audit_events WHERE case_id = ? ORDER BY seq ASC, created_at ASC",
+        (case_id,),
+    )
+    if not rows:
+        return {"valid": True, "event_count": 0, "message": "Empty audit trail"}
+
+    expected_prev = GENESIS_HASH
+    for idx, r in enumerate(rows):
+        expected_seq = idx + 1
+        seq = r.get("seq", 0)
+        prev_hash = r.get("prev_hash", "")
+        event_hash = r.get("event_hash", "")
+
+        if seq != expected_seq:
+            return {
+                "valid": False,
+                "broken_at_seq": seq,
+                "error": f"Sequence discontinuity at index {idx}: expected seq {expected_seq}, got {seq}",
+            }
+
+        if prev_hash != expected_prev:
+            return {
+                "valid": False,
+                "broken_at_seq": seq,
+                "error": f"Hash chain broken at seq {seq}: expected prev_hash {expected_prev}, got {prev_hash}",
+            }
+
+        computed = compute_event_hash(
+            r["id"],
+            r["case_id"],
+            r["seq"],
+            r["prev_hash"],
+            r["actor_ref"],
+            r["action"],
+            r["entity_type"],
+            r["entity_id"],
+            r["created_at"],
+            r["payload_json"] or "{}",
+        )
+        if computed != event_hash:
+            return {
+                "valid": False,
+                "broken_at_seq": seq,
+                "error": f"Hash mismatch at seq {seq}: stored {event_hash}, computed {computed}",
+            }
+
+        expected_prev = event_hash
+
+    return {
+        "valid": True,
+        "event_count": len(rows),
+        "head_hash": rows[-1].get("event_hash"),
+        "algorithm": "SHA-256",
+    }
 
 
 def compute_merkle_root(db: Database, case_id: str) -> dict[str, Any]:

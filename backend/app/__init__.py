@@ -25,6 +25,13 @@ def create_app(settings: Settings | None = None) -> Flask:
     services: Services = build_services(settings)
     app.extensions["veriscope"] = services
 
+    try:
+        from .services.processing import reap_stale_jobs
+
+        reap_stale_jobs(services)
+    except Exception:
+        pass
+
     if settings.app_env == "prod":
         from werkzeug.middleware.proxy_fix import ProxyFix
         app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)  # type: ignore[method-assign]

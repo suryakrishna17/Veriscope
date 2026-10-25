@@ -5,7 +5,6 @@ SIMULATION of a future integration (e.g. a university or DigiLocker lookup) and 
 """
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 from dataclasses import asdict, dataclass
@@ -66,23 +65,20 @@ class MockIssuerVerifier:
 
 
 class DigiLockerIssuerVerifier:
-    """Live DigiLocker & National Academic Depository (NAD) DPI adapter."""
+    """DigiLocker & National Academic Depository (NAD) DPI adapter."""
     name = "digilocker"
 
     def __init__(self, api_key: str | None = None) -> None:
         self.api_key = api_key or os.getenv("DIGILOCKER_API_KEY", "")
 
     def verify(self, doc_type: str, fields: dict[str, str | None]) -> IssuerCheck:
-        cert_num = fields.get("certificate_number") or fields.get("enrolment_number") or fields.get("institution_id")
-        uri = fields.get("digilocker_uri") or fields.get("doc_uri")
-        if uri or (cert_num and str(cert_num).startswith("DL-")):
-            ref_id = str(uri or cert_num)
+        if not self.api_key:
             return IssuerCheck(
-                label="ISSUER_VERIFIED",
-                issuer="Ministry of Electronics and Information Technology (MeitY) · DigiLocker DPI Gateway",
-                response_id=f"DPI-{hashlib.sha256(ref_id.encode()).hexdigest()[:12].upper()}",
+                label="NOT_VERIFIED",
+                issuer=None,
+                response_id=None,
                 checked_at=_now(),
-                reason="DigiLocker PKI repository confirmed cryptographic issuer certificate X.509 signature.",
+                reason="DigiLocker API key not configured. Live issuer verification disabled.",
                 simulated=False,
             )
         return IssuerCheck(
@@ -98,5 +94,4 @@ class DigiLockerIssuerVerifier:
 def build_verifier(name: str) -> IssuerVerifier:
     if name == "digilocker":
         return DigiLockerIssuerVerifier()
-    return MockIssuerVerifier() if name == "mock" else NullIssuerVerifier()
     return MockIssuerVerifier() if name == "mock" else NullIssuerVerifier()

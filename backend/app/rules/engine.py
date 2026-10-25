@@ -9,7 +9,7 @@ from typing import Any
 
 import yaml
 
-from .model import CaseContext, RuleEvaluation, RuleOutcome, RuleResult
+from .model import CaseContext, RuleEvaluation, RuleOutcome, RuleResult, Skipped
 from .operators import OPERATORS
 
 log = logging.getLogger("veriscope.rules")
@@ -168,13 +168,33 @@ def evaluate_ruleset(ruleset: Ruleset, ctx: CaseContext) -> list[RuleEvaluation]
         try:
             op_fn = OPERATORS[rule["operator"]]
             failures = list(op_fn(rule, rule.get("params", {}), ctx))
+        except Skipped as exc:
+            evaluations.append(
+                RuleEvaluation(
+                    rule_id=rule_id,
+                    rule_version=version,
+                    category=category,
+                    severity=severity,
+                    summary=summary,
+                    outcome=RuleOutcome.NOT_APPLICABLE.value,
+                    detail=f"Not evaluated: {exc.reason or str(exc)}",
+                    evidence_refs=[],
+                    confidence=1.0,
+                    clause_citation=citation,
+                    is_verified=is_verified,
+                    verification_status=ver_status,
+                    next_action=next_action,
+                    applicable_condition=app_cond,
+                )
+            )
+            continue
         except Exception:
             log.exception("rule_failed", extra={"ctx": {"rule_id": rule_id, "case": ctx.case_ref}})
             err_finding = RuleResult(
                 rule_id=rule_id,
                 rule_version=version,
                 category=category,
-                severity="info",
+                severity=severity,
                 summary="Rule could not be evaluated",
                 detail="This check raised an internal error and was skipped. The result is unknown; review manually.",
                 evidence_refs=[],
@@ -191,7 +211,7 @@ def evaluate_ruleset(ruleset: Ruleset, ctx: CaseContext) -> list[RuleEvaluation]
                     rule_id=rule_id,
                     rule_version=version,
                     category=category,
-                    severity="info",
+                    severity=severity,
                     summary=summary,
                     outcome=RuleOutcome.REVIEW_REQUIRED.value,
                     detail="Rule evaluation encountered an unexpected error; human review required.",

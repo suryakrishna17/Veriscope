@@ -109,7 +109,7 @@ def detect_letterhead(pages: list[PageText]) -> Extracted:
 
 
 def quality_signals(pages: list[PageText]) -> dict[str, Any]:
-    out: dict[str, Any] = {"pages": []}
+    out: dict[str, Any] = {"pages": [], "notes": []}
     for p in pages:
         info: dict[str, Any] = {"page": p.page_number, "source": p.source}
         if p.image is not None:
@@ -128,6 +128,13 @@ def quality_signals(pages: list[PageText]) -> dict[str, Any]:
     out["min_ocr_confidence"] = min((x["ocr_mean_confidence"] for x in ocr_pages), default=None)
     out["low_resolution"] = any(min(x.get("pixels", [9999, 9999])) < 1000 for x in ocr_pages)
     out["blurry"] = any(x.get("blur_variance", 9999) < 60 for x in ocr_pages)
+
+    hidden_count = sum(len(getattr(p, "hidden_words", [])) for p in pages)
+    out["hidden_word_count"] = hidden_count
+    out["hidden_text_detected"] = hidden_count > 0
+    if hidden_count > 0:
+        out["notes"].append(f"Document contains {hidden_count} hidden or zero-contrast word(s).")
+
     return out
 
 

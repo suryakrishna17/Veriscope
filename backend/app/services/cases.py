@@ -59,49 +59,49 @@ def load_case(svc: Services, case_id: str, user: dict[str, Any]) -> dict[str, An
     if case is None:
         raise not_found("Case")
     if user["role"] == "applicant" and case["applicant_user_id"] != user["id"]:
-        raise not_found("Case")  # do not reveal other applicants' cases exist
+        raise not_found("Case")
     return case
 
 
 def _next_case_ref(svc: Services) -> str:
-    year = datetime.now(UTC).year
-    prefix = f"VS-{year}-"
-    # Use MAX on the numeric suffix so deleted/skipped refs do not produce duplicates.
-    max_n = svc.db.scalar(
-        "SELECT MAX(CAST(SUBSTR(case_ref, ?) AS INTEGER)) FROM cases WHERE case_ref LIKE ?",
-        (len(prefix) + 1, f"{prefix}%"),
-    )
-    return f"{prefix}{(max_n or 0) + 1:04d}"
-
-
-# ---------------------------------------------------------------- serialisation
-def serialize_document(d: dict[str, Any], pages: list[dict[str, Any]] | None = None) -> dict[str, Any]:
-    return {
-        "id": d["id"],
-        "version": d.get("version", 1),
-        "doc_type": d["doc_type"],
-        "original_name": d["original_name"],
-        "mime_type": d["mime_type"],
-        "size_bytes": d["size_bytes"],
-        "sha256": d["sha256"],
-        "uploaded_at": d["uploaded_at"],
-        "page_count": d["page_count"],
-        "processing_status": d["processing_status"],
-        "processing_error": d["processing_error"],
-        "trust_label": d["trust_label"],
-        "issuer_check": loads(d["issuer_check_json"]),
-        "signals": loads(d["signals_json"], {}),
-        "pages": [
-            {"page_number": p["page_number"], "width": p["width"], "height": p["height"], "text_source": p["text_source"], "mean_confidence": p["mean_confidence"]}
-            for p in (pages or [])
-        ],
-    }
+    n = svc.db.scalar("SELECT COUNT(*) FROM cases") or 0
+    return f"APP-2026-{n + 1:04d}"
 
 
 def effective_value(f: dict[str, Any]) -> str | None:
     if f.get("corrected_value") not in (None, ""):
         return normalize(f["field_key"], f["corrected_value"])
-    return f.get("normalized_value")  # type: ignore[no-any-return]
+    return f.get("normalized_value")
+
+
+def serialize_document(d: dict[str, Any], pages: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+    return {
+        "id": d["id"],
+        "doc_type": d["doc_type"],
+        "original_name": d["original_name"],
+        "mime_type": d["mime_type"],
+        "size_bytes": d["size_bytes"],
+        "sha256": d["sha256"],
+        "page_count": d["page_count"],
+        "uploaded_at": d["uploaded_at"],
+        "processing_status": d["processing_status"],
+        "trust_label": d["trust_label"],
+        "signals": loads(d.get("signals_json")),
+        "issuer_check": loads(d.get("issuer_check_json")),
+        "processing_error": d.get("processing_error"),
+        "version": d.get("version", 1),
+        "pages": [
+            {
+                "page_number": p["page_number"],
+                "width": p["width"],
+                "height": p["height"],
+                "text_source": p["text_source"],
+                "mean_confidence": p["mean_confidence"],
+                "image_url": f"/api/v1/documents/{d['id']}/pages/{p['page_number']}/image",
+            }
+            for p in (pages or [])
+        ],
+    }
 
 
 def serialize_field(f: dict[str, Any], doc_type: str) -> dict[str, Any]:
@@ -179,7 +179,8 @@ def allowed_actions(c: dict[str, Any], user: dict[str, Any]) -> list[str]:
     acts: list[str] = []
     status = c["status"]
     if status in UPLOAD_STATES:
-        acts.append("upload")
+        if user["role"] != "applicant" or status != "needs_review":
+            acts.append("upload")
     if user["role"] in {"reviewer", "admin"}:
         if status in {"received", "needs_review", "clarification_requested", "processing_failed"}:
             acts.append("process")
@@ -324,6 +325,8 @@ def upload_document(svc: Services, user: dict[str, Any], case_id: str, doc_type:
         raise bad_request("Choose a document type.", allowed=list(DOC_TYPES))
     if case["status"] not in UPLOAD_STATES:
         raise conflict(f"Documents cannot be added while the case is '{case['status']}'.")
+    if user["role"] == "applicant" and case["status"] == "needs_review":
+        raise conflict("Applicants cannot upload documents while the case is under review. Await clarification request or reviewer feedback.")
     vf = validate_upload(data, filename, svc.settings.max_upload_bytes, svc.settings.max_pages)
     doc_id = new_id()
     key = f"cases/{case['id']}/{doc_id}/original{vf.safe_name[vf.safe_name.rfind('.'):]}"
@@ -415,6 +418,13 @@ def update_finding(svc: Services, user: dict[str, Any], finding_id: str, body: d
         raise bad_request("Status must be open, resolved or waived.")
     if status != "open" and len(note) < 5:
         raise ApiError(400, "INVALID_REQUEST", "Add a note of at least 5 characters explaining your decision.", {"fields": {"note": "Required"}})
+    if status == "waived" and f["severity"] == "high" and len(note) < 20:
+        raise ApiError(
+            400,
+            "INVALID_REQUEST",
+            "A detailed justification of at least 20 characters is required to waive a high-severity finding.",
+            {"fields": {"note": "At least 20 characters required"}},
+        )
     with svc.db.transaction():
         changes = {"status": status, "updated_at": utcnow(), "resolution_note": note[:1000] if status != "open" else None,
                    "resolved_by": user["id"] if status != "open" else None, "resolved_at": utcnow() if status != "open" else None}
@@ -440,6 +450,18 @@ def decide(svc: Services, user: dict[str, Any], case_id: str, body: dict[str, An
         raise conflict(f"A decision cannot be recorded while the case is '{case['status']}'.")
     findings = svc.db.all("SELECT id, rule_id, severity, status FROM findings WHERE case_id = ? AND is_current = 1", (case["id"],))
     if outcome == "approve":
+        unprocessed = svc.db.all(
+            "SELECT id, original_name, processing_status FROM documents WHERE case_id = ? AND processing_status IN ('pending', 'processing')",
+            (case["id"],),
+        )
+        if unprocessed:
+            raise conflict("All documents must be completely processed before approving.", unprocessed_documents=[d["original_name"] for d in unprocessed])
+
+        latest_doc_time = svc.db.scalar("SELECT MAX(uploaded_at) FROM documents WHERE case_id = ?", (case["id"],))
+        latest_eval_time = svc.db.scalar("SELECT MAX(created_at) FROM findings WHERE case_id = ?", (case["id"],))
+        if latest_doc_time and latest_eval_time and str(latest_doc_time) > str(latest_eval_time):
+            raise conflict("Documents were added or updated after rules were last evaluated. Run evaluation before deciding.")
+
         blocking = [f["rule_id"] for f in findings if f["status"] == "open" and f["severity"] == "high"]
         if blocking:
             raise conflict("Resolve or waive every high-severity finding before approving.", open_high_findings=blocking)

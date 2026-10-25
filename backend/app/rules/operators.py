@@ -1,7 +1,7 @@
 """Rule operators. Each takes (rule, params, ctx) and yields zero or more failures.
 
-Operators never fail on missing data they are not responsible for: completeness rules
-report missing values; consistency/format rules only judge values that exist.
+Operators fail closed: missing required preconditions raise Skipped, which the engine
+marks as NOT_APPLICABLE rather than a silent false pass.
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from decimal import Decimal
 from typing import Any
 
 from ..processing.normalize import FIELDS, similarity
-from .model import CaseContext, FieldView, RuleResult
+from .model import CaseContext, FieldView, RuleResult, Skipped
 
 Rule = dict[str, Any]
 Op = Callable[[Rule, dict[str, Any], CaseContext], Iterator[RuleResult]]
@@ -35,6 +35,17 @@ def _label(key: str) -> str:
 
 def _doc_label(doc_type: str) -> str:
     return doc_type.replace("_", " ").lower()
+
+
+def _parse_decimal(val: Any) -> Decimal:
+    """Parse numeric values with optional units and commas (e.g. '3,200 sq.m', '₹ 5,00,000', '1.5 acres')."""
+    if val is None:
+        raise ValueError("Missing numeric value")
+    s = str(val).strip().replace(",", "")
+    m = re.search(r"[-+]?\d*\.?\d+", s)
+    if not m:
+        raise ValueError(f"Cannot parse numeric value from '{val}'")
+    return Decimal(m.group(0))
 
 
 def _result(
@@ -124,11 +135,16 @@ def field_equals(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[Ru
 def regex(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[RuleResult]:
     pattern = re.compile(p["pattern"])
     bad: list[FieldView] = []
+    checked = False
     for doc_type in p["doc_types"]:
         for key in p["fields"]:
             f = ctx.field(doc_type, key)
-            if f is not None and f.value and not pattern.fullmatch(f.value):
-                bad.append(f)
+            if f is not None and f.value:
+                checked = True
+                if not pattern.fullmatch(f.value):
+                    bad.append(f)
+    if not checked:
+        raise Skipped(f"No fields present to validate format pattern '{p['pattern']}'.")
     if bad:
         detail = "; ".join(f"{_label(f.field_key)} '{f.value}' on the {_doc_label(f.doc_type)} does not match the expected format" for f in bad)
         yield _result(rule, detail + ".", [f.ref() for f in bad], min(f.confidence for f in bad), "|".join(sorted(f"{f.doc_type}.{f.field_key}" for f in bad)))
@@ -137,7 +153,9 @@ def regex(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[RuleResul
 @operator("date_not_future")
 def date_not_future(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[RuleResult]:
     f = ctx.field(p["doc_type"], p["field"])
-    if f and f.value and date.fromisoformat(f.value) > ctx.today:
+    if not (f and f.value):
+        raise Skipped(f"Date field '{_label(p['field'])}' on {_doc_label(p['doc_type'])} was not present.")
+    if date.fromisoformat(f.value) > ctx.today:
         yield _result(rule, f"{_label(f.field_key)} {f.value} is later than today ({ctx.today.isoformat()}).", [f.ref()], f.confidence, f.field_key)
 
 
@@ -145,7 +163,9 @@ def date_not_future(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator
 def date_order(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[RuleResult]:
     a = ctx.field(p["earlier"]["doc_type"], p["earlier"]["field"])
     b = ctx.field(p["later"]["doc_type"], p["later"]["field"])
-    if a and b and a.value and b.value and date.fromisoformat(a.value) > date.fromisoformat(b.value):
+    if not (a and b and a.value and b.value):
+        raise Skipped("Date fields not both present for sequence comparison.")
+    if date.fromisoformat(a.value) > date.fromisoformat(b.value):
         detail = f"{_label(b.field_key)} on the {_doc_label(b.doc_type)} is {b.value}, before the {_label(a.field_key).lower()} {a.value}."
         yield _result(rule, detail, [b.ref(), a.ref()], min(a.confidence, b.confidence), f"{a.field_key}<{b.field_key}")
 
@@ -154,14 +174,17 @@ def date_order(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[Rule
 def arithmetic_sum(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[RuleResult]:
     parts = [ctx.field(p["doc_type"], k) for k in p["parts"]]
     total = ctx.field(p["doc_type"], p["total"])
-    # Require every component to be present AND have a parseable value; a partial
-    # sum would silently mask a real arithmetic mismatch.
+    if not ctx.docs_of(p["doc_type"]):
+        raise Skipped(f"Document '{_doc_label(p['doc_type'])}' was not uploaded.")
     if total is None or total.value is None:
-        return
+        raise Skipped(f"Total field '{_label(p['total'])}' missing.")
     if any(x is None or x.value is None for x in parts):
-        return
-    s = sum((Decimal(x.value) for x in parts), Decimal("0"))  # type: ignore[union-attr]
-    t = Decimal(total.value)  # type: ignore[union-attr,arg-type]
+        raise Skipped(f"One or more component fields missing for arithmetic sum in '{p['doc_type']}'.")
+    try:
+        s = sum((_parse_decimal(x.value) for x in parts if x and x.value is not None), Decimal("0"))
+        t = _parse_decimal(total.value)
+    except Exception as exc:
+        raise Skipped(f"Failed to parse numeric amounts for arithmetic sum: {exc}") from exc
     if abs(s - t) > Decimal(str(p.get("tolerance", "0.01"))):
         detail = f"Components add up to {s:,.2f} but {_label(total.field_key).lower()} is {t:,.2f} (difference {t - s:,.2f})."
         refs = [total.ref()] + [x.ref() for x in parts if x]
@@ -172,7 +195,7 @@ def arithmetic_sum(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[
 def cross_doc_match(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[RuleResult]:
     found = [f for ref in p["refs"] if (f := ctx.field(ref["doc_type"], ref["field"])) is not None and f.value]
     if len(found) < 2:
-        return
+        raise Skipped("Fewer than 2 referenced documents present for cross-document match.")
     anchor = found[0]
     kind = p.get("kind", "name")
     worst: tuple[float, FieldView] | None = None
@@ -233,28 +256,34 @@ def scan_quality(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[Ru
 
 @operator("numeric_min")
 def numeric_min(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[RuleResult]:
+    if not ctx.docs_of(p["doc_type"]):
+        raise Skipped(f"Document '{_doc_label(p['doc_type'])}' was not uploaded.")
     f = ctx.field(p["doc_type"], p["field"])
     if f is None or f.value is None:
-        return
+        raise Skipped(f"Field '{_label(p['field'])}' was not found on '{_doc_label(p['doc_type'])}'.")
     try:
-        val = Decimal(str(f.value))
-        min_val = Decimal(str(p["min_value"]))
+        val = _parse_decimal(f.value)
+        min_val = _parse_decimal(p["min_value"])
         if val < min_val:
             unit = p.get("unit", "")
             detail = f"{_label(f.field_key)} is {val}{' ' + unit if unit else ''}, which is below the statutory requirement of {min_val}{' ' + unit if unit else ''}."
             yield _result(rule, detail, [f.ref()], f.confidence, f.field_key)
-    except Exception:
-        return
+    except Exception as exc:
+        raise Skipped(f"Cannot evaluate minimum on '{f.value}': {exc}") from exc
 
 
 @operator("land_norm_by_category")
 def land_norm_by_category(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[RuleResult]:
     """Evaluates land acreage against AICTE APH 2024-27 Appendix 4 Table 4.1 norms."""
     doc_type = p.get("doc_type", "EOA_APPLICATION_FORM")
+    if not ctx.docs_of(doc_type):
+        raise Skipped(f"Document '{_doc_label(doc_type)}' was not uploaded.")
     land_field = ctx.field(doc_type, p.get("land_field", "total_land_area_acres"))
     cat_field = ctx.field(doc_type, p.get("category_field", "land_category"))
-    if land_field is None or land_field.value is None or cat_field is None or cat_field.value is None:
-        return
+    if land_field is None or land_field.value is None:
+        raise Skipped("Land area field was not found on application form.")
+    if cat_field is None or cat_field.value is None:
+        raise Skipped("Land category field was not found on application form.")
     norms: dict[str, Decimal] = {
         "MEGA_METRO": Decimal("1.5"),
         "METRO": Decimal("1.5"),
@@ -265,30 +294,32 @@ def land_norm_by_category(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> It
     cat = str(cat_field.value).strip().upper().replace(" ", "_")
     required = norms.get(cat, Decimal("2.5"))
     try:
-        actual = Decimal(str(land_field.value))
+        actual = _parse_decimal(land_field.value)
         if actual < required:
             detail = (
                 f"Land area is {actual} acres for category '{cat}', which fails the minimum statutory requirement of "
                 f"{required} acres under AICTE APH Chapter II & Appendix 4 Table 4.1."
             )
             yield _result(rule, detail, [land_field.ref(), cat_field.ref()], min(land_field.confidence, cat_field.confidence), "land_norm")
-    except Exception:
-        return
+    except Exception as exc:
+        raise Skipped(f"Cannot parse land area '{land_field.value}': {exc}") from exc
 
 
 @operator("built_up_area_norm")
 def built_up_area_norm(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[RuleResult]:
     """Evaluates institutional built-up area and FSR norms under AICTE APH Appendix 4 Table 4.2."""
     doc_type = p.get("doc_type", "EOA_APPLICATION_FORM")
+    if not ctx.docs_of(doc_type):
+        raise Skipped(f"Document '{_doc_label(doc_type)}' was not uploaded.")
     area_field = ctx.field(doc_type, p.get("area_field", "total_built_up_area"))
     intake_field = ctx.field(doc_type, p.get("intake_field", "approved_intake"))
     if area_field is None or area_field.value is None:
-        return
-    norm_per_seat = Decimal(str(p.get("norm_sqm_per_seat", "9.5")))
-    base_min = Decimal(str(p.get("min_base_area_sqm", "4000.0")))
+        raise Skipped("Built-up area field was not found on application form.")
+    norm_per_seat = _parse_decimal(p.get("norm_sqm_per_seat", "9.5"))
+    base_min = _parse_decimal(p.get("min_base_area_sqm", "4000.0"))
     try:
-        actual_area = Decimal(str(area_field.value))
-        intake_val = Decimal(str(intake_field.value)) if intake_field and intake_field.value else Decimal("0")
+        actual_area = _parse_decimal(area_field.value)
+        intake_val = _parse_decimal(intake_field.value) if intake_field and intake_field.value else Decimal("0")
         required_area = max(base_min, intake_val * norm_per_seat)
         if actual_area < required_area:
             detail = (
@@ -300,5 +331,5 @@ def built_up_area_norm(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Itera
             if intake_field:
                 refs.append(intake_field.ref())
             yield _result(rule, detail, refs, area_field.confidence, "built_up_area_norm")
-    except Exception:
-        return
+    except Exception as exc:
+        raise Skipped(f"Cannot parse built up area '{area_field.value}': {exc}") from exc

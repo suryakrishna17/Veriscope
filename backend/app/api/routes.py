@@ -6,14 +6,14 @@ from typing import Any
 from flask import Blueprint, Response, current_app, jsonify, request
 
 from ..container import Services
-from ..core.errors import ApiError, bad_request
+from ..core.errors import ApiError, bad_request, not_found
 from ..core.security import current_user, issue_token, rate_limit, require_auth, verify_password
 from ..processing.fields import DOC_TYPES
 from ..services import analytics as analytics_svc
 from ..services import cases as case_svc
 from ..services import digilocker as digilocker_svc
 from ..services import reports
-from ..services.audit import compute_merkle_root, list_events
+from ..services.audit import compute_merkle_root, list_events, verify_audit_chain
 from ..services.processing import start_processing
 
 api = Blueprint("api_v1", __name__, url_prefix="/api/v1")
@@ -205,6 +205,13 @@ def audit_merkle(case_id: str):  # type: ignore[no-untyped-def]
     return jsonify(compute_merkle_root(svc().db, case["id"]))
 
 
+@api.get("/cases/<case_id>/audit/verify")
+@require_auth("reviewer", "admin")
+def audit_verify(case_id: str):  # type: ignore[no-untyped-def]
+    case = case_svc.load_case(svc(), case_id, current_user())
+    return jsonify(verify_audit_chain(svc().db, case["id"]))
+
+
 @api.get("/cases/<case_id>/report")
 @require_auth()
 def report(case_id: str):  # type: ignore[no-untyped-def]
@@ -223,15 +230,19 @@ def analytics():  # type: ignore[no-untyped-def]
 
 # ------------------------------------------------------------------ digilocker dpi
 @api.get("/integrations/digilocker/certificates")
-@require_auth()
+@require_auth("reviewer", "admin")
 def digilocker_certificates():  # type: ignore[no-untyped-def]
+    if not svc().settings.digilocker_sandbox:
+        raise not_found("DigiLocker sandbox integration is disabled")
     return jsonify(digilocker_svc.list_sandbox_certificates())
 
 
 @api.post("/cases/<case_id>/digilocker/pull")
-@require_auth()
+@require_auth("reviewer", "admin")
 @rate_limit("digilocker_pull", 30)
 def digilocker_pull(case_id: str):  # type: ignore[no-untyped-def]
+    if not svc().settings.digilocker_sandbox:
+        raise not_found("DigiLocker sandbox integration is disabled")
     b = body()
     doc_type = str(b.get("doc_type") or "").strip()
     cert_num = str(b.get("certificate_number") or "").strip() or None

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import TYPE_CHECKING, Any
 
 from ..core.db import dumps, loads, new_id, utcnow
@@ -38,15 +38,18 @@ def start_processing(svc: Services, user: dict[str, Any], case_id: str, force: b
         svc.db.insert("jobs", {"id": job_id, "case_id": case["id"], "kind": "process_case", "status": "queued", "progress": 0, "created_at": utcnow()})
         audit.record(svc.db, case["id"], user, "job.queued", "job", job_id, {"force": force})
     dispatched = False
-    if svc.jobs.is_distributed:
+    if not svc.settings.sync_jobs and svc.settings.redis_url:
         try:
             from ..workers.tasks import process_case_task
-            dispatched = svc.jobs.submit_celery(process_case_task, job_id, case["id"], force)
-        except Exception:
+
+            process_case_task.delay(job_id=job_id, case_id=case["id"], force=force)
+            dispatched = True
+        except Exception as e:
+            log.warning("celery_dispatch_failed_falling_back_to_sync", extra={"error": str(e), "job_id": job_id})
             dispatched = False
     if not dispatched:
-        svc.jobs.submit(lambda: run_job(svc, job_id, case["id"], force))
-    return {"job_id": job_id, "status": "queued"}
+        run_job(svc, job_id, case["id"], force)
+    return {"job_id": job_id, "status": "running" if dispatched else "completed"}
 
 
 def _job(svc: Services, job_id: str, **changes: Any) -> None:
@@ -54,20 +57,21 @@ def _job(svc: Services, job_id: str, **changes: Any) -> None:
 
 
 def run_job(svc: Services, job_id: str, case_id: str, force: bool) -> None:
-    _job(svc, job_id, status="running", started_at=utcnow(), progress=5)
+    now = utcnow()
+    _job(svc, job_id, status="running", started_at=now, heartbeat_at=now, progress=5)
     try:
         docs = svc.db.all("SELECT * FROM documents WHERE case_id = ? ORDER BY uploaded_at", (case_id,))
         todo = [d for d in docs if force or d["processing_status"] in ("pending", "failed")]
         for i, d in enumerate(todo):
             process_document(svc, d)
-            _job(svc, job_id, progress=5 + int(80 * (i + 1) / max(1, len(todo))))
+            _job(svc, job_id, heartbeat_at=utcnow(), progress=5 + int(80 * (i + 1) / max(1, len(todo))))
         docs = svc.db.all("SELECT processing_status FROM documents WHERE case_id = ?", (case_id,))
         case = svc.db.one("SELECT * FROM cases WHERE id = ?", (case_id,))
         assert case is not None
         if docs and all(d["processing_status"] == "failed" for d in docs):
             with svc.db.transaction():
                 transition(svc, case, "processing_failed", SYSTEM_ACTOR, "no document could be processed")
-            _job(svc, job_id, status="failed", progress=100, finished_at=utcnow(), error_code="ALL_DOCUMENTS_FAILED",
+            _job(svc, job_id, status="failed", progress=100, finished_at=utcnow(), heartbeat_at=utcnow(), error_code="ALL_DOCUMENTS_FAILED",
                  error_message="None of the documents could be read. Check the files and retry.")
             return
         evaluate_case(svc, case_id, SYSTEM_ACTOR)
@@ -75,15 +79,67 @@ def run_job(svc: Services, job_id: str, case_id: str, force: bool) -> None:
         assert case is not None
         with svc.db.transaction():
             transition(svc, case, "needs_review", SYSTEM_ACTOR, "automated checks complete")
-        _job(svc, job_id, status="succeeded", progress=100, finished_at=utcnow())
+        _job(svc, job_id, status="succeeded", progress=100, finished_at=utcnow(), heartbeat_at=utcnow())
     except Exception as e:  # keep the case recoverable
         log.exception("job_failed", extra={"ctx": {"job_id": job_id}})
         case = svc.db.one("SELECT * FROM cases WHERE id = ?", (case_id,))
         if case and case["status"] == "processing":
             with svc.db.transaction():
                 transition(svc, case, "processing_failed", SYSTEM_ACTOR, "internal processing error")
-        _job(svc, job_id, status="failed", progress=100, finished_at=utcnow(), error_code="PROCESSING_ERROR",
+        _job(svc, job_id, status="failed", progress=100, finished_at=utcnow(), heartbeat_at=utcnow(), error_code="PROCESSING_ERROR",
              error_message=f"Processing stopped unexpectedly ({type(e).__name__}). Retry the run.")
+
+
+def reap_stale_jobs(svc: Services, timeout_seconds: int = 300) -> list[str]:
+    """Finds and fails jobs stuck in 'running' state whose heartbeat has lapsed."""
+    running_jobs = svc.db.all("SELECT id, case_id, started_at, heartbeat_at FROM jobs WHERE status = 'running'")
+    reaped: list[str] = []
+    now = datetime.now(timezone.utc)
+
+    for j in running_jobs:
+        ts_str = j.get("heartbeat_at") or j.get("started_at")
+        is_stale = False
+        if ts_str:
+            try:
+                ts_clean = str(ts_str).replace("Z", "+00:00")
+                ts_dt = datetime.fromisoformat(ts_clean)
+                if (now - ts_dt).total_seconds() > timeout_seconds:
+                    is_stale = True
+            except Exception:
+                is_stale = True
+        else:
+            is_stale = True
+
+        if is_stale:
+            job_id = j["id"]
+            case_id = j["case_id"]
+            log.warning("reaping_stale_job", extra={"job_id": job_id, "case_id": case_id})
+            with svc.db.transaction():
+                svc.db.update(
+                    "jobs",
+                    job_id,
+                    {
+                        "status": "failed",
+                        "error_code": "TIMEOUT_STALE",
+                        "error_message": "Worker heartbeat timed out. Job marked failed by reaper.",
+                        "finished_at": utcnow(),
+                    },
+                )
+                case = svc.db.one("SELECT id, status FROM cases WHERE id = ?", (case_id,))
+                if case and case["status"] == "processing":
+                    transition(svc, case, "processing_failed", SYSTEM_ACTOR, "stale processing job timed out")
+                audit.record(
+                    svc.db,
+                    case_id,
+                    SYSTEM_ACTOR,
+                    "job.reaped",
+                    "job",
+                    job_id,
+                    {"error_code": "TIMEOUT_STALE", "timeout_seconds": timeout_seconds},
+                )
+            reaped.append(job_id)
+
+    return reaped
 
 
 def process_document(svc: Services, d: dict[str, Any]) -> None:
@@ -157,7 +213,7 @@ def build_context(svc: Services, case: dict[str, Any], today: date | None = None
         views.append(DocView(d["id"], d["doc_type"], d["original_name"], d["sha256"], d["processing_status"], loads(d["signals_json"], {}), dupes))
     rows = (
         svc.db.all(
-            "SELECT * FROM extracted_fields WHERE case_id = ? AND document_id IN ({})" .format(
+            "SELECT * FROM extracted_fields WHERE case_id = ? AND document_id IN ({})".format(
                 ",".join("?" * len(docs))
             ),
             (case["id"], *[d["id"] for d in docs]),

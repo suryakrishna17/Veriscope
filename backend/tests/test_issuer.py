@@ -11,18 +11,15 @@ class IssuerVerifierTests(unittest.TestCase):
         self.assertEqual(check.label, "NOT_VERIFIED")
         self.assertIsNone(check.issuer)
 
-    def test_digilocker_verifier_with_valid_token(self) -> None:
+    def test_digilocker_verifier_without_key_never_verifies(self) -> None:
         v = DigiLockerIssuerVerifier()
-        # Verifiable certificate number DL-...
+        # Even with DL-... prefix or digilocker_uri, unauthenticated checks must be NOT_VERIFIED
         check = v.verify("FIRE_SAFETY_CERTIFICATE", {"certificate_number": "DL-FIRE-2026-9912"})
-        self.assertEqual(check.label, "ISSUER_VERIFIED")
-        self.assertIn("DigiLocker", check.issuer or "")
-        self.assertTrue(check.response_id and check.response_id.startswith("DPI-"))
+        self.assertEqual(check.label, "NOT_VERIFIED")
+        self.assertIn("not configured", check.reason)
 
-        # Verifiable DigiLocker URI
         check_uri = v.verify("UNIVERSITY_AFFILIATION_ORDER", {"digilocker_uri": "in.gov.aicte/eoa/2026/1-4410023451"})
-        self.assertEqual(check_uri.label, "ISSUER_VERIFIED")
-        self.assertIn("MeitY", check_uri.issuer or "")
+        self.assertEqual(check_uri.label, "NOT_VERIFIED")
 
     def test_digilocker_verifier_without_token(self) -> None:
         v = DigiLockerIssuerVerifier()

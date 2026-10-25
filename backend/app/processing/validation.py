@@ -22,6 +22,8 @@ from ..core.errors import ApiError
 
 ALLOWED = {"application/pdf": ".pdf", "image/png": ".png", "image/jpeg": ".jpg"}
 Image.MAX_IMAGE_PIXELS = 60_000_000  # decompression-bomb guard
+MAX_PAGE_POINTS = 3400  # ~47 inches max
+MIN_PAGE_POINTS = 36    # 0.5 inches min
 
 
 @dataclass(frozen=True)
@@ -67,6 +69,27 @@ def validate_upload(data: bytes, filename: str, max_bytes: int, max_pages: int) 
                 if reader.is_encrypted:
                     raise ApiError(422, "DOC_ENCRYPTED", "The PDF is password-protected. Upload an unlocked copy.")
                 pages = len(reader.pages)
+                for idx, page in enumerate(reader.pages):
+                    try:
+                        box = page.mediabox
+                        width = float(abs(box.width))
+                        height = float(abs(box.height))
+                        if width > MAX_PAGE_POINTS or height > MAX_PAGE_POINTS:
+                            raise ApiError(
+                                422,
+                                "PAGE_SIZE_UNSUPPORTED",
+                                f"Page {idx + 1} dimensions ({width:.0f}x{height:.0f} pt) exceed the maximum supported page size ({MAX_PAGE_POINTS} pt).",
+                            )
+                        if width < MIN_PAGE_POINTS or height < MIN_PAGE_POINTS:
+                            raise ApiError(
+                                422,
+                                "PAGE_SIZE_UNSUPPORTED",
+                                f"Page {idx + 1} dimensions ({width:.0f}x{height:.0f} pt) are smaller than the minimum supported page size ({MIN_PAGE_POINTS} pt).",
+                            )
+                    except ApiError:
+                        raise
+                    except Exception:
+                        pass
             except ApiError:
                 raise
             except (PdfReadError, ValueError, KeyError, OSError) as e:

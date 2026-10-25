@@ -93,7 +93,6 @@ def pull_document_from_digilocker(
     if not cert_info:
         raise not_found(f"DigiLocker certificate for doc_type '{doc_type}'")
 
-    cert_id = certificate_number or cert_info["certificate_number"]
     source_pdf = FIXTURES_DIR / cert_info["fixture_file"]
     data = source_pdf.read_bytes() if source_pdf.exists() else b"%PDF-1.4\n%Digital-Verified-Dossier\n%%EOF"
 
@@ -110,12 +109,12 @@ def pull_document_from_digilocker(
     version = existing_count + 1
 
     issuer_response = {
-        "label": "ISSUER_VERIFIED",
+        "label": "NOT_VERIFIED",
         "issuer": cert_info["issuer"],
-        "response_id": f"DPI-{hashlib.sha256(cert_id.encode()).hexdigest()[:12].upper()}",
+        "response_id": f"SANDBOX-{hashlib.sha256(cert_info['certificate_number'].encode()).hexdigest()[:12].upper()}",
         "checked_at": utcnow(),
-        "reason": f"Digital Public Infrastructure: Cryptographically verified X.509 cert ({cert_id}) via DigiLocker Gateway.",
-        "simulated": False,
+        "reason": "SANDBOX IMPORT: demo document copied from local fixtures. No issuer verification was performed.",
+        "simulated": True,
     }
 
     doc_row = {
@@ -131,7 +130,7 @@ def pull_document_from_digilocker(
         "uploaded_by": user["id"],
         "page_count": 1,
         "processing_status": "pending",
-        "trust_label": "ISSUER_VERIFIED",
+        "trust_label": "NOT_VERIFIED",
         "issuer_check_json": dumps(issuer_response),
         "signals_json": dumps({}),
     }
@@ -143,15 +142,16 @@ def pull_document_from_digilocker(
             svc.db,
             case["id"],
             user,
-            "document.pulled_from_digilocker",
+            "document.sandbox_import",
             "document",
             doc_id,
             {
                 "doc_type": doc_type,
-                "certificate_number": cert_id,
+                "certificate_number": cert_info["certificate_number"],
                 "issuer": cert_info["issuer"],
-                "trust_label": "ISSUER_VERIFIED",
+                "trust_label": "NOT_VERIFIED",
                 "version": version,
+                "simulated": True,
             },
         )
 
@@ -159,8 +159,9 @@ def pull_document_from_digilocker(
         "document_id": doc_id,
         "doc_type": doc_type,
         "version": version,
-        "trust_label": "ISSUER_VERIFIED",
+        "trust_label": "NOT_VERIFIED",
         "original_name": doc_row["original_name"],
         "issuer": cert_info["issuer"],
-        "certificate_number": cert_id,
+        "certificate_number": cert_info["certificate_number"],
+        "simulated": True,
     }

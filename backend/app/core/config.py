@@ -35,6 +35,7 @@ class Settings:
     groq_api_key: str = ""
     groq_ocr_enabled: bool = False
     issuer_verifier: str = "null"  # null | mock
+    digilocker_sandbox: bool = False
     cors_origins: tuple[str, ...] = ("http://localhost:5173", "https://*.vercel.app", "*")
     log_level: str = "INFO"
     sync_jobs: bool = False
@@ -90,6 +91,7 @@ class Settings:
             groq_api_key=groq_key or (api_key if provider == "groq" else ""),
             groq_ocr_enabled=_bool(env.get("GROQ_OCR_ENABLED"), provider == "groq" or bool(groq_key or api_key)),
             issuer_verifier=env.get("ISSUER_VERIFIER", cls.issuer_verifier).lower(),
+            digilocker_sandbox=_bool(env.get("DIGILOCKER_SANDBOX"), cls.digilocker_sandbox),
             cors_origins=tuple(
                 o.strip() for o in env.get("CORS_ORIGINS", ",".join(cls.cors_origins)).split(",") if o.strip()
             ),

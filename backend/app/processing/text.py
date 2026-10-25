@@ -28,6 +28,7 @@ from PIL import Image, ImageOps
 
 log = logging.getLogger("veriscope.text")
 
+MAX_RENDER_PIXELS = 12_000_000
 OCR_SCALE = 300 / 72  # render PDFs at 300 dpi for OCR
 MIN_NATIVE_CHARS = 25
 
@@ -53,6 +54,7 @@ class PageText:
     source: str  # pdf_text | ocr
     words: list[Word] = field(default_factory=list)
     image: Image.Image | None = None  # rendered page, used for visual signals
+    hidden_words: list[Word] = field(default_factory=list)
 
     @property
     def mean_confidence(self) -> float:
@@ -78,6 +80,10 @@ def render_pdf_page(data: bytes, page_index: int, scale: float) -> Image.Image:
         # Close the page handle in its own finally so it is released even if
         # render() or to_pil() raises an exception.
         try:
+            pw, ph = page.get_size()
+            target_pixels = (pw * scale) * (ph * scale)
+            if target_pixels > MAX_RENDER_PIXELS:
+                scale = (MAX_RENDER_PIXELS / max(1.0, pw * ph)) ** 0.5
             img = page.render(scale=scale).to_pil().convert("RGB")
         finally:
             page.close()
@@ -198,15 +204,41 @@ def extract_pdf(data: bytes, ocr_enabled: bool, lang: str) -> list[PageText]:
     with pdfplumber.open(io.BytesIO(data)) as pdf:
         for idx, page in enumerate(pdf.pages):
             pw, ph = float(page.width), float(page.height)
-            raw = page.extract_words(keep_blank_chars=False, use_text_flow=False, extra_attrs=["size"])
-            words = [Word(str(r["text"]), r["x0"] / pw, r["top"] / ph, r["x1"] / pw, r["bottom"] / ph, 100.0) for r in raw]
-            img = render_pdf_page(data, idx, OCR_SCALE if ocr_enabled else 2.0)
-            if sum(len(w.t) for w in words) >= MIN_NATIVE_CHARS:
-                pages.append(PageText(idx + 1, pw, ph, "pdf_text", words, img))
+            try:
+                raw = page.extract_words(
+                    keep_blank_chars=False,
+                    use_text_flow=False,
+                    extra_attrs=["size", "non_stroking_color"],
+                )
+            except Exception:
+                raw = page.extract_words(keep_blank_chars=False, use_text_flow=False, extra_attrs=["size"])
+
+            words: list[Word] = []
+            hidden_words: list[Word] = []
+            for r in raw:
+                txt = str(r["text"]).strip()
+                if not txt:
+                    continue
+                w_obj = Word(txt, r["x0"] / pw, r["top"] / ph, r["x1"] / pw, r["bottom"] / ph, 100.0)
+                size = float(r.get("size") or 12.0)
+                color = r.get("non_stroking_color")
+                is_white = color in (1, 1.0, (1,), (1.0,), (1, 1, 1), (1.0, 1.0, 1.0))
+                out_of_bounds = r["x1"] < 0 or r["x0"] > pw or r["bottom"] < 0 or r["top"] > ph
+                if size <= 1.0 or is_white or out_of_bounds:
+                    hidden_words.append(w_obj)
+                else:
+                    words.append(w_obj)
+
+            native_chars = sum(len(w.t) for w in words)
+            if native_chars >= MIN_NATIVE_CHARS:
+                img = render_pdf_page(data, idx, 1.5)
+                pages.append(PageText(idx + 1, pw, ph, "pdf_text", words, img, hidden_words))
             elif ocr_enabled:
-                pages.append(PageText(idx + 1, pw, ph, "ocr", ocr_image(img, lang), img))
+                img = render_pdf_page(data, idx, OCR_SCALE)
+                pages.append(PageText(idx + 1, pw, ph, "ocr", ocr_image(img, lang), img, hidden_words))
             else:
-                pages.append(PageText(idx + 1, pw, ph, "pdf_text", words, img))
+                img = render_pdf_page(data, idx, 1.5)
+                pages.append(PageText(idx + 1, pw, ph, "pdf_text", words, img, hidden_words))
     return pages
 
 

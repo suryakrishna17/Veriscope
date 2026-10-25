@@ -153,8 +153,10 @@ CREATE TABLE IF NOT EXISTS jobs (
     error_message TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     started_at TIMESTAMPTZ,
-    finished_at TIMESTAMPTZ
+    finished_at TIMESTAMPTZ,
+    heartbeat_at TIMESTAMPTZ
 );
+CREATE INDEX IF NOT EXISTS ix_jobs_heartbeat ON jobs(status, heartbeat_at);
 
 -- 10. Audit Events (Append-Only)
 CREATE TABLE IF NOT EXISTS audit_events (
@@ -166,8 +168,12 @@ CREATE TABLE IF NOT EXISTS audit_events (
     entity_type TEXT NOT NULL,
     entity_id TEXT,
     payload_json JSONB,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    seq INTEGER DEFAULT 0,
+    prev_hash TEXT DEFAULT '0000000000000000000000000000000000000000000000000000000000000000',
+    event_hash TEXT DEFAULT ''
 );
+CREATE INDEX IF NOT EXISTS ix_audit_case_seq ON audit_events(case_id, seq);
 CREATE INDEX IF NOT EXISTS ix_audit_case ON audit_events(case_id, created_at);
 
 -- 11. Incorruptible Append-Only Triggers (PL/pgSQL)

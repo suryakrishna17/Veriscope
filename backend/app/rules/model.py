@@ -21,6 +21,14 @@ class RuleOutcome(StrEnum):
     NOT_APPLICABLE = "NOT_APPLICABLE"
 
 
+class Skipped(Exception):
+    """Raised when a rule or operator cannot be evaluated due to missing preconditions or data."""
+
+    def __init__(self, reason: str = "") -> None:
+        super().__init__(reason)
+        self.reason = reason
+
+
 @dataclass(frozen=True)
 class FieldView:
     id: str

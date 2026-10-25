@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
-import { api, auth } from "../api/client";
+import { ApiError, api, auth } from "../api/client";
 import type { Meta, User } from "../api/types";
 import { navigate } from "./router";
 
@@ -25,36 +25,32 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    auth.onUnauthorized(() => { setUser(null); navigate("/login"); });
-    if (!auth.token) { setReady(true); return; }
+    auth.onUnauthorized(() => {
+      setUser(null);
+      navigate("/login");
+    });
 
-    const timer = setTimeout(() => {
-      setReady((prev) => {
-        if (!prev) {
-          auth.set(null);
-          return true;
-        }
-        return prev;
-      });
-    }, 3500);
+    if (!auth.token) {
+      setReady(true);
+      return;
+    }
 
     Promise.allSettled([api.me(), api.meta()])
       .then(([uRes, mRes]) => {
-        clearTimeout(timer);
         if (uRes.status === "fulfilled") {
           setUser(uRes.value);
           if (mRes.status === "fulfilled") setMeta(mRes.value);
         } else {
-          auth.set(null);
+          const err = uRes.reason;
+          if (err instanceof ApiError && err.status === 401) {
+            auth.set(null);
+            setUser(null);
+            navigate("/login");
+          }
+          // On network error or cold start timeout, keep token and allow retry
         }
       })
-      .catch(() => {
-        clearTimeout(timer);
-        auth.set(null);
-      })
       .finally(() => setReady(true));
-
-    return () => clearTimeout(timer);
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {

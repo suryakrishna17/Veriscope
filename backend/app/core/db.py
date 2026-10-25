@@ -186,11 +186,17 @@ class Database:
             if f.stem in applied or f.stem == "postgresql_schema":
                 continue
             stem_safe = f.stem.replace("'", "''")
-            c.executescript(
-                f"BEGIN;\n"
-                f"{f.read_text()}\n"
-                f"INSERT INTO schema_migrations(version, applied_at) VALUES ('{stem_safe}', datetime('now'));\n"
-                f"COMMIT;"
-            )
+            try:
+                c.executescript(
+                    f"BEGIN;\n"
+                    f"{f.read_text()}\n"
+                    f"INSERT INTO schema_migrations(version, applied_at) VALUES ('{stem_safe}', datetime('now'));\n"
+                    f"COMMIT;"
+                )
+            except sqlite3.OperationalError as e:
+                if "duplicate column name" in str(e).lower():
+                    c.execute(f"INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES ('{stem_safe}', datetime('now'))")
+                else:
+                    raise
             done.append(f.stem)
         return done
