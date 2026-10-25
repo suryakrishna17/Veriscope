@@ -5,6 +5,7 @@ Run: python -m scripts.seed   (from backend/)
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import replace
 from pathlib import Path
 
@@ -30,12 +31,15 @@ def ensure_users(svc: Services) -> dict[str, dict]:
         u = svc.db.one("SELECT id, email, name, role FROM users WHERE email = ?", (email,))
         if u is None:
             u = {"id": new_id(), "email": email, "name": name, "role": role}
-            svc.db.insert("users", {**u, "password_hash": hash_password(DEMO_PASSWORD), "created_at": utcnow()})
+            password = os.environ.get("ADMIN_INITIAL_PASSWORD") or os.environ.get("DEMO_PASSWORD") or DEMO_PASSWORD
+            svc.db.insert("users", {**u, "password_hash": hash_password(password), "created_at": utcnow()})
         out[role] = u
     return out
 
 
 def seed(svc: Services) -> list[str]:
+    if svc.settings.app_env not in {"dev", "test"}:
+        raise RuntimeError("seed.py is prohibited in production environments.")
     users = ensure_users(svc)
     if not (FIXTURES / "expected_results.json").exists():
         from scripts.generate_fixtures import main as gen

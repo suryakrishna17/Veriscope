@@ -96,9 +96,12 @@ class Settings:
         )
         if overrides:
             s = replace(s, **overrides)  # type: ignore[arg-type]
-        if s.app_env not in {"dev", "test"} and s.secret_key == cls.secret_key:
-            raise RuntimeError(
-                "SECRET_KEY must be changed from the default in non-dev/test environments. "
-                "Set the SECRET_KEY environment variable."
-            )
+        if s.app_env not in {"dev", "test"}:
+            if s.secret_key == cls.secret_key:
+                raise RuntimeError(
+                    "SECRET_KEY must be changed from the default in non-dev/test environments. "
+                    "Set the SECRET_KEY environment variable."
+                )
+            if len(s.secret_key.encode("utf-8")) < 32:
+                raise RuntimeError("SECRET_KEY must be at least 32 bytes long for HS256 in non-dev/test environments.")
         return s
