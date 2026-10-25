@@ -122,3 +122,35 @@ class RuleTests(unittest.TestCase):
             Path(d, "bad.yaml").write_text("ruleset: x\nversion: 1\nrules:\n  - {id: A, category: nope, severity: high, summary: s, operator: regex}\n")
             with self.assertRaises(RulesetError):
                 load_ruleset("bad.yaml", Path(d))
+
+    def test_numeric_min_operator(self) -> None:
+        from app.rules.operators import OPERATORS
+        rule = {"id": "TEST-NUM", "_version": "1.0", "category": "completeness", "severity": "medium", "summary": "Area below norm"}
+        op = OPERATORS["numeric_min"]
+        
+        # Passing case: 500 >= 300
+        c_pass = ctx({FORM: {"total_amount": "500.00"}})
+        res_pass = list(op(rule, {"doc_type": FORM, "field": "total_amount", "min_value": 300}, c_pass))
+        self.assertEqual(len(res_pass), 0)
+
+        # Failing case: 200 < 300
+        c_fail = ctx({FORM: {"total_amount": "200.00"}})
+        res_fail = list(op(rule, {"doc_type": FORM, "field": "total_amount", "min_value": 300, "unit": "sqm"}, c_fail))
+        self.assertEqual(len(res_fail), 1)
+        self.assertIn("below the statutory requirement", res_fail[0].detail)
+
+    def test_land_norm_by_category_operator(self) -> None:
+        from app.rules.operators import OPERATORS
+        rule = {"id": "TEST-LAND", "_version": "1.0", "category": "completeness", "severity": "high", "summary": "Land norm not met"}
+        op = OPERATORS["land_norm_by_category"]
+
+        # Rural requires 7.5 acres. Test 8.0 acres -> PASS
+        c_pass = ctx({FORM: {"total_land_area_acres": "8.0", "land_category": "RURAL"}})
+        res_pass = list(op(rule, {"doc_type": FORM, "land_field": "total_land_area_acres", "category_field": "land_category"}, c_pass))
+        self.assertEqual(len(res_pass), 0)
+
+        # Rural requires 7.5 acres. Test 5.0 acres -> FAIL
+        c_fail = ctx({FORM: {"total_land_area_acres": "5.0", "land_category": "RURAL"}})
+        res_fail = list(op(rule, {"doc_type": FORM, "land_field": "total_land_area_acres", "category_field": "land_category"}, c_fail))
+        self.assertEqual(len(res_fail), 1)
+        self.assertIn("fails the minimum statutory requirement of 7.5 acres", res_fail[0].detail)

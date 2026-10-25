@@ -214,3 +214,48 @@ def scan_quality(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[Ru
         if reasons:
             refs = [{"document_id": d.id, "doc_type": d.doc_type, "page": 1, "excerpt": "Scanned page"}]
             yield _result(rule, f"'{d.original_name}': " + "; ".join(reasons) + ".", refs, 0.9, d.id)
+
+
+@operator("numeric_min")
+def numeric_min(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[RuleResult]:
+    f = ctx.field(p["doc_type"], p["field"])
+    if f is None or f.value is None:
+        return
+    try:
+        val = Decimal(str(f.value))
+        min_val = Decimal(str(p["min_value"]))
+        if val < min_val:
+            unit = p.get("unit", "")
+            detail = f"{_label(f.field_key)} is {val}{' ' + unit if unit else ''}, which is below the statutory requirement of {min_val}{' ' + unit if unit else ''}."
+            yield _result(rule, detail, [f.ref()], f.confidence, f.field_key)
+    except Exception:
+        return
+
+
+@operator("land_norm_by_category")
+def land_norm_by_category(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[RuleResult]:
+    """Evaluates land acreage against AICTE APH 2024-27 Appendix 4 Table 4.1 norms."""
+    doc_type = p.get("doc_type", "EOA_APPLICATION_FORM")
+    land_field = ctx.field(doc_type, p.get("land_field", "total_land_area_acres"))
+    cat_field = ctx.field(doc_type, p.get("category_field", "land_category"))
+    if land_field is None or land_field.value is None or cat_field is None or cat_field.value is None:
+        return
+    norms: dict[str, Decimal] = {
+        "MEGA_METRO": Decimal("1.5"),
+        "METRO": Decimal("1.5"),
+        "URBAN": Decimal("2.5"),
+        "RURAL": Decimal("7.5"),
+        "HILLY": Decimal("1.5"),
+    }
+    cat = str(cat_field.value).strip().upper().replace(" ", "_")
+    required = norms.get(cat, Decimal("2.5"))
+    try:
+        actual = Decimal(str(land_field.value))
+        if actual < required:
+            detail = (
+                f"Land area is {actual} acres for category '{cat}', which fails the minimum statutory requirement of "
+                f"{required} acres under AICTE APH Chapter II & Appendix 4 Table 4.1."
+            )
+            yield _result(rule, detail, [land_field.ref(), cat_field.ref()], min(land_field.confidence, cat_field.confidence), "land_norm")
+    except Exception:
+        return
