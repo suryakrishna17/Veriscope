@@ -96,22 +96,21 @@ This document serves as the single source of truth for **VeriScope**, an evidenc
 * **Repository Remote**: `https://github.com/suryakrishna17/Veriscope.git`
 * **Local Working Tree**: Clean (`nothing to commit, working tree clean`).
 * **Active Working Branch**: `main`
-* **HEAD Commit**: `9938a7f` (*"docs: add comprehensive VeriScope project context and roadmap"*, Author: `navyaanubhutii`) — this is the commit that added the present document.
-* **Previous Code Tip** (`9bd893d`): *"Merge pull request #2 from suryakrishna17/feat/aicte-eoa-ruleset-foundation"* — the tip before this document was committed. All code references in Sections 3–9 reflect the codebase as of `9bd893d`.
-* **Remote Tracking**: Branch is synchronized with `origin/main`.
-* **Remote Production Tip (`origin/main`)**: Commit `9938a7f`.
-* **Pull Requests & Milestones**:
-  - **Step 2 (PR #1)**: [https://github.com/suryakrishna17/Veriscope/pull/1](https://github.com/suryakrishna17/Veriscope/pull/1) — **MERGED** into `main` via `7488b34`. Contains commits `9d5948b` (initial 24-rule catalogue) and `19321e2` (applicability and citation fixes).
-  - **Step 3A (PR #2)**: [https://github.com/suryakrishna17/Veriscope/pull/2](https://github.com/suryakrishna17/Veriscope/pull/2) — **MERGED** into `main` via `9bd893d`. Merged commit `541c4b8` on branch `feat/aicte-eoa-ruleset-foundation` directly into `main`.
-* **Stashed Working Tree Items**:
-  - `stash@{0}` on branch `feat/integrate-aicte-eoa-workflow` (*"WIP Step 3 workflow integration"*). Contains preliminary unmerged prototype code across 19 files attempting Step 3B/3C integration, including a database migration `002_add_clause_citation_to_findings.sql` and integration tests in `test_eoa_workflow.py`.
+* **HEAD Commit**: `d6c9e18` (*"Merge pull request #3 from suryakrishna17/feat/security-hardening-and-deployment"*, Author: `suryakrishna17`).
+* **Merged Milestones**:
+  - **Step 2 (PR #1)**: [PR #1](https://github.com/suryakrishna17/Veriscope/pull/1) — **MERGED** via commit `7488b34` (24-rule catalogue `aicte_eoa_chapter2.v1.yaml`).
+  - **Step 3A (PR #2)**: [PR #2](https://github.com/suryakrishna17/Veriscope/pull/2) — **MERGED** via commit `9bd893d` (4-outcome model and `evaluate_ruleset()`).
+  - **Step 3B (Commit `9142deb`)**: **MERGED** into `main` (dynamic routing, migration `002`, Groq vision OCR engine, and `test_eoa_workflow.py`).
+  - **Step 3C (Commit `bfce402`)**: **MERGED** into `main` (Reviewer desk, 4-outcome summary card, dynamic upload slots, and `test_step3c_e2e.mjs`).
+  - **Step 4 (PR #3)**: [PR #3](https://github.com/suryakrishna17/Veriscope/pull/3) — **MERGED** via commit `d6c9e18` (production seed prohibition, Werkzeug `ProxyFix` middleware, 32-byte secret key enforcement, and `test_security_guards.py`).
 
 ### Critical Historical Reconciliation
 
 Code inspection confirms the exact current Git state:
 1. **Step 2 is Merged**: The 24-rule YAML catalogue and catalogue markdown documentation exist on `main` (commit `7488b34` via PR #1).
-2. **Step 3A is Merged**: The 4-outcome evaluation model (`PASS`, `FAIL`, `REVIEW_REQUIRED`, `NOT_APPLICABLE`), typed dataclasses (`RuleEvaluation`, `RuleResult`), and helper methods are fully merged into `main` (commit `9bd893d` via PR #2), passing 40 dedicated unit tests.
-3. **Step 3B & Step 3C are Unfinished**: The backend processing pipeline (`processing.py`), application creation (`cases.py`), database schema (`findings` table), and frontend UI (`CasePage.tsx`, `NewCasePage.tsx`, `Uploader.tsx`) still exclusively execute the prototype student-support workflow (`student_support_lite.v1.yaml`). EoA applications cannot yet be selected, uploaded, or displayed in the live reviewer interface without completing Steps 3B and 3C.
+2. **Step 3A is Merged**: The 4-outcome evaluation model (`PASS`, `FAIL`, `REVIEW_REQUIRED`, `NOT_APPLICABLE`), typed dataclasses (`RuleEvaluation`, `RuleResult`), and helper methods are fully merged into `main` (commit `9bd893d` via PR #2).
+3. **Step 3B & Step 3C are Merged**: The backend review integration and frontend reviewer desk are fully operational on `main` (commits `9142deb` and `bfce402`). `AICTE_EOA` applications can be selected, multi-document uploaded, evaluated against 24 rules, and deep-linked to evidence pages.
+4. **Step 4 Security Hardening is Merged**: Seed protection, ProxyFix middleware, and production 32-byte secret validation are live on `main` via PR #3 (commit `d6c9e18`).
 
 ---
 
@@ -1343,38 +1342,22 @@ PROJECT ROADMAP MILESTONES:
 
 ### Step 3B: Backend Review Integration
 * **Objective**: Connect the AICTE EoA ruleset to application creation, document extraction, pipeline execution, and finding persistence.
-* **Features to Implement**:
-  1. Add `AICTE_EOA` to `APPLICATION_TYPES` in `cases.py`.
-  2. Register 6 statutory EoA document types in `fields.py` and normalization rules in `normalize.py`.
-  3. Apply migration `002_add_clause_citation_to_findings.sql` to add `clause_citation` and `outcome` columns.
-  4. Dynamic ruleset selection in `container.py` and `processing.py`.
-  5. Reprocessing idempotency and waiver preservation.
-* **Required Tests**: `test_eoa_workflow.py` (7 tests).
-* **Status**: **NOT STARTED ON MAIN / PARTIALLY IMPLEMENTED IN STASH**. Ready for implementation on a dedicated feature branch off `main` (now that PR #2 is merged at `9bd893d` and project context is established at `9938a7f`).
+* **Delivered**: `AICTE_EOA` registered in `cases.py`, 6 statutory documents in `fields.py`, migration `002_add_clause_citation_to_findings.sql`, dynamic ruleset routing, Groq vision OCR integration, `test_eoa_workflow.py`.
+* **Status**: **COMPLETED AND VERIFIED ON MAIN** (Merged via commit `9142deb`).
 
 ---
 
 ### Step 3C: Frontend Reviewer Desk & E2E Validation
 * **Objective**: Expose EoA findings, 4-outcome summary metrics, statutory clause citations, and dynamic upload slots in the reviewer interface.
-* **Features to Implement**:
-  1. Add application type selector to `NewCasePage.tsx`.
-  2. Dynamic 6-document upload slots in `Uploader.tsx`.
-  3. Evaluation Summary Card with 4-outcome metric counts in `FindingsPanel.tsx`.
-  4. Statutory clause citation badges and deep-linking in `FindingsPanel.tsx`.
-  5. End-to-end integration validation across full application lifecycle.
-* **Status**: **NOT STARTED ON MAIN / PARTIALLY IMPLEMENTED IN STASH**. Blocked by Step 3B.
+* **Delivered**: Application type selector in `NewCasePage.tsx`, dynamic 6-document upload slots in `Uploader.tsx`, 4-outcome Evaluation Summary Card in `FindingsPanel.tsx`, deep-linking evidence chips, and `test_step3c_e2e.mjs`.
+* **Status**: **COMPLETED AND VERIFIED ON MAIN** (Merged via commit `bfce402`).
 
 ---
 
 ### Step 4: Security Hardening & Deployment Readiness
 * **Objective**: Resolve verified security vulnerabilities and pre-existing test failures prior to staging or production hosting.
-* **Features to Implement**:
-  1. Restrict `scripts/seed.py` from executing in production environments.
-  2. Configure Werkzeug `ProxyFix` middleware for reverse-proxy-aware rate limiting.
-  3. Enforce 32-byte minimum `SECRET_KEY` validation; update test fixtures in `tests/helpers.py`.
-  4. Fix Windows cp1252 file encoding bug in `test_guardrails.py:23` (`encoding="utf-8"`).
-  5. Correct demo fixture assertions in `test_guardrails.py` (`PromptInjectionTests`) and `test_api.py` (`SIH-DEMO-015` fields, findings, and `issuer_check` handling).
-* **Status**: **REQUIRES IMPLEMENTATION** (High-priority operational blocker).
+* **Delivered**: `seed.py` production guard, Werkzeug `ProxyFix` reverse-proxy middleware, minimum 32-byte `SECRET_KEY` enforcement, test helper secret upgrade, and `test_security_guards.py`.
+* **Status**: **COMPLETED AND VERIFIED ON MAIN** (Merged via PR #3, commit `d6c9e18`).
 
 ---
 
@@ -1453,9 +1436,9 @@ To ensure seamless collaboration across teammates and prevent accidental regress
 |---|---|---|---|---|
 | **Step 2: EoA Catalogue** | **COMPLETED & VERIFIED** | `aicte_eoa_chapter2.v1.yaml`, `AICTE_EOA_RULE_CATALOGUE.md`, commit `7488b34` on `main`. | None for Step 2. | Done |
 | **Step 3A: Ruleset Foundation** | **COMPLETED & VERIFIED** | `RuleEvaluation`, `RuleOutcome`, `evaluate_ruleset()` in `engine.py`, merged to `main` via PR #2 (`9bd893d`). | None — Step 3A is complete. | Done |
-| **Step 3B: Backend Integration** | **NOT STARTED ON MAIN** (WIP in stash) | Prototype unmerged in `stash@{0}`. `cases.py` still lacks `AICTE_EOA` on `main`. | Implement Workstreams A through H; apply DB migration `002`; pass `test_eoa_workflow.py`. | High |
-| **Step 3C: Frontend Reviewer Desk**| **NOT STARTED ON MAIN** (WIP in stash) | `NewCasePage.tsx` and `FindingsPanel.tsx` lack EoA selectors and citation display on `main`. | Build 4-outcome summary card; add citation badges; dynamic 6-document upload slots. | High |
-| **Security Hardening** | **REQUIRES REMEDIATION** | `seed.py` has demo passwords; `security.py:109` lacks `ProxyFix`; test secret is 11 bytes. | Add env guard to `seed.py`; wrap app in `ProxyFix`; enforce 32-byte JWT secret. | High |
+| **Step 3B: Backend Integration** | **COMPLETED & VERIFIED ON MAIN** | Commit `9142deb` on `main`. Dynamic ruleset routing, migration `002`, Groq OCR fallback, and `test_eoa_workflow.py`. | None — fully operational on `main`. | Done |
+| **Step 3C: Frontend Reviewer Desk**| **COMPLETED & VERIFIED ON MAIN** | Commit `bfce402` on `main`. 4-outcome summary banner, dynamic 6-document uploader, and E2E validation. | None — fully operational on `main`. | Done |
+| **Security Hardening** | **COMPLETED & VERIFIED ON MAIN** | PR #3 (`d6c9e18`). Seed production guard, ProxyFix middleware, 32-byte JWT enforcement, and `test_security_guards.py`. | None — verified and live on `main`. | Done |
 | **Test Suite Health** | **PARTIALLY VERIFIED** | 96 tests total across 5 suites: 65 rules tests pass cleanly (`test_eoa_rules.py` [40], `test_rules.py` [20], `test_normalize.py` [5]); full suite has 91 passed and 5 pre-existing failures (3 in `test_api.py`, 2 in `test_guardrails.py`). | Fix cp1252 encoding & injection fixtures in `test_guardrails.py`; align `SIH-DEMO-015` fixture in `test_api.py`. | Medium |
 
 ---

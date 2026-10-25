@@ -20,7 +20,7 @@ class TrustLanguageTests(unittest.TestCase):
             ROOT / "backend/app/services/cases.py",
             ROOT / "backend/app/rules/operators.py",
         ]
-        offenders = [f"{p.name}: {m.group(0)}" for p in targets if p.exists() for m in VERDICT_WORDS.finditer(p.read_text())]
+        offenders = [f"{p.name}: {m.group(0)}" for p in targets if p.exists() for m in VERDICT_WORDS.finditer(p.read_text(encoding="utf-8"))]
         self.assertEqual(offenders, [])
 
 
