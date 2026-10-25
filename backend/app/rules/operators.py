@@ -179,7 +179,10 @@ def duplicate_hash(rule: Rule, p: dict[str, Any], ctx: CaseContext) -> Iterator[
     for d in ctx.docs:
         if not d.duplicates:
             continue
-        where = "; ".join(f"{x['original_name']} as {_doc_label(x['doc_type'])} in case {x['case_ref']}" for x in d.duplicates[:3])
+        where = "; ".join(
+            f"{x.get('original_name', 'document')} as {_doc_label(x.get('doc_type', ''))} in case {x.get('case_ref', 'unknown')}"
+            for x in d.duplicates[:3]
+        )
         detail = f"'{d.original_name}' has the same SHA-256 as: {where}. Identical files can be legitimate; confirm the intended document was submitted."
         refs = [{"document_id": d.id, "doc_type": d.doc_type, "page": 1, "excerpt": f"sha256 {d.sha256[:16]}…"}]
         yield _result(rule, detail, refs, 1.0, d.id)
