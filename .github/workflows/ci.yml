@@ -32,6 +32,9 @@ jobs:
   e2e:
     needs: [backend, frontend]
     runs-on: ubuntu-latest
+    env:
+      VITE_DEMO_MODE: "true"
+      VITE_DEMO_PASSWORD: "demo1234"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -40,8 +43,8 @@ jobs:
         with: { node-version: "20" }
       - run: sudo apt-get update && sudo apt-get install -y tesseract-ocr
       - run: pip install -r backend/requirements.txt
-      - run: cd frontend && npm install && npm run build && npx playwright install --with-deps chromium
-      - run: cd backend && python -m scripts.seed && (python wsgi.py &) && sleep 4
+      - run: cd frontend && npm install && VITE_DEMO_MODE=true VITE_DEMO_PASSWORD=demo1234 npm run build && npx playwright install --with-deps chromium
+      - run: cd backend && python -m scripts.seed && (python wsgi.py &) && for i in $(seq 1 30); do curl -s -f http://localhost:8000/health > /dev/null && break || sleep 1; done
       - run: cd frontend && npm run e2e
       - uses: actions/upload-artifact@v4
         if: always()

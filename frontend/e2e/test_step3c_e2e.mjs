@@ -32,7 +32,14 @@ async function runTests() {
     await page.waitForSelector(".login-card");
 
     console.log("--> Logging in as Reviewer (Ravi Reviewer)...");
-    await page.click("button.demo-user:has-text('Reviewer')");
+    const revBtn = page.locator("button.demo-user:has-text('Reviewer')");
+    if (await revBtn.count() > 0) {
+      await revBtn.click();
+    } else {
+      await page.fill("#lp-email", "reviewer@demo.local");
+      await page.fill("#lp-password", "demo1234");
+      await page.click("#lp-submit");
+    }
     await page.waitForSelector("table.queue");
     console.log("✓ Logged in and queue loaded.");
 

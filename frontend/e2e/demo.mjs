@@ -17,7 +17,14 @@ p.on("console", (m) => { if (m.type() === "error") errors.push("console: " + m.t
 await p.goto(BASE + "/");
 await p.waitForSelector(".login-card");
 await p.screenshot({ path: "01-login.png" });
-await p.click("button.demo-user:has-text(\"Reviewer\")");
+const revBtn = p.locator("button.demo-user:has-text(\"Reviewer\")");
+if (await revBtn.count() > 0) {
+  await revBtn.click();
+} else {
+  await p.fill("#lp-email", "reviewer@demo.local");
+  await p.fill("#lp-password", "demo1234");
+  await p.click("#lp-submit");
+}
 await p.waitForSelector("table.queue");
 await p.screenshot({ path: "02-queue.png" });
 await p.click("text=SIH-DEMO-014");
@@ -85,7 +92,15 @@ await p.screenshot({ path: "10-mobile.png" });
 // applicant view + new application wizard
 await p.setViewportSize({ width: 1400, height: 950 });
 await p.click("text=Sign out");
-await p.click("button.demo-user:has-text(\"Applicant\")");
+await p.waitForSelector(".login-card");
+const appBtn = p.locator("button.demo-user:has-text(\"Applicant\")");
+if (await appBtn.count() > 0) {
+  await appBtn.click();
+} else {
+  await p.fill("#lp-email", "applicant@demo.local");
+  await p.fill("#lp-password", "demo1234");
+  await p.click("#lp-submit");
+}
 await p.waitForSelector("table.queue");
 await p.click("text=SIH-DEMO-014");
 await p.waitForSelector(".banner-warn");
