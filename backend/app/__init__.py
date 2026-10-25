@@ -25,6 +25,10 @@ def create_app(settings: Settings | None = None) -> Flask:
     services: Services = build_services(settings)
     app.extensions["veriscope"] = services
 
+    if settings.app_env == "prod":
+        from werkzeug.middleware.proxy_fix import ProxyFix
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)  # type: ignore[method-assign]
+
     @app.before_request
     def _correlation() -> None:
         incoming = request.headers.get("X-Request-ID", "")
