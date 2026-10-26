@@ -1,28 +1,62 @@
 import { useState, type ReactNode } from "react";
 import { useSession } from "../lib/session";
 import { useRoute } from "../lib/router";
-import { IconUser } from "./Icons";
 import { Modal } from "./Modal";
 import { LanyardBadge } from "./ui/lanyard-badge";
 
-const ROLE_COLORS: Record<string, string> = {
+/* ── Role colors ─────────────────────────────────────────────────────────── */
+const ROLE_ACCENT: Record<string, string> = {
   reviewer: "#FF5E1E",
   applicant: "#2563EB",
-  admin: "#7C3AED",
+  admin:     "#7C3AED",
+};
+
+/* ── Role-specific nav items ─────────────────────────────────────────────── */
+type NavItem = { href: string; label: string; route: string };
+
+function getNavItems(role: string | undefined): NavItem[] {
+  if (role === "applicant") {
+    return [
+      { href: "#/cases",     label: "My Applications", route: "queue" },
+      { href: "#/cases/new", label: "New Application",  route: "new"   },
+    ];
+  }
+  if (role === "admin") {
+    return [
+      { href: "#/cases",     label: "Case Queue",   route: "queue"     },
+      { href: "#/analytics", label: "Analytics",    route: "analytics" },
+      { href: "#/coverage",  label: "APH Coverage", route: "coverage"  },
+    ];
+  }
+  // reviewer (default)
+  return [
+    { href: "#/cases",     label: "Review Queue", route: "queue"     },
+    { href: "#/analytics", label: "Analytics",    route: "analytics" },
+    { href: "#/coverage",  label: "APH Coverage", route: "coverage"  },
+  ];
+}
+
+/* ── Role pill ───────────────────────────────────────────────────────────── */
+const ROLE_LABEL: Record<string, string> = {
+  reviewer:  "Reviewer",
+  applicant: "Applicant",
+  admin:     "Admin",
 };
 
 export function Layout({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   const { user, signOut } = useSession();
   const route = useRoute();
   const [showBadge, setShowBadge] = useState(false);
-  const isApplicant = user?.role === "applicant";
 
-  const accentColor = user ? ROLE_COLORS[user.role] ?? "#FF5E1E" : "#FF5E1E";
+  const navItems = getNavItems(user?.role);
+  const accentColor = user ? ROLE_ACCENT[user.role] ?? "#FF5E1E" : "#FF5E1E";
 
   return (
     <div className="shell">
       <a className="skip" href="#main">Skip to content</a>
-      <header className="topbar" style={{ position: "relative" }}>
+
+      {/* ── Top navigation bar ─────────────────────────────────────────── */}
+      <header className="topbar">
         <div className="topbar-left">
           <a href="#/cases" className="brand" aria-label="VeriScope home">
             <span className="brand-logo" aria-hidden>
@@ -39,32 +73,15 @@ export function Layout({ children, wide = false }: { children: ReactNode; wide?:
         </div>
 
         <nav className="topnav" aria-label="Main">
-          <a
-            href="#/cases"
-            className={`nav-item${route.name === "queue" ? " active" : ""}`}
-          >
-            {isApplicant ? "My Applications" : "Review Queue"}
-          </a>
-          <a
-            href="#/cases/new"
-            className={`nav-item${route.name === "new" ? " active" : ""}`}
-          >
-            New application
-          </a>
-          {!isApplicant && (
+          {navItems.map((item) => (
             <a
-              href="#/analytics"
-              className={`nav-item${route.name === "analytics" ? " active" : ""}`}
+              key={item.route}
+              href={item.href}
+              className={`nav-item${route.name === item.route ? " active" : ""}`}
             >
-              Analytics
+              {item.label}
             </a>
-          )}
-          <a
-            href="#/coverage"
-            className={`nav-item${route.name === "coverage" ? " active" : ""}`}
-          >
-            APH Coverage
-          </a>
+          ))}
         </nav>
 
         {user && (
@@ -73,25 +90,33 @@ export function Layout({ children, wide = false }: { children: ReactNode; wide?:
               type="button"
               className="btn btn-small btn-badge-toggle"
               onClick={() => setShowBadge(true)}
-              title="Inspect interactive 3D Lanyard ID Badge"
+              title="View 3D ID badge"
             >
-              <span>🪪 3D Badge</span>
+              <span>🪪 ID Badge</span>
             </button>
             <div className="who-user">
-              <span className="who-avatar" aria-hidden><IconUser width="14" height="14" /></span>
+              <span
+                className="who-role-dot"
+                style={{ background: accentColor }}
+                aria-hidden
+              />
               <span className="who-name">{user.name}</span>
-              <span className={`who-role-pill who-role-${user.role}`}>{user.role}</span>
+              <span className={`who-role-pill who-role-${user.role}`}>
+                {ROLE_LABEL[user.role] ?? user.role}
+              </span>
             </div>
-            <button className="btn btn-small btn-ghost who-signout" onClick={signOut}>Sign out</button>
+            <button className="btn btn-small btn-ghost who-signout" onClick={signOut}>
+              Sign out
+            </button>
           </div>
         )}
       </header>
 
-      {/* ── Interactive 3D ID Badge Inspection Modal ── */}
+      {/* ── 3D Badge modal ─────────────────────────────────────────────── */}
       {user && (
         <Modal
           open={showBadge}
-          title={`3D Inspector Credential · ${user.name}`}
+          title={`Inspector Credential · ${user.name}`}
           onClose={() => setShowBadge(false)}
         >
           <div className="modal-badge-stage">

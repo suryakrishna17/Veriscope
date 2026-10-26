@@ -2862,3 +2862,445 @@ tr.clickable:hover td { background: var(--surface-3); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ROLE-SPECIFIC UI — Apple-like minimal, clean, professional
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Role page header ────────────────────────────────────────────────────── */
+.role-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+.role-page-header-left { flex: 1; }
+.role-page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  margin: 0 0 0.25rem;
+  line-height: 1.1;
+}
+.role-page-subtitle {
+  font-size: 0.9rem;
+  color: var(--ink-3);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Primary pill button (Orange, Apple-style) ───────────────────────────── */
+.btn-primary-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.1rem;
+  background: var(--action);
+  color: #fff;
+  border: none;
+  border-radius: 100px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 4px 0 rgba(255, 94, 30, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-primary-pill:hover {
+  background: var(--action-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px 0 rgba(255, 94, 30, 0.28);
+}
+.btn-primary-pill:active { transform: translateY(0); box-shadow: none; }
+.btn-primary-pill:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* ── Apple-style search bar ──────────────────────────────────────────────── */
+.apple-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 0.55rem 0.9rem;
+  margin-bottom: 1.25rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.apple-search-bar:focus-within {
+  border-color: var(--action);
+  box-shadow: 0 0 0 3px var(--action-soft);
+}
+.apple-search-bar svg { color: var(--ink-3); flex-shrink: 0; }
+.apple-search-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.9rem;
+  color: var(--ink);
+  font-family: var(--font);
+}
+.apple-search-bar input::placeholder { color: var(--ink-3); }
+
+/* ── Applicant cards ─────────────────────────────────────────────────────── */
+.applicant-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+.applicant-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--line-2);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font);
+  width: 100%;
+  transition: background 0.12s ease;
+  gap: 1rem;
+}
+.applicant-card:last-child { border-bottom: none; }
+.applicant-card:hover { background: var(--surface-2); }
+.applicant-card:active { background: var(--surface-3); }
+.applicant-card-left { flex: 1; min-width: 0; }
+.applicant-card-ref {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink);
+  font-family: var(--mono);
+}
+.applicant-card-inst {
+  font-size: 0.84rem;
+  color: var(--ink-2);
+  margin-top: 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.applicant-card-meta {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  margin-top: 0.1rem;
+}
+.applicant-card-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  color: var(--ink-3);
+}
+
+/* ── Applicant empty state ───────────────────────────────────────────────── */
+.applicant-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 4rem 1.5rem;
+  text-align: center;
+  color: var(--ink-3);
+}
+.applicant-empty-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-3);
+}
+.applicant-empty h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+}
+.applicant-empty p { font-size: 0.9rem; margin: 0; }
+
+/* ── Admin role chip ─────────────────────────────────────────────────────── */
+.admin-role-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  background: rgba(124, 58, 237, 0.08);
+  color: #7C3AED;
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  border-radius: 100px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* ── Admin summary row ───────────────────────────────────────────────────── */
+.admin-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.admin-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  align-items: center;
+  flex: 1;
+}
+.admin-summary-divider {
+  width: 1px;
+  height: 2rem;
+  background: var(--line);
+  flex-shrink: 0;
+}
+.admin-summary-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+}
+.admin-summary-value.admin-active { color: var(--action); }
+.admin-summary-value.admin-decided { color: var(--ok); }
+.admin-summary-value.admin-failed { color: var(--high); }
+.admin-summary-label {
+  font-size: 0.75rem;
+  color: var(--ink-3);
+  font-weight: 500;
+}
+.admin-filters {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+.admin-filters .apple-search-bar { flex: 1; min-width: 200px; margin-bottom: 0; }
+
+/* ── Admin action bar ────────────────────────────────────────────────────── */
+.admin-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.admin-reopen-btn { color: #7C3AED !important; }
+.admin-case-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.admin-decision-item {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--line-2);
+}
+.admin-decision-item:last-child { border-bottom: none; }
+.admin-decision-outcome { font-weight: 600; font-size: 0.9rem; color: var(--ink); }
+.admin-decision-meta { font-size: 0.78rem; color: var(--ink-3); margin-top: 0.15rem; }
+.admin-decision-note { font-size: 0.78rem; color: var(--ink-3); font-style: italic; margin-top: 0.1rem; }
+
+/* ── Apple-style cards ───────────────────────────────────────────────────── */
+.apple-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+.apple-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.apple-card-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 0.75rem;
+}
+.apple-card-count {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  background: var(--surface-2);
+  padding: 0.15rem 0.5rem;
+  border-radius: 100px;
+}
+.apple-card-determination {
+  border-left: 3px solid var(--ok);
+  background: var(--ok-bg);
+  border-color: var(--ok-border);
+}
+.apple-determination-outcome {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 0.25rem;
+}
+.apple-determination-meta {
+  font-size: 0.84rem;
+  color: var(--ink-3);
+  margin: 0;
+}
+
+/* ── Apple-style banners ─────────────────────────────────────────────────── */
+.apple-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border-radius: var(--r);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+}
+.apple-banner-info {
+  background: var(--info-bg);
+  border-color: var(--info-border);
+  color: var(--ink-2);
+}
+.apple-banner-warn {
+  background: var(--medium-bg);
+  border-color: var(--medium-border);
+  color: #92400E;
+}
+.apple-banner-error {
+  background: var(--high-bg);
+  border-color: var(--high-border);
+  color: var(--high);
+}
+
+/* ── Apple-style doc list ────────────────────────────────────────────────── */
+.apple-doc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.apple-doc-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--line-2);
+  font-size: 0.875rem;
+}
+.apple-doc-item:last-child { border-bottom: none; }
+.apple-doc-icon { color: var(--ink-3); flex-shrink: 0; }
+.apple-doc-name { font-weight: 500; color: var(--ink); }
+.apple-doc-filename { color: var(--ink-3); font-size: 0.8rem; margin-left: auto; text-align: right; font-family: var(--mono); }
+
+/* ── Apple back button ───────────────────────────────────────────────────── */
+.apple-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.875rem;
+  color: var(--action);
+  text-decoration: none;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+  transition: opacity 0.15s ease;
+}
+.apple-back-btn:hover { opacity: 0.75; }
+
+/* ── Apple case header ───────────────────────────────────────────────────── */
+.apple-case-head { margin-bottom: 1.5rem; }
+.apple-case-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.35rem;
+}
+.apple-case-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  margin: 0;
+}
+.apple-case-meta {
+  font-size: 0.875rem;
+  color: var(--ink-3);
+  margin: 0;
+}
+
+/* ── Reviewer action strip ───────────────────────────────────────────────── */
+.reviewer-action-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* ── Reviewer AI summary ─────────────────────────────────────────────────── */
+.reviewer-summary {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--action);
+  border-radius: var(--r);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+.reviewer-summary-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--action);
+  margin-bottom: 0.5rem;
+}
+.reviewer-summary-text {
+  font-size: 0.875rem;
+  color: var(--ink-2);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ── Who user dot indicator ──────────────────────────────────────────────── */
+.who-role-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Admin header variant ────────────────────────────────────────────────── */
+.admin-header .role-page-title { margin-top: 0.4rem; }
+
+@media (max-width: 860px) {
+  .role-page-header { flex-direction: column; align-items: flex-start; }
+  .admin-case-grid { grid-template-columns: 1fr; }
+  .admin-summary-row { flex-wrap: wrap; gap: 1rem; }
+  .admin-filters { flex-direction: column; align-items: flex-start; }
+  .admin-filters .apple-search-bar { width: 100%; }
+  .apple-case-title-row { flex-wrap: wrap; }
+  .reviewer-action-strip { gap: 0.35rem; }
+}
+
