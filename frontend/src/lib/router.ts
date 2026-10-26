@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 export type Route =
+  | { name: "landing" }
   | { name: "login" }
   | { name: "queue" }
   | { name: "new" }
@@ -11,8 +12,11 @@ export type Route =
   | { name: "notfound" };
 
 export function parse(hash: string): Route {
-  const path = hash.replace(/^#/, "") || "/cases";
+  const path = hash.replace(/^#/, "");
+  // Empty hash → landing; explicit /landing → landing
+  if (!path || path === "/" || path === "/landing") return { name: "landing" };
   const parts = path.split("/").filter(Boolean);
+  if (parts[0] === "landing") return { name: "landing" };
   if (parts[0] === "login") return { name: "login" };
   if (parts[0] === "analytics") return { name: "analytics" };
   if (parts[0] === "coverage") return { name: "coverage" };

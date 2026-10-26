@@ -73,19 +73,19 @@ export function AuditTimeline({ events, caseId }: { events: AuditEvent[]; caseId
                 ? "rgba(16, 185, 129, 0.18)"
                 : verifyResult && !verifyResult.valid
                 ? "rgba(239, 68, 68, 0.2)"
-                : "rgba(13, 148, 136, 0.12)",
+                : "rgba(255, 94, 30, 0.12)",
               border: `1px solid ${
                 verifyResult?.valid
                   ? "#10b981"
                   : verifyResult && !verifyResult.valid
                   ? "#ef4444"
-                  : "#0d9488"
+                  : "#FF5E1E"
               }`,
               color: verifyResult?.valid
                 ? "#10b981"
                 : verifyResult && !verifyResult.valid
                 ? "#ef4444"
-                : "#0f766e",
+                : "#E04D12",
               borderRadius: "4px",
               padding: "3px 8px",
               fontSize: "0.72rem",
