@@ -44,6 +44,14 @@ const ROLE_COLORS: Record<string, string> = {
   Admin: "#7C3AED",
 };
 
+const DEFAULT_BADGE: DemoAccount = {
+  email: "",
+  role: "Reviewer",
+  name: "Authorized Officer",
+  note: "AICTE Regulatory Bureau",
+  badgeId: "VS-2026-AUTH",
+};
+
 export function LoginPage() {
   const DEMO_PW = import.meta.env.VITE_DEMO_PASSWORD ?? "";
 
@@ -54,7 +62,7 @@ export function LoginPage() {
   const [err, setErr] = useState<string | null>(null);
   const [activeDemoIdx, setActiveDemoIdx] = useState(0);
 
-  const activeBadge = DEMO[activeDemoIdx];
+  const activeBadge = DEMO[activeDemoIdx] ?? DEFAULT_BADGE;
   const accentColor = ROLE_COLORS[activeBadge.role] ?? "#FF5E1E";
 
   const submit = async (e?: FormEvent, overrideEmail?: string) => {
