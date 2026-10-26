@@ -29,13 +29,15 @@ export const auth = {
 const metaEnv = (import.meta as unknown as { env?: { VITE_API_BASE_URL?: string } }).env;
 const API_BASE = (metaEnv?.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function request<T>(path: string, init: RequestInit = {}, retries = 1): Promise<T> {
   const headers = new Headers(init.headers);
   if (token) headers.set("Authorization", `Bearer ${token}`);
   if (init.body && !(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
 
   const isUpload = init.body instanceof FormData;
-  const timeoutMs = isUpload ? 45000 : 8000;
+  const isAuthOrMeta = path.startsWith("/auth/") || path === "/meta";
+  // Generous timeouts to comfortably accommodate cloud free-tier cold starts (Render/Gunicorn)
+  const timeoutMs = isUpload ? 90000 : (isAuthOrMeta ? 35000 : 25000);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -47,8 +49,16 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       signal: init.signal ?? controller.signal,
     });
   } catch (err: unknown) {
-    if (err instanceof Error && err.name === "AbortError") {
-      throw new ApiError(0, "TIMEOUT", "Request timed out. Please check your connection and try again.");
+    clearTimeout(timer);
+    const isTimeout = err instanceof Error && err.name === "AbortError";
+    const canRetry = retries > 0 && (isAuthOrMeta || !init.method || init.method === "GET");
+    if (canRetry) {
+      // Small pause before retry to let sleeping instances finish booting up
+      await new Promise(r => setTimeout(r, 800));
+      return request<T>(path, init, retries - 1);
+    }
+    if (isTimeout) {
+      throw new ApiError(0, "TIMEOUT", "Request timed out. The server may be warming up — please try again in a moment.");
     }
     throw new ApiError(0, "NETWORK", "The server could not be reached. Check that the API is running and try again.");
   } finally {

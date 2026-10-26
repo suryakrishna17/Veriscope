@@ -57,7 +57,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     const r = await api.login(email, password);
     auth.set(r.access_token);
     setUser(r.user);
-    setMeta(await api.meta());
+    // Fetch meta asynchronously without blocking login completion
+    void api.meta().then(setMeta).catch((err) => {
+      console.warn("Deferred meta fetch failed:", err);
+    });
   }, []);
 
   return <Ctx.Provider value={{ user, meta, ready, signIn, signOut }}>{children}</Ctx.Provider>;

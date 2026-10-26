@@ -56,11 +56,21 @@ export function LoginPage() {
   const DEMO_PW = import.meta.env.VITE_DEMO_PASSWORD || (typeof atob !== "undefined" ? atob("ZGVtbzEyMzQ=") : "");
 
   const { signIn } = useSession();
-  const [email, setEmail] = useState(DEMO_MODE ? "reviewer@demo.local" : "");
+  const [email, setEmail] = useState(() => {
+    const stored = typeof window !== "undefined" ? window.sessionStorage.getItem("demo_email") : null;
+    if (stored) {
+      window.sessionStorage.removeItem("demo_email");
+      return stored;
+    }
+    return DEMO_MODE ? "reviewer@demo.local" : "";
+  });
   const [password, setPassword] = useState(DEMO_MODE ? DEMO_PW : "");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [activeDemoIdx, setActiveDemoIdx] = useState(0);
+  const [activeDemoIdx, setActiveDemoIdx] = useState(() => {
+    const idx = DEMO.findIndex(d => d.email === (DEMO_MODE ? "reviewer@demo.local" : ""));
+    return idx >= 0 ? idx : 0;
+  });
 
   const activeBadge = DEMO[activeDemoIdx] ?? DEFAULT_BADGE;
   const accentColor = ROLE_COLORS[activeBadge.role] ?? "#FF5E1E";
@@ -239,7 +249,10 @@ export function LoginPage() {
               disabled={busy}
             >
               {busy ? (
-                <span className="lp-spinner" />
+                <>
+                  <span className="lp-spinner" />
+                  <span>Connecting to VeriScope...</span>
+                </>
               ) : (
                 <>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
