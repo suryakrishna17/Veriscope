@@ -3,6 +3,7 @@ import { LanyardBadge } from "../components/ui/lanyard-badge";
 import { CircularReadings3D } from "../components/ui/CircularReadings3D";
 import { DossierHologram3D } from "../components/ui/DossierHologram3D";
 import { navigate } from "../lib/router";
+import { useSession } from "../lib/session";
 
 /* ─── Hash utilities ─────────────────────────────────────────────────────── */
 
@@ -50,7 +51,7 @@ const DEMO_ACCOUNTS = [
   { email: "admin@demo.local",     role: "Admin",     name: "Dr. M. Sundaram",  color: "#7C3AED" },
 ];
 
-const DEMO_PW = typeof atob !== "undefined" ? atob("ZGVtbzEyMzQ=") : "demo1234";
+const DEMO_PW = import.meta.env.VITE_DEMO_PASSWORD || (typeof atob !== "undefined" ? atob("ZGVtbzEyMzQ=") : "");
 
 const TICKER_ITEMS = [
   "AICTE APH 2024–27 Chapter II · 25 Automated Statutory Rules",
@@ -205,14 +206,21 @@ function MetricStrip() {
 /* ─── Sandbox Launcher ───────────────────────────────────────────────────── */
 
 function SandboxLauncher() {
+  const { signIn } = useSession();
   const [loading, setLoading] = useState<string | null>(null);
 
   const launch = async (email: string, role: string) => {
     setLoading(role);
-    await new Promise(r => setTimeout(r, 600));
-    window.sessionStorage.setItem("demo_email", email);
-    window.sessionStorage.setItem("demo_pw", DEMO_PW);
-    navigate("/login");
+    try {
+      await signIn(email, DEMO_PW);
+      navigate("/cases");
+    } catch {
+      window.sessionStorage.setItem("demo_email", email);
+      window.sessionStorage.setItem("demo_pw", DEMO_PW);
+      navigate("/login");
+    } finally {
+      setLoading(null);
+    }
   };
 
   return (
