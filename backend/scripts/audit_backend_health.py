@@ -91,7 +91,7 @@ def main():
         e_name = r_eoa.json().get("name")
         e_rules = len(r_eoa.json().get("rules", []))
         assert e_name == "aicte_eoa_chapter2", f"Expected aicte_eoa_chapter2, got {e_name}"
-        assert e_rules == 24, f"Expected 24 rules, got {e_rules}"
+        assert e_rules == 25, f"Expected 25 rules, got {e_rules}"
         citations = [r.get("clause_citation") for r in r_eoa.json().get("rules", []) if r.get("clause_citation")]
         assert len(citations) >= 20, f"Expected >=20 clause citations, got {len(citations)}"
         log("Dynamic Ruleset Routing", "PASS", f"Default: {d_name} ({d_rules} rules) | EoA: {e_name} ({e_rules} rules)")
@@ -219,7 +219,7 @@ def main():
         det = r_det.json()
         eval_sum = det.get("evaluation_summary")
         assert eval_sum is not None, "evaluation_summary missing in case detail"
-        assert eval_sum["total"] == 24, f"Expected 24 total evaluated rules, got {eval_sum['total']}"
+        assert eval_sum["total"] == 25, f"Expected 25 total evaluated rules, got {eval_sum['total']}"
         sum_of_parts = eval_sum["pass"] + eval_sum["fail"] + eval_sum["review_required"] + eval_sum["not_applicable"]
         assert eval_sum["total"] == sum_of_parts, f"Mismatch in outcomes: {eval_sum}"
         log("4-Outcome Evaluation Summary", "PASS", f"Total: {eval_sum['total']} | PASS: {eval_sum['pass']} | FAIL: {eval_sum['fail']} | REVIEW: {eval_sum['review_required']} | N/A: {eval_sum['not_applicable']}")
