@@ -27,7 +27,7 @@ if (await revBtn.count() > 0) {
 }
 await p.waitForSelector("table.queue");
 await p.screenshot({ path: "02-queue.png" });
-await p.click("text=SIH-DEMO-014");
+await p.click("table.queue a:has-text('SIH-DEMO-014')");
 await p.waitForSelector(".finding");
 await p.waitForSelector(".page img");
 await p.screenshot({ path: "03-case.png" });
@@ -72,7 +72,7 @@ await p.screenshot({ path: "08-report.png", fullPage: true });
 // scanned case
 await p.goto(BASE + "/#/cases");
 await p.waitForSelector("table.queue");
-await p.click("text=SIH-DEMO-015");
+await p.click("table.queue a:has-text('SIH-DEMO-015')");
 await p.waitForSelector(".page img");
 await p.click(".doc-tab >> nth=2");
 const enrollField = p.locator(".field:has-text('Enrolment number') .field-row");

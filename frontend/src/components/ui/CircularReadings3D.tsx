@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { navigate } from "../../lib/router";
 
 export interface TelemetryReading {
   id: string;
@@ -271,6 +272,10 @@ export function CircularReadings3D({ items }: { items?: TelemetryReading[] } = {
                 className={`cylinder-card ${isFront ? "is-front" : ""}`}
                 style={{
                   transform: `rotateY(${angle}deg) translateZ(${radius}px)`,
+                  cursor: r.id ? "pointer" : "default",
+                }}
+                onClick={() => {
+                  if (r.id) navigate(`/cases/${r.id}`);
                 }}
               >
                 <div className="card-glass-glow" />

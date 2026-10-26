@@ -89,7 +89,7 @@ async function runTests() {
     console.log("--> Navigating to case review desk...");
     await page.goto(`${BASE_URL}/#/cases`);
     await page.waitForSelector("table.queue");
-    await page.click("text=SIH-DEMO-014");
+    await page.click("table.queue a:has-text('SIH-DEMO-014')");
     await page.waitForSelector(".findings");
 
     // -------------------------------------------------------------------------
