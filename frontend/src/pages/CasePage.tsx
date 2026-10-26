@@ -241,11 +241,10 @@ function AdminCaseView({ c, reload, running, run, reopenOpen, setReopenOpen }: {
 }
 
 /* ── Reviewer case view ────────────────────────────────────────────────────── */
-function ReviewerCaseView({ c, reload, running, run, reopenOpen, setReopenOpen, toast }: {
+function ReviewerCaseView({ c, reload, running, run, reopenOpen, setReopenOpen }: {
   c: CaseDetail; reload: (s?: boolean) => Promise<void>;
   running: boolean; run: (force: boolean) => Promise<void>;
   reopenOpen: boolean; setReopenOpen: (v: boolean) => void;
-  toast: (msg: string, type?: string) => void;
 }) {
   const [docId, setDocId] = useState<string | null>(c.documents[0]?.id ?? null);
   const [page, setPage] = useState(1);
@@ -488,7 +487,6 @@ export function CasePage({ id }: { id: string }) {
     <ReviewerCaseView
       c={c} reload={reload} running={running} run={run}
       reopenOpen={reopenOpen} setReopenOpen={setReopenOpen}
-      toast={(msg, type) => toast(msg, type as "error" | undefined)}
     />
   );
 }
