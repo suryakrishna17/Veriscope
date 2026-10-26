@@ -24,6 +24,7 @@ try:
     import pytesseract
 except ImportError:
     pytesseract = None
+import numpy as np
 import requests
 from PIL import Image, ImageOps
 
@@ -199,10 +200,19 @@ def extract_pdf(data: bytes, ocr_enabled: bool, lang: str) -> list[PageText]:
                 raw = page.extract_words(
                     keep_blank_chars=False,
                     use_text_flow=False,
-                    extra_attrs=["size", "non_stroking_color"],
+                    extra_attrs=["size", "non_stroking_color", "rendering_mode"],
                 )
             except Exception:
-                raw = page.extract_words(keep_blank_chars=False, use_text_flow=False, extra_attrs=["size"])
+                try:
+                    raw = page.extract_words(keep_blank_chars=False, use_text_flow=False, extra_attrs=["size", "non_stroking_color"])
+                except Exception:
+                    raw = page.extract_words(keep_blank_chars=False, use_text_flow=False, extra_attrs=["size"])
+
+            # Render page to check visual contrast against background pixels
+            scale = 1.5
+            img = render_pdf_page(data, idx, scale)
+            gray_arr = np.asarray(img.convert("L"))
+            iw, ih = img.width, img.height
 
             words: list[Word] = []
             hidden_words: list[Word] = []
@@ -212,23 +222,42 @@ def extract_pdf(data: bytes, ocr_enabled: bool, lang: str) -> list[PageText]:
                     continue
                 w_obj = Word(txt, r["x0"] / pw, r["top"] / ph, r["x1"] / pw, r["bottom"] / ph, 100.0)
                 size = float(r.get("size") or 12.0)
-                color = r.get("non_stroking_color")
-                is_white = color in (1, 1.0, (1,), (1.0,), (1, 1, 1), (1.0, 1.0, 1.0))
+                render_mode = r.get("rendering_mode")
+
                 out_of_bounds = r["x1"] < 0 or r["x0"] > pw or r["bottom"] < 0 or r["top"] > ph
-                if size <= 1.0 or is_white or out_of_bounds:
+                # Mode 3 = invisible text (render neither fill nor stroke per PDF spec ISO 32000)
+                if size <= 1.0 or out_of_bounds or render_mode in (3, "3"):
+                    hidden_words.append(w_obj)
+                    continue
+
+                # Inspect rendered image crop to determine true visual contrast
+                cx0 = max(0, min(iw - 1, int((r["x0"] / pw) * iw)))
+                cx1 = max(0, min(iw, int((r["x1"] / pw) * iw)))
+                cy0 = max(0, min(ih - 1, int((r["top"] / ph) * ih)))
+                cy1 = max(0, min(ih, int((r["bottom"] / ph) * ih)))
+
+                if cx1 <= cx0 or cy1 <= cy0:
+                    hidden_words.append(w_obj)
+                    continue
+
+                crop = gray_arr[cy0:cy1, cx0:cx1]
+                contrast = int(np.ptp(crop)) if crop.size > 0 else 0
+
+                # If rendered contrast is low (< 35 grey levels), text is hidden against background
+                # (covers white-on-white, near-white grey, and black text masked by white shapes).
+                # If contrast >= 35, text is visually readable (e.g. white headings on dark banners).
+                if contrast < 35:
                     hidden_words.append(w_obj)
                 else:
                     words.append(w_obj)
 
             native_chars = sum(len(w.t) for w in words)
             if native_chars >= MIN_NATIVE_CHARS:
-                img = render_pdf_page(data, idx, 1.5)
                 pages.append(PageText(idx + 1, pw, ph, "pdf_text", words, img, hidden_words))
             elif ocr_enabled:
-                img = render_pdf_page(data, idx, OCR_SCALE)
-                pages.append(PageText(idx + 1, pw, ph, "ocr", ocr_image(img, lang), img, hidden_words))
+                ocr_img = render_pdf_page(data, idx, OCR_SCALE)
+                pages.append(PageText(idx + 1, pw, ph, "ocr", ocr_image(ocr_img, lang), ocr_img, hidden_words))
             else:
-                img = render_pdf_page(data, idx, 1.5)
                 pages.append(PageText(idx + 1, pw, ph, "pdf_text", words, img, hidden_words))
     return pages
 

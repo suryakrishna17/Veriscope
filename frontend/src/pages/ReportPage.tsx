@@ -18,7 +18,17 @@ interface Report {
   limitations: string[];
 }
 
-const TRUST: Record<string, string> = { ISSUER_VERIFIED: "Issuer verified", ANOMALY_DETECTED: "Review required", NOT_VERIFIED: "Not verified with issuer" };
+const TRUST: Record<string, string> = {
+  VERIFIED: "Verified",
+  MISMATCH_DETECTED: "Mismatch detected",
+  EXPIRED: "Expired",
+  VERIFICATION_PENDING: "Verification pending",
+  SOURCE_UNAVAILABLE: "Source unavailable",
+  MANUAL_REVIEW_REQUIRED: "Manual review required",
+  ISSUER_VERIFIED: "Issuer verified",
+  ANOMALY_DETECTED: "Review required",
+  NOT_VERIFIED: "Not verified with issuer",
+};
 
 export function ReportPage({ id }: { id: string }) {
   const toast = useToast();

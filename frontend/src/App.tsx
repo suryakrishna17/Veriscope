@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Spinner } from "./components/Badges";
 import { Layout, PageState } from "./components/Layout";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
+import { CoveragePage } from "./pages/CoveragePage";
 import { CasePage } from "./pages/CasePage";
 import { LoginPage } from "./pages/LoginPage";
 import { NewCasePage } from "./pages/NewCasePage";
@@ -25,6 +26,7 @@ export function App() {
   switch (route.name) {
     case "queue": return <QueuePage />;
     case "analytics": return <AnalyticsPage />;
+    case "coverage": return <CoveragePage />;
     case "new": return <NewCasePage />;
     case "case": return <CasePage key={route.id} id={route.id} />;
     case "report": return <ReportPage id={route.id} />;

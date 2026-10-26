@@ -262,7 +262,7 @@ def serialize_job(j: dict[str, Any]) -> dict[str, Any]:
 
 # ---------------------------------------------------------------- commands
 def create_case(svc: Services, user: dict[str, Any], body: dict[str, Any]) -> dict[str, Any]:
-    app_type = (body.get("application_type") or "STUDENT_SUPPORT_LITE").strip()
+    app_type = (body.get("application_type") or "AICTE_EOA").strip()
     if app_type not in APPLICATION_TYPES:
         raise bad_request("Unknown application type.", allowed=list(APPLICATION_TYPES))
     applicant_ref = str(body.get("applicant_ref") or "").strip()
@@ -277,6 +277,9 @@ def create_case(svc: Services, user: dict[str, Any], body: dict[str, Any]) -> di
     case_ref = str(body.get("case_ref") or "").strip() if user["role"] == "admin" else ""
     if case_ref and not re.fullmatch(r"[A-Z0-9-]{4,32}", case_ref):
         raise bad_request("Case reference must be 4–32 characters of A–Z, 0–9 or '-'.")
+    applicant_user_id = body.get("applicant_user_id") if user["role"] == "admin" and body.get("applicant_user_id") else (user["id"] if user["role"] == "applicant" else None)
+    if applicant_user_id and not svc.db.one("SELECT 1 FROM users WHERE id = ?", (applicant_user_id,)):
+        raise bad_request("The specified applicant_user_id does not exist.")
     now = utcnow()
     with svc.db.transaction():
         row = {
@@ -466,7 +469,9 @@ def decide(svc: Services, user: dict[str, Any], case_id: str, body: dict[str, An
             raise conflict("All documents must be completely processed before approving.", unprocessed_documents=[d["original_name"] for d in unprocessed])
 
         latest_doc_time = svc.db.scalar("SELECT MAX(uploaded_at) FROM documents WHERE case_id = ?", (case["id"],))
-        latest_eval_time = svc.db.scalar("SELECT MAX(created_at) FROM findings WHERE case_id = ?", (case["id"],))
+        latest_eval_time = case.get("last_evaluated_at") or svc.db.scalar(
+            "SELECT MAX(created_at) FROM audit_events WHERE case_id = ? AND action = 'rules.evaluated'", (case["id"],)
+        ) or svc.db.scalar("SELECT MAX(created_at) FROM findings WHERE case_id = ?", (case["id"],))
         if latest_doc_time and latest_eval_time and str(latest_doc_time) > str(latest_eval_time):
             raise conflict("Documents were added or updated after rules were last evaluated. Run evaluation before deciding.")
 

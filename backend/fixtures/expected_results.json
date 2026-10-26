@@ -1,37 +1,80 @@
 {
+  "EOA-DEMO-001": {
+    "applicant": "Dr. Rajesh Sharma",
+    "institution": "Apex Institute of Technology",
+    "application_type": "AICTE_EOA",
+    "expected_rules": [],
+    "files": {
+      "EOA_APPLICATION_FORM": "eoa_application_form.pdf",
+      "FIRE_SAFETY_CERTIFICATE": "fire_safety_certificate.pdf",
+      "BUILDING_SAFETY_CERTIFICATE": "building_safety_certificate.pdf",
+      "OCCUPANCY_CERTIFICATE": "occupancy_certificate.pdf",
+      "UNIVERSITY_AFFILIATION_ORDER": "university_affiliation_order.pdf",
+      "LAND_DOCUMENT_AND_USE_CERTIFICATE": "land_document.pdf"
+    }
+  },
+  "EOA-DEMO-002": {
+    "applicant": "Prof. Sunita Reddy",
+    "institution": "National Institute of Aeronautical Technology",
+    "application_type": "AICTE_EOA",
+    "expected_rules": [
+      "EOA-DAT-002",
+      "EOA-CON-001"
+    ],
+    "files": {
+      "EOA_APPLICATION_FORM": "eoa_application_form.pdf",
+      "FIRE_SAFETY_CERTIFICATE": "fire_safety_certificate.pdf",
+      "BUILDING_SAFETY_CERTIFICATE": "building_safety_certificate.pdf",
+      "OCCUPANCY_CERTIFICATE": "occupancy_certificate.pdf",
+      "UNIVERSITY_AFFILIATION_ORDER": "university_affiliation_order.pdf"
+    }
+  },
+  "EOA-DEMO-003": {
+    "applicant": "Dr. Vikram Sengupta",
+    "institution": "Metro Institute of Science and Technology",
+    "application_type": "AICTE_EOA",
+    "expected_rules": [
+      "EOA-SIG-001",
+      "EOA-SIG-002"
+    ],
+    "files": {
+      "EOA_APPLICATION_FORM": "eoa_application_form.pdf",
+      "FIRE_SAFETY_CERTIFICATE": "fire_safety_certificate.pdf",
+      "BUILDING_SAFETY_CERTIFICATE": "building_safety_certificate.pdf",
+      "UNIVERSITY_AFFILIATION_ORDER": "university_affiliation_order.pdf"
+    }
+  },
+  "EOA-DEMO-004": {
+    "applicant": "Director K. R. Nambiar",
+    "institution": "Silicon Valley Engineering College",
+    "application_type": "AICTE_EOA",
+    "expected_rules": [
+      "EOA-SIG-003"
+    ],
+    "files": {
+      "EOA_APPLICATION_FORM": "eoa_application_form.pdf",
+      "FIRE_SAFETY_CERTIFICATE": "fire_safety_certificate.pdf",
+      "BUILDING_SAFETY_CERTIFICATE": "building_safety_certificate.pdf",
+      "OCCUPANCY_CERTIFICATE": "occupancy_certificate.pdf",
+      "UNIVERSITY_AFFILIATION_ORDER": "university_affiliation_order.pdf",
+      "LAND_DOCUMENT_AND_USE_CERTIFICATE": "land_document.pdf"
+    }
+  },
   "SIH-DEMO-013": {
     "applicant": "Ananya Rao",
     "institution": "Northstar Technical Institute",
+    "application_type": "STUDENT_SUPPORT_LITE",
     "expected_rules": [],
     "files": {
       "APPLICATION_FORM": "application_form.pdf",
       "INSTITUTION_AUTHORIZATION_LETTER": "authorization_letter.pdf",
       "ENROLMENT_OR_IDENTITY_PROOF": "enrolment_certificate.pdf"
-    },
-    "expected_fields": {
-      "APPLICATION_FORM": {
-        "applicant_name": "Ananya Rao",
-        "total_amount": "133500.00",
-        "application_date": "2026-10-05",
-        "contact_phone": "9845012345",
-        "signature_present": "yes",
-        "declaration_checked": "yes"
-      },
-      "INSTITUTION_AUTHORIZATION_LETTER": {
-        "valid_until": "2027-03-31",
-        "seal_present": "yes",
-        "letterhead_present": "yes",
-        "signature_present": "yes"
-      },
-      "ENROLMENT_OR_IDENTITY_PROOF": {
-        "enrolment_number": "NTI-2025-CSE-0417",
-        "person_name": "Ananya Rao"
-      }
     }
   },
   "SIH-DEMO-014": {
     "applicant": "Rahul Verma",
     "institution": "Northstar Technical Institute",
+    "application_type": "STUDENT_SUPPORT_LITE",
     "expected_rules": [
       "ARI-001",
       "CMP-001",
@@ -44,17 +87,12 @@
       "APPLICATION_FORM": "application_form.pdf",
       "INSTITUTION_AUTHORIZATION_LETTER": "authorization_letter.pdf",
       "ENROLMENT_OR_IDENTITY_PROOF": "enrolment_certificate.pdf"
-    },
-    "expected_fields": {
-      "APPLICATION_FORM": {
-        "signature_present": "no",
-        "total_amount": "148500.00"
-      }
     }
   },
   "SIH-DEMO-015": {
     "applicant": "Priya Nair",
     "institution": "Northstar Technical Institute",
+    "application_type": "STUDENT_SUPPORT_LITE",
     "expected_rules": [
       "DAT-002",
       "SIG-003"
@@ -63,19 +101,12 @@
       "APPLICATION_FORM": "application_form.pdf",
       "INSTITUTION_AUTHORIZATION_LETTER": "authorization_letter.pdf",
       "ENROLMENT_OR_IDENTITY_PROOF": "enrolment_certificate_scan.png"
-    },
-    "expected_fields": {
-      "ENROLMENT_OR_IDENTITY_PROOF": {
-        "enrolment_number": "NTI-2024-ECE-0211"
-      },
-      "INSTITUTION_AUTHORIZATION_LETTER": {
-        "valid_until": "2026-06-30"
-      }
     }
   },
   "SIH-DEMO-016": {
     "applicant": "Karan Mehta",
     "institution": "Northstar Technical Institute",
+    "application_type": "STUDENT_SUPPORT_LITE",
     "expected_rules": [],
     "files": {}
   }

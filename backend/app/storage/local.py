@@ -18,6 +18,9 @@ class StorageBackend(ABC):
     @abstractmethod
     def exists(self, key: str) -> bool: ...
 
+    @abstractmethod
+    def delete(self, key: str) -> bool: ...
+
 
 class LocalStorage(StorageBackend):
     def __init__(self, root: Path) -> None:
@@ -46,3 +49,13 @@ class LocalStorage(StorageBackend):
 
     def exists(self, key: str) -> bool:
         return self._path(key).exists()
+
+    def delete(self, key: str) -> bool:
+        try:
+            p = self._path(key)
+            if p.exists():
+                p.unlink()
+                return True
+            return False
+        except Exception:
+            return False

@@ -1,0 +1,62 @@
+{
+  "1-1234567890": {
+    "institute_id": "1-1234567890",
+    "name": "Apex Institute of Technology",
+    "state": "Karnataka",
+    "city": "Bengaluru",
+    "status": "APPROVED_ACTIVE",
+    "approval_year": "2023-24",
+    "approved_intake": 300,
+    "ter_fee_paid": true,
+    "ter_transaction_ref": "AICTE-TER-2024-998811",
+    "deficiency_status": "NIL",
+    "programmes": ["B.Tech Computer Science and Engineering", "B.Tech Artificial Intelligence and Data Science"],
+    "faculty_count": 32,
+    "land_acres_verified": 5.2
+  },
+  "1-2244668800": {
+    "institute_id": "1-2244668800",
+    "name": "National Institute of Aeronautical Technology",
+    "state": "Karnataka",
+    "city": "Bengaluru",
+    "status": "APPROVED_ACTIVE",
+    "approval_year": "2023-24",
+    "approved_intake": 240,
+    "ter_fee_paid": true,
+    "ter_transaction_ref": "AICTE-TER-2024-554422",
+    "deficiency_status": "NIL",
+    "programmes": ["B.Tech Aeronautical Engineering", "B.Tech Mechanical Engineering"],
+    "faculty_count": 26,
+    "land_acres_verified": 4.8
+  },
+  "1-3355779911": {
+    "institute_id": "1-3355779911",
+    "name": "Metro Institute of Science and Technology",
+    "state": "Maharashtra",
+    "city": "Mumbai",
+    "status": "APPROVED_ACTIVE",
+    "approval_year": "2023-24",
+    "approved_intake": 180,
+    "ter_fee_paid": true,
+    "ter_transaction_ref": "AICTE-TER-2024-332211",
+    "deficiency_status": "NIL",
+    "programmes": ["B.Tech Information Technology", "B.Tech Computer Science"],
+    "faculty_count": 20,
+    "land_acres_verified": 3.5
+  },
+  "1-9988776655": {
+    "institute_id": "1-9988776655",
+    "name": "Silicon Valley Engineering College",
+    "state": "Karnataka",
+    "city": "Bengaluru",
+    "status": "APPROVED_ACTIVE",
+    "approval_year": "2023-24",
+    "approved_intake": 360,
+    "ter_fee_paid": true,
+    "ter_transaction_ref": "AICTE-TER-2024-776655",
+    "deficiency_status": "NIL",
+    "programmes": ["B.Tech Computer Science", "B.Tech Electronics"],
+    "faculty_count": 38,
+    "land_acres_verified": 6.0
+  }
+}

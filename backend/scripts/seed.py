@@ -53,8 +53,13 @@ def seed(svc: Services) -> list[str]:
     for ref, spec in expected.items():
         if svc.db.one("SELECT 1 FROM cases WHERE case_ref = ?", (ref,)):
             continue
-        c = case_svc.create_case(svc, users["admin"], {"case_ref": ref, "applicant_ref": spec["applicant"], "institution_ref": spec["institution"],
-                                                     "applicant_user_id": users["applicant"]["id"]})
+        c = case_svc.create_case(svc, users["admin"], {
+            "case_ref": ref,
+            "applicant_ref": spec["applicant"],
+            "institution_ref": spec["institution"],
+            "applicant_user_id": users["applicant"]["id"],
+            "application_type": spec.get("application_type", "AICTE_EOA"),
+        })
         for doc_type, fname in spec["files"].items():
             data = (FIXTURES / "cases" / ref / fname).read_bytes()
             case_svc.upload_document(svc, users["applicant"], c["id"], doc_type, fname, data)

@@ -20,6 +20,12 @@ export function StatusBadge({ status }: { status: CaseStatus }) {
 }
 
 const TRUST: Record<TrustLabel, { text: string; hint: string }> = {
+  VERIFIED: { text: "Verified", hint: "Confirmed against official issuer registry or signed digital credentials." },
+  MISMATCH_DETECTED: { text: "Mismatch detected", hint: "Entity mismatch detected between submitted document and official records." },
+  EXPIRED: { text: "Expired", hint: "Document validity or statutory clearance date has elapsed." },
+  VERIFICATION_PENDING: { text: "Verification pending", hint: "Submitted for issuer lookup; awaiting authoritative confirmation." },
+  SOURCE_UNAVAILABLE: { text: "Source unavailable", hint: "Official issuer gateway or portal temporarily unreachable; will retry." },
+  MANUAL_REVIEW_REQUIRED: { text: "Manual review required", hint: "Automated verification was inconclusive; scrutiny officer must confirm." },
   ISSUER_VERIFIED: { text: "Issuer verified", hint: "The issuing body confirmed this document. A recorded issuer response exists." },
   ANOMALY_DETECTED: { text: "Review required", hint: "An automated check raised a signal that a person should look at." },
   NOT_VERIFIED: { text: "Not verified with issuer", hint: "No issuer check is connected, so the document has not been confirmed by its issuer." },

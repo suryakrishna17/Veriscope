@@ -68,9 +68,11 @@ def require_auth(*roles: str) -> Callable[[F], F]:
                 raise ApiError(401, "UNAUTHENTICATED", "Sign in to continue.")
             svc = current_app.extensions["veriscope"]
             claims = decode_token(header[7:], svc.settings.secret_key)
-            user = svc.db.one("SELECT id, email, name, role, token_version FROM users WHERE id = ?", (claims["sub"],))
+            user = svc.db.one("SELECT id, email, name, role, token_version, is_active FROM users WHERE id = ?", (claims["sub"],))
             if user is None:
                 raise ApiError(401, "UNAUTHENTICATED", "Sign in to continue.")
+            if user.get("is_active") == 0:
+                raise ApiError(403, "ACCOUNT_DISABLED", "Your account has been deactivated. Contact an administrator.")
             if claims.get("token_version", 1) != user.get("token_version", 1):
                 raise ApiError(401, "TOKEN_REVOKED", "Your session has been invalidated. Please sign in again.")
             if roles and user["role"] not in roles:

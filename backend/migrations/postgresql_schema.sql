@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
 ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER DEFAULT 1;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_attempts INTEGER DEFAULT 0;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active INTEGER DEFAULT 1;
 
 -- 2. Rulesets
 CREATE TABLE IF NOT EXISTS rulesets (
@@ -45,8 +46,10 @@ CREATE TABLE IF NOT EXISTS cases (
     rule_set_version TEXT,
     summary_json JSONB,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    last_evaluated_at TEXT
 );
+ALTER TABLE cases ADD COLUMN IF NOT EXISTS last_evaluated_at TEXT;
 CREATE INDEX IF NOT EXISTS ix_cases_status ON cases(status);
 CREATE INDEX IF NOT EXISTS ix_cases_applicant ON cases(applicant_user_id);
 CREATE INDEX IF NOT EXISTS ix_cases_priority ON cases(triage_priority DESC);
@@ -66,7 +69,7 @@ CREATE TABLE IF NOT EXISTS documents (
     page_count INTEGER NOT NULL DEFAULT 0,
     processing_status TEXT NOT NULL DEFAULT 'pending' CHECK (processing_status IN ('pending', 'processing', 'processed', 'failed')),
     processing_error TEXT,
-    trust_label TEXT NOT NULL DEFAULT 'NOT_VERIFIED' CHECK (trust_label IN ('ISSUER_VERIFIED', 'ANOMALY_DETECTED', 'NOT_VERIFIED')),
+    trust_label TEXT NOT NULL DEFAULT 'NOT_VERIFIED' CHECK (trust_label IN ('VERIFIED', 'MISMATCH_DETECTED', 'EXPIRED', 'VERIFICATION_PENDING', 'SOURCE_UNAVAILABLE', 'MANUAL_REVIEW_REQUIRED', 'NOT_VERIFIED', 'ISSUER_VERIFIED', 'ANOMALY_DETECTED')),
     issuer_check_json JSONB,
     signals_json JSONB
 );

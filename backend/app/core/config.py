@@ -41,7 +41,7 @@ class Settings:
     log_level: str = "INFO"
     sync_jobs: bool = False
     jwt_ttl_minutes: int = 480
-    ruleset_file: str = "student_support_lite.v1.yaml"
+    ruleset_file: str = "aicte_eoa_chapter2.v1.yaml"
     frontend_dist: Path | None = BACKEND_ROOT.parent / "frontend" / "dist"
 
     @property

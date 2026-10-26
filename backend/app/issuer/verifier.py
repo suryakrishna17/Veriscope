@@ -56,6 +56,39 @@ class MockIssuerVerifier:
         self.registry: dict[str, dict[str, str]] = json.loads(REGISTRY.read_text()) if REGISTRY.exists() else {}
 
     def verify(self, doc_type: str, fields: dict[str, str | None]) -> IssuerCheck:
+        if doc_type == "EOA_APPLICATION_FORM":
+            from ..records.registry import aicte_records
+            inst_id = str(fields.get("institution_id") or "").strip()
+            inst_name = str(fields.get("institution_name") or "").strip()
+            res = aicte_records.cross_check_application(inst_id, inst_name)
+            if res["verified"]:
+                return IssuerCheck(
+                    label="VERIFIED",
+                    issuer="AICTE Central Portal",
+                    response_id=f"AICTE-REG-{inst_id}",
+                    checked_at=_now(),
+                    reason=f"AICTE Central Database confirmed active accreditation: {res['notes']}",
+                    simulated=True,
+                )
+            elif res["status"] == "MISMATCH_DETECTED":
+                return IssuerCheck(
+                    label="MISMATCH_DETECTED",
+                    issuer="AICTE Central Portal",
+                    response_id=f"AICTE-REG-{inst_id}",
+                    checked_at=_now(),
+                    reason=res["notes"],
+                    simulated=True,
+                )
+            else:
+                return IssuerCheck(
+                    label="NOT_VERIFIED",
+                    issuer="AICTE Central Portal",
+                    response_id=None,
+                    checked_at=_now(),
+                    reason=res["notes"],
+                    simulated=True,
+                )
+
         if doc_type != "ENROLMENT_OR_IDENTITY_PROOF":
             return NullIssuerVerifier().verify(doc_type, fields)
         rec = self.registry.get(fields.get("enrolment_number") or "")

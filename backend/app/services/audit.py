@@ -9,6 +9,24 @@ SYSTEM_ACTOR = {"id": "system", "role": "system", "name": "VeriScope"}
 GENESIS_HASH = "0000000000000000000000000000000000000000000000000000000000000000"
 
 
+def _normalize_audit_ts(val: Any) -> str:
+    from datetime import datetime
+    if isinstance(val, datetime):
+        return val.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    return str(val or "")
+
+
+def _normalize_audit_payload(val: Any) -> str:
+    if isinstance(val, (dict, list)):
+        return dumps(val)
+    if isinstance(val, str) and val:
+        try:
+            return dumps(loads(val))
+        except Exception:
+            return val
+    return "{}"
+
+
 def compute_event_hash(
     eid: str,
     case_id: str | None,
@@ -18,11 +36,12 @@ def compute_event_hash(
     action: str,
     entity_type: str,
     entity_id: str | None,
-    created_at: str,
-    payload_json: str,
+    created_at: Any,
+    payload_json: Any,
 ) -> str:
-    payload_canonical = dumps(loads(payload_json)) if payload_json else "{}"
-    canonical = f"{eid}|{case_id or ''}|{seq}|{prev_hash}|{actor_ref}|{action}|{entity_type}|{entity_id or ''}|{created_at}|{payload_canonical}"
+    norm_ts = _normalize_audit_ts(created_at)
+    payload_canonical = _normalize_audit_payload(payload_json)
+    canonical = f"{eid}|{case_id or ''}|{seq}|{prev_hash}|{actor_ref}|{action}|{entity_type}|{entity_id or ''}|{norm_ts}|{payload_canonical}"
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 

@@ -186,3 +186,97 @@ def metadata_signals(data: bytes, mime: str) -> dict[str, Any]:
         if EDITOR_HINTS.search(software):
             out["notes"].append(f"Image metadata names an editing tool ({software[:60]}).")
     return out
+
+
+ALLOWED_DOMAINS = (
+    "aicte-india.org",
+    "digilocker.gov.in",
+    "nad.gov.in",
+    "vtu.ac.in",
+    "karnataka.gov.in",
+    "bbmp.gov.in",
+    "gov.in",
+    "nic.in",
+)
+
+
+def detect_qr_codes(pages: list[PageText]) -> list[dict[str, Any]]:
+    """Decodes QR codes from rendered pages and validates domain allowlists (R5, R7).
+
+    Guaranteed hermetic: Never connects to external networks to fetch QR URLs.
+    """
+    if cv2 is None:
+        return []
+    out: list[dict[str, Any]] = []
+    detector = cv2.QRCodeDetector()
+    for page in pages:
+        if page.image is None:
+            continue
+        try:
+            arr = np.asarray(page.image)
+            # Detect and decode
+            payload, pts, _ = detector.detectAndDecode(arr)
+            if payload:
+                payload_clean = str(payload).strip()
+                domain = None
+                is_allowed = False
+                # Parse domain if URL
+                url_m = re.match(r"^https?://([^/:\s]+)", payload_clean, re.I)
+                if url_m:
+                    domain = url_m.group(1).lower()
+                    is_allowed = any(domain == d or domain.endswith("." + d) for d in ALLOWED_DOMAINS)
+
+                out.append({
+                    "page_number": page.page_number,
+                    "payload": payload_clean,
+                    "domain": domain,
+                    "is_allowed_domain": is_allowed,
+                    "confidence": 98.0,
+                })
+        except Exception as e:
+            log.debug("qr_detection_failed", extra={"page": page.page_number, "error": str(e)})
+    return out
+
+
+def detect_pdf_signatures(data: bytes, mime: str) -> dict[str, Any]:
+    """Inspects PDF digital signatures, signer metadata, and byte-range integrity (R5)."""
+    if mime != "application/pdf" or PdfReader is None:
+        return {"has_signatures": False, "signatures": []}
+    try:
+        reader = PdfReader(io.BytesIO(data))
+        fields = reader.get_fields() or {}
+        sig_list: list[dict[str, Any]] = []
+        for name, f in fields.items():
+            if f.get("/FT") == "/Sig":
+                v = f.get("/V", {})
+                signer_name = str(v.get("/Name", "") or "")
+                contact = str(v.get("/ContactInfo", "") or "")
+                reason = str(v.get("/Reason", "") or "")
+                date_str = str(v.get("/M", "") or "")
+                byte_range = v.get("/ByteRange")
+                
+                intact = None
+                if isinstance(byte_range, (list, tuple)) and len(byte_range) == 4:
+                    # ByteRange: [offset1, length1, offset2, length2]
+                    # The signed byte range covers up to offset2 + length2.
+                    # If file has trailing bytes beyond signed range, modifications occurred post-signing.
+                    covered_bytes = int(byte_range[2]) + int(byte_range[3])
+                    intact = covered_bytes == len(data)
+
+                sig_list.append({
+                    "field_name": name,
+                    "signer_name": signer_name or "Digital Certificate Signer",
+                    "reason": reason,
+                    "contact": contact,
+                    "signed_at": date_str,
+                    "byte_range_intact": intact,
+                })
+
+        return {
+            "has_signatures": len(sig_list) > 0,
+            "count": len(sig_list),
+            "signatures": sig_list,
+        }
+    except Exception as e:
+        log.debug("pdf_signature_check_failed", extra={"error": str(e)})
+        return {"has_signatures": False, "signatures": []}

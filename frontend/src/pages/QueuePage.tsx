@@ -4,7 +4,6 @@ import type { CaseStatus } from "../api/types";
 import { Spinner, StatusBadge } from "../components/Badges";
 import { IconAlert, IconCheck, IconFileText, IconPlus, IconSearch, IconShield } from "../components/Icons";
 import { Layout, PageState } from "../components/Layout";
-import { CircularReadings3D } from "../components/ui/CircularReadings3D";
 import { ago, STATUS_LABEL } from "../lib/format";
 import { errorText, useAsync } from "../lib/hooks";
 import { navigate } from "../lib/router";
@@ -176,8 +175,6 @@ export function QueuePage() {
         </div>
       )}
 
-      {/* ── 3D Circular Readings Buffer & Array Rotation Telemetry ── */}
-      <CircularReadings3D />
 
       <div className="filters">
         {!isApplicant && (

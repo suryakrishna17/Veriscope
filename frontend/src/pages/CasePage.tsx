@@ -82,17 +82,14 @@ export function CasePage({ id }: { id: string }) {
   const selectField = (f: Field) => {
     setSel(f.id);
     goto(f.document_id, f.page_number ?? 1);
-    setHl(
-      f.bbox
-        ? {
-            documentId: f.document_id,
-            page: f.page_number ?? 1,
-            boxes: [f.bbox],
-            label: `${f.label}: ${f.effective_value ?? "—"}`,
-            tone: "field",
-          }
-        : null
-    );
+    setHl({
+      documentId: f.document_id,
+      page: f.page_number ?? 1,
+      boxes: f.bbox ? [f.bbox] : [],
+      label: `${f.label}: ${f.effective_value ?? "—"}`,
+      tone: "field",
+      isLlmSuggestion: f.source === "llm_suggestion",
+    });
   };
 
   const selectFinding = (f: Finding, ref: EvidenceRef | null) => {

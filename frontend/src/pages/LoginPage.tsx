@@ -12,7 +12,9 @@ interface DemoAccount {
   badgeId: string;
 }
 
-const DEMO: DemoAccount[] = [
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
+
+const DEMO: DemoAccount[] = DEMO_MODE ? [
   {
     email: "reviewer@demo.local",
     role: "Reviewer",
@@ -34,7 +36,7 @@ const DEMO: DemoAccount[] = [
     note: "Supervisory authority · Case reopening · Full audit",
     badgeId: "VS-2026-0001",
   },
-];
+] : [];
 
 const ROLE_COLORS: Record<string, string> = {
   Reviewer: "#FF5E1E",
@@ -43,7 +45,6 @@ const ROLE_COLORS: Record<string, string> = {
 };
 
 export function LoginPage() {
-  const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
   const DEMO_PW = import.meta.env.VITE_DEMO_PASSWORD ?? "";
 
   const { signIn } = useSession();

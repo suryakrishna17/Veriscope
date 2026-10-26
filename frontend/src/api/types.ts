@@ -3,7 +3,16 @@ export type CaseStatus =
   | "received" | "processing" | "needs_review" | "clarification_requested"
   | "approved" | "rejected" | "processing_failed";
 export type Severity = "high" | "medium" | "low" | "info";
-export type TrustLabel = "ISSUER_VERIFIED" | "ANOMALY_DETECTED" | "NOT_VERIFIED";
+export type TrustLabel =
+  | "VERIFIED"
+  | "MISMATCH_DETECTED"
+  | "EXPIRED"
+  | "VERIFICATION_PENDING"
+  | "SOURCE_UNAVAILABLE"
+  | "MANUAL_REVIEW_REQUIRED"
+  | "ISSUER_VERIFIED"
+  | "ANOMALY_DETECTED"
+  | "NOT_VERIFIED";
 export type DocType =
   | "APPLICATION_FORM"
   | "INSTITUTION_AUTHORIZATION_LETTER"

@@ -39,19 +39,32 @@ class EoaWorkflowIntegrationTests(AppTestCase):
             self.assertIsNotNone(rule.get("clause_citation"), f"Rule {rule['id']} missing statutory citation")
 
     def test_non_eoa_ruleset_regression_safety(self) -> None:
-        """Confirms default or STUDENT_SUPPORT_LITE cases continue to select student_support_lite@1.0.0."""
-        case = self.new_case("applicant", "Student Applicant")
-        cid = case["id"]
+        """Confirms default cases select AICTE_EOA while explicit STUDENT_SUPPORT_LITE selects student_support_lite@1.0.0."""
+        # Default case selects AICTE_EOA
+        default_case = self.new_case("applicant", "Default EoA Applicant")
+        def_detail = self.detail(default_case["id"])
+        self.assertEqual(def_detail["application_type"], "AICTE_EOA")
+        self.assertEqual(def_detail["ruleset"]["name"], "aicte_eoa_chapter2")
+
+        # Explicit STUDENT_SUPPORT_LITE case selects student_support_lite
+        resp = self.client.post(
+            "/api/v1/cases",
+            json={"application_type": "STUDENT_SUPPORT_LITE", "applicant_ref": "Student Applicant", "institution_ref": "Demo Institute"},
+            headers=self.h("applicant"),
+        )
+        self.assertEqual(resp.status_code, 201)
+        cid = resp.get_json()["id"]
         detail = self.detail(cid)
         self.assertEqual(detail["application_type"], "STUDENT_SUPPORT_LITE")
         self.assertEqual(detail["ruleset"]["name"], "student_support_lite")
         self.assertEqual(detail["rule_set_version"], "student_support_lite@1.0.0")
 
-        # Active ruleset without param or with STUDENT_SUPPORT_LITE yields student support
+        # Active ruleset default yields aicte_eoa_chapter2
         r1 = self.client.get("/api/v1/rulesets/active", headers=self.h("reviewer"))
         self.assertEqual(r1.status_code, 200)
-        self.assertEqual(r1.get_json()["name"], "student_support_lite")
+        self.assertEqual(r1.get_json()["name"], "aicte_eoa_chapter2")
 
+        # Query param application_type=STUDENT_SUPPORT_LITE yields student support
         r2 = self.client.get("/api/v1/rulesets/active?application_type=STUDENT_SUPPORT_LITE", headers=self.h("reviewer"))
         self.assertEqual(r2.status_code, 200)
         self.assertEqual(r2.get_json()["name"], "student_support_lite")
@@ -258,3 +271,77 @@ class EoaWorkflowIntegrationTests(AppTestCase):
         self.assertTrue(len(findings) > 0)
         for f in findings:
             self.assertIn(f.outcome, (RuleOutcome.FAIL.value, RuleOutcome.REVIEW_REQUIRED.value))
+
+    def test_clarification_loop_then_approve_no_deadlock(self) -> None:
+        """Item 44: Verifies that after clarification and re-upload, clean evaluation approves without stale deadlock."""
+        r = self.client.post(
+            "/api/v1/cases",
+            json={"application_type": "AICTE_EOA", "applicant_ref": "Registrar Mehta", "institution_ref": "Apex Institute"},
+            headers=self.h("applicant"),
+        )
+        self.assertEqual(r.status_code, 201)
+        cid = r.get_json()["id"]
+
+        # Helper to generate minimal valid 1-page PDF bytes
+        from pypdf import PdfWriter
+        def _make_pdf() -> bytes:
+            w = PdfWriter()
+            w.add_blank_page(width=595, height=842)
+            out = io.BytesIO()
+            w.write(out)
+            return out.getvalue()
+
+        # 1. Initial upload and processing
+        import io
+        up1 = self.client.post(
+            f"/api/v1/cases/{cid}/documents",
+            data={"doc_type": "UNIVERSITY_AFFILIATION_ORDER", "file": (io.BytesIO(_make_pdf()), "affiliation.pdf")},
+            headers=self.h("applicant"),
+            content_type="multipart/form-data",
+        )
+        self.assertEqual(up1.status_code, 201)
+        self.process(cid)
+        c_detail = self.detail(cid)
+        self.assertEqual(c_detail["status"], "needs_review")
+
+        # 2. Request clarification
+        clarify_r = self.client.post(
+            f"/api/v1/cases/{cid}/decisions",
+            json={"outcome": "request_clarification", "reason_code": "MISSING_DOCUMENT", "note": "Please upload valid fire safety certificate."},
+            headers=self.h("reviewer"),
+        )
+        self.assertEqual(clarify_r.status_code, 201)
+        self.assertEqual(self.detail(cid)["status"], "clarification_requested")
+
+        # 3. Applicant uploads missing/clarification document
+        up2 = self.client.post(
+            f"/api/v1/cases/{cid}/documents",
+            data={"doc_type": "FIRE_SAFETY_CERTIFICATE", "file": (io.BytesIO(_make_pdf()), "fire_cert.pdf")},
+            headers=self.h("applicant"),
+            content_type="multipart/form-data",
+        )
+        self.assertEqual(up2.status_code, 201)
+
+        # 4. Re-evaluate
+        self.process(cid)
+        self.assertEqual(self.detail(cid)["status"], "needs_review")
+
+        # 5. Waive open high findings if any so case can be approved
+        findings = self.detail(cid)["findings"]
+        for f in findings:
+            if f["status"] == "open" and f["severity"] == "high":
+                w_resp = self.client.patch(
+                    f"/api/v1/findings/{f['id']}",
+                    json={"status": "waived", "resolution_note": "Approved by scrutiny committee per special dispensation order."},
+                    headers=self.h("reviewer"),
+                )
+                self.assertEqual(w_resp.status_code, 200)
+
+        # 6. Approve case - MUST succeed without 409 stale evaluation conflict!
+        app_r = self.client.post(
+            f"/api/v1/cases/{cid}/decisions",
+            json={"outcome": "approve", "reason_code": "ALL_CHECKS_SATISFIED", "note": "All documents verified and compliant."},
+            headers=self.h("reviewer"),
+        )
+        self.assertEqual(app_r.status_code, 201, app_r.get_json())
+        self.assertEqual(app_r.get_json()["status"], "approved")

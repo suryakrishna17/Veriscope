@@ -94,7 +94,13 @@ Accessible via `#analytics` for Reviewing Officers and AICTE Regional Directors:
 - **Macro Compliance Telemetry:** Real-time institutional health across the 6-stage lifecycle pipeline (`received` $\rightarrow$ `processing` $\rightarrow$ `needs_review` $\rightarrow$ `clarification_requested` $\rightarrow$ `approved` / `rejected`).
 - **Reviewer Turnaround Time (TAT) SLA:** Tracks mean elapsed hours from application submission to official decision issuance via Julian-day delta tracking.
 - **Top Systemic Deficiencies Table:** Automatically ranks the top most frequently violated statutory clauses across technical institutions with direct APH clause citations.
-- **Three-Tier Trust State Model:** Monitors document integrity distribution across `NOT_VERIFIED` (default intake), `ANOMALY_DETECTED` (discrepancy flagged), and `ISSUER_VERIFIED` (PKI verified).
+- **Official 6-Status Verification Vocabulary:** Monitors document integrity distribution across the statutory states: `VERIFIED`, `MISMATCH_DETECTED`, `EXPIRED`, `VERIFICATION_PENDING`, `SOURCE_UNAVAILABLE`, and `MANUAL_REVIEW_REQUIRED`.
+
+### 4. APH Chapter II Coverage Explorer
+Accessible via `#coverage` for Reviewing Officers, Auditors, and Applicants:
+- **Exhaustive Regulatory Crosswalk:** Line-by-line mapping of all 24 automated statutory rules against the **AICTE Approval Process Handbook (APH 2024–27 Chapter II)**.
+- **Scrutiny Taxonomy:** Clear classification across automated checks (Fire NOC, Building Fitness, Land Use, Enrolment, Governing Body, Anti-Ragging, Grievance Redressal, TER fee calculations) and non-automated statutory norms reserved for human inspection.
+- **Rule Verification Parameters:** Transparently inspects threshold parameters, severe failure triggers, clause citations, and exact expected values.
 
 ---
 
@@ -130,10 +136,13 @@ flowchart TD
 VeriScope enforces strict governance standards:
 
 > [!IMPORTANT]
-> **Strict Trust Labels:** Every document carries exactly one label:
-> - **`Issuer verified`**: Only applied when a signed cryptographic confirmation from the issuing body is recorded.
-> - **`Review required`**: Automated signals raised a discrepancy for human inspection.
-> - **`Not verified with issuer`**: Default baseline status.
+> **Statutory 6-Status Vocabulary:** Every submitted document and issuer verification is classified into strictly one of six official states:
+> - **`VERIFIED`**: Validated against statutory issuer PKI / institutional registry data with complete entity match.
+> - **`MISMATCH_DETECTED`**: Discrepancies identified between declared values and issuing records / cross-document data.
+> - **`EXPIRED`**: Certificate validity period ended prior to statutory evaluation cutoff.
+> - **`VERIFICATION_PENDING`**: Verification queued or awaiting background registry reconciliation.
+> - **`SOURCE_UNAVAILABLE`**: Issuing authority registry temporarily unreachable or external source offline.
+> - **`MANUAL_REVIEW_REQUIRED`**: Visual discrepancy, tampered metadata, or non-automated check requiring scrutiny.
 > 
 > The system **never** asserts speculative conclusions or binary authenticity labels. Machine learning signals highlight discrepancies; **only an authorized human officer records binding decisions.**
 
@@ -256,18 +265,19 @@ cd frontend && npm run e2e
 │   │   ├── api/routes.py          # REST endpoints (auth, cases, documents, findings, decisions)
 │   │   ├── core/                  # Security (ProxyFix, JWT), config, rate limiting, SQLite trigger layer
 │   │   ├── processing/            # Tesseract OCR, pdfplumber / pypdfium2, Groq vision OCR, field normalizers
+│   │   ├── records/               # Mock AICTE Central Institutional Records store (cross-check registry)
 │   │   ├── rules/                 # Pure deterministic rule engine & YAML policy rulesets
 │   │   │   └── rulesets/          # aicte_eoa_chapter2.v1.yaml (24 rules), student_support_lite.v1.yaml
 │   │   ├── services/              # Case lifecycle, analytics engine, job runner, audit logger, report generator
 │   │   └── ai/adapter.py          # AI summarization adapter with strict anti-hallucination guard
-│   ├── fixtures/                  # Synthetic institutional test applications (SIH-DEMO-013..016)
-│   ├── migrations/                # Migrations (001_init, 002_citation, 003_audit_chain, 004_job_heartbeat)
-│   ├── scripts/                   # CLI tools (seed.py, create_user.py)
-│   └── tests/                     # Automated test suite (147 tests: rules, security, audit chain, reaper, DPI)
+│   ├── fixtures/                  # Synthetic institutional test applications (EOA-DEMO-001..004, SIH-DEMO-013..015)
+│   ├── migrations/                # Migrations (001_init through 007_trust_statuses, postgresql_schema)
+│   ├── scripts/                   # CLI tools (generate_fixtures.py, seed.py, create_user.py)
+│   └── tests/                     # Automated test suite (153 tests: rules, security, audit chain, workflow, DPI)
 ├── frontend/
 │   ├── src/
 │   │   ├── components/            # EvidenceViewer, FindingsPanel (Summary Card), DecisionBar, Badges, Uploader
-│   │   ├── pages/                 # LoginPage, QueuePage, CasePage, NewCasePage, ReportPage, AnalyticsPage
+│   │   ├── pages/                 # LoginPage, QueuePage, CasePage, NewCasePage, ReportPage, AnalyticsPage, CoveragePage
 │   │   ├── api/client.ts          # Typed REST API client
 │   │   └── styles.css             # Glassmorphism design tokens, animations, responsive layout
 │   └── e2e/                       # Playwright automated browser walkthrough scripts (test_step3c_e2e.mjs)

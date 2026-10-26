@@ -78,8 +78,11 @@ class AppTestCase(unittest.TestCase):
     def h(self, role: str) -> dict[str, str]:
         return {"Authorization": f"Bearer {self.tokens[role]}"}
 
-    def new_case(self, role: str = "applicant", applicant: str = "Test Applicant") -> dict[str, Any]:
-        r = self.client.post("/api/v1/cases", json={"applicant_ref": applicant, "institution_ref": "Northstar Technical Institute"}, headers=self.h(role))
+    def new_case(self, role: str = "applicant", applicant: str = "Test Applicant", application_type: str | None = None) -> dict[str, Any]:
+        payload = {"applicant_ref": applicant, "institution_ref": "Northstar Technical Institute"}
+        if application_type:
+            payload["application_type"] = application_type
+        r = self.client.post("/api/v1/cases", json=payload, headers=self.h(role))
         self.assertEqual(r.status_code, 201, r.get_json())
         return r.get_json()  # type: ignore[no-any-return]
 
@@ -90,7 +93,8 @@ class AppTestCase(unittest.TestCase):
 
     def upload_fixture_case(self, ref: str, role: str = "applicant") -> str:
         spec = EXPECTED[ref]
-        case = self.new_case(role, spec["applicant"])
+        app_type = spec.get("application_type", "STUDENT_SUPPORT_LITE" if ref.startswith("SIH-") else "AICTE_EOA")
+        case = self.new_case(role, spec["applicant"], application_type=app_type)
         for doc_type, fname in spec["files"].items():
             r = self.upload(case["id"], FIXTURES / "cases" / ref / fname, doc_type, role)
             self.assertEqual(r.status_code, 201, r.get_json())

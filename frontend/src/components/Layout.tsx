@@ -59,6 +59,12 @@ export function Layout({ children, wide = false }: { children: ReactNode; wide?:
               Analytics
             </a>
           )}
+          <a
+            href="#/coverage"
+            className={`nav-item${route.name === "coverage" ? " active" : ""}`}
+          >
+            APH Coverage
+          </a>
         </nav>
 
         {user && (

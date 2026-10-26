@@ -161,7 +161,12 @@ def process_document(svc: Services, d: dict[str, Any]) -> None:
         if d["doc_type"] in ("INSTITUTION_AUTHORIZATION_LETTER", "EOA_APPLICATION_FORM",
                              "UNIVERSITY_AFFILIATION_ORDER"):
             extracted.append(sig.detect_letterhead(pages))
-        signals = {"quality": sig.quality_signals(pages), "metadata": sig.metadata_signals(data, d["mime_type"])}
+        signals = {
+            "quality": sig.quality_signals(pages),
+            "metadata": sig.metadata_signals(data, d["mime_type"]),
+            "qr": sig.detect_qr_codes(pages),
+            "signatures": sig.detect_pdf_signatures(data, d["mime_type"]),
+        }
         issuer = svc.issuer.verify(d["doc_type"], {e.field_key: e.normalized_value for e in extracted})
     except OcrUnavailable:
         _fail_doc(svc, d, "OCR is not available on the server, so this scanned document could not be read.")
@@ -290,6 +295,6 @@ def evaluate_case(svc: Services, case_id: str, actor: dict[str, Any]) -> None:
         summary = svc.llm.summarize(case["case_ref"], [{k: f[k] for k in ("rule_id", "severity", "status", "category", "summary", "detail")} for f in current])
         summary_payload = {**summary.as_dict(), "evaluation_summary": eval_summary, "generated_at": now}
         svc.db.update("cases", case_id, {"triage_priority": score, "triage_components_json": dumps(comps), "summary_json": dumps(summary_payload),
-                                         "rule_set_version": ruleset.label, "updated_at": now})
+                                         "rule_set_version": ruleset.label, "last_evaluated_at": now, "updated_at": now})
         audit.record(svc.db, case_id, actor, "rules.evaluated", "case", case_id,
                      {"ruleset": ruleset.label, "results": len(seen), "new_findings": created, "cleared_findings": len(stale)})

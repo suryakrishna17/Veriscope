@@ -53,6 +53,10 @@ def login():  # type: ignore[no-untyped-def]
     pw = str(b.get("password", ""))
     user = svc().db.one("SELECT * FROM users WHERE email = ?", (email,))
 
+    # Check if account is active
+    if user and user.get("is_active") == 0:
+        raise ApiError(403, "ACCOUNT_DISABLED", "Your account has been deactivated. Contact an administrator.")
+
     # Account lockout check (5 failures -> 15 min lock)
     if user and user.get("locked_until"):
         try:
@@ -60,6 +64,9 @@ def login():  # type: ignore[no-untyped-def]
             locked_dt = datetime.fromisoformat(str(user["locked_until"]).replace("Z", "+00:00"))
             if datetime.now(timezone.utc) < locked_dt:
                 raise ApiError(423, "ACCOUNT_LOCKED", "Account temporarily locked due to excessive failed attempts. Try again in 15 minutes.")
+            else:
+                # Lockout window elapsed: reset counter
+                svc().db.update("users", user["id"], {"failed_attempts": 0, "locked_until": None})
         except ApiError:
             raise
         except Exception:
@@ -128,8 +135,11 @@ def create_user_endpoint():  # type: ignore[no-untyped-def]
         "token_version": 1,
         "failed_attempts": 0,
         "locked_until": None,
+        "is_active": 1,
     }
     svc().db.insert("users", new_user)
+    from ..services import audit as audit_svc
+    audit_svc.record(svc().db, None, current_user(), "user.created", "user", user_id, {"email": email, "role": role})
     return jsonify({"id": user_id, "email": email, "name": name, "role": role}), 201
 
 
@@ -143,14 +153,30 @@ def update_user_endpoint(user_id: str):  # type: ignore[no-untyped-def]
     changes: dict[str, Any] = {}
     if "name" in b:
         changes["name"] = str(b["name"]).strip()
+    if "is_active" in b:
+        new_active = 1 if bool(b["is_active"]) else 0
+        if new_active == 0 and u["role"] == "admin":
+            active_admins = svc().db.scalar("SELECT COUNT(*) FROM users WHERE role = 'admin' AND (is_active IS NULL OR is_active = 1)")
+            if active_admins <= 1:
+                raise ApiError(400, "INVALID_REQUEST", "Cannot deactivate the last remaining active admin.")
+        changes["is_active"] = new_active
     if "role" in b and b["role"] in ("applicant", "reviewer", "admin"):
+        if u["role"] == "admin" and b["role"] != "admin":
+            active_admins = svc().db.scalar("SELECT COUNT(*) FROM users WHERE role = 'admin' AND (is_active IS NULL OR is_active = 1)")
+            if active_admins <= 1:
+                raise ApiError(400, "INVALID_REQUEST", "Cannot demote the last remaining active admin.")
         changes["role"] = b["role"]
-    if "password" in b and len(str(b["password"])) >= 8:
-        changes["password_hash"] = hash_password(str(b["password"]))
+    if "password" in b:
+        pw_str = str(b["password"])
+        if len(pw_str) < 8:
+            raise ApiError(400, "INVALID_REQUEST", "Password must be at least 8 characters.")
+        changes["password_hash"] = hash_password(pw_str)
         changes["token_version"] = (u.get("token_version") or 1) + 1
     if changes:
         svc().db.update("users", user_id, changes)
-    updated = svc().db.one("SELECT id, email, name, role FROM users WHERE id = ?", (user_id,))
+        from ..services import audit as audit_svc
+        audit_svc.record(svc().db, None, current_user(), "user.updated", "user", user_id, {k: v for k, v in changes.items() if k != "password_hash"})
+    updated = svc().db.one("SELECT id, email, name, role, is_active FROM users WHERE id = ?", (user_id,))
     return jsonify(updated)
 
 

@@ -22,7 +22,17 @@ VERIFICATION_CAVEAT = (
     "No document in this case is issuer-verified unless it is explicitly labelled ISSUER_VERIFIED with a recorded issuer response. "
     "Anomaly signals (such as duplicate files or metadata edits) indicate that review is required, not wrongdoing."
 )
-TRUST_TEXT = {"ISSUER_VERIFIED": "Issuer verified", "ANOMALY_DETECTED": "Review required", "NOT_VERIFIED": "Not verified with issuer"}
+TRUST_TEXT = {
+    "VERIFIED": "Verified",
+    "MISMATCH_DETECTED": "Mismatch detected",
+    "EXPIRED": "Expired",
+    "VERIFICATION_PENDING": "Verification pending",
+    "SOURCE_UNAVAILABLE": "Source unavailable",
+    "MANUAL_REVIEW_REQUIRED": "Manual review required",
+    "ISSUER_VERIFIED": "Issuer verified",
+    "ANOMALY_DETECTED": "Review required",
+    "NOT_VERIFIED": "Not verified with issuer",
+}
 
 
 def build_report(svc: Services, user: dict[str, Any], case_id: str) -> dict[str, Any]:
