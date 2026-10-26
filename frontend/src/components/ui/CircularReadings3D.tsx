@@ -110,8 +110,15 @@ export function rotateArrayRight<T>(arr: T[], kInput: bigint | number): {
   return { result: copy, effK, n };
 }
 
-export function CircularReadings3D() {
-  const [readings, setReadings] = useState<TelemetryReading[]>(DEFAULT_READINGS);
+export function CircularReadings3D({ items }: { items?: TelemetryReading[] } = {}) {
+  const initial = items && items.length > 0 ? items : DEFAULT_READINGS;
+  const [readings, setReadings] = useState<TelemetryReading[]>(initial);
+
+  useEffect(() => {
+    if (items && items.length > 0) {
+      setReadings(items);
+    }
+  }, [items]);
   const [ticksCount, setTicksCount] = useState<number>(0);
   const [kInput, setKInput] = useState<string>("2");
   const [autoTick, setAutoTick] = useState<boolean>(false);
@@ -179,12 +186,12 @@ export function CircularReadings3D() {
 
   // Reset to initial readings
   const handleReset = useCallback(() => {
-    setReadings(DEFAULT_READINGS);
+    setReadings(items && items.length > 0 ? items : DEFAULT_READINGS);
     setTicksCount(0);
     setRotY(0);
     setViewStep(null);
     setStepData(null);
-  }, []);
+  }, [items]);
 
   // Auto-tick interval
   useEffect(() => {
@@ -222,9 +229,9 @@ export function CircularReadings3D() {
         </div>
         <div className="circular-readings-title-row">
           <div>
-            <h3 style={{ color: "#f8fafc" }}>Autonomous Regulatory Telemetry Display</h3>
+            <h3 style={{ color: "#f8fafc" }}>Regulatory Telemetry Display</h3>
             <p style={{ color: "#cbd5e1", margin: "0.25rem 0 0" }}>
-              Live circular buffer of {n} statutory readings. Every tick, newest reading enters on the left.
+              Dynamic 3D telemetry buffer of {n} live institutional applications.
               Array rotated using the <strong style={{ color: "var(--action)" }}>Three-Reversals Algorithm</strong>.
             </p>
           </div>

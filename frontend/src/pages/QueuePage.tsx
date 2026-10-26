@@ -4,6 +4,7 @@ import type { CaseStatus } from "../api/types";
 import { Spinner, StatusBadge } from "../components/Badges";
 import { IconAlert, IconCheck, IconFileText, IconPlus, IconSearch, IconShield } from "../components/Icons";
 import { Layout, PageState } from "../components/Layout";
+import { CircularReadings3D, type TelemetryReading } from "../components/ui/CircularReadings3D";
 import { ago, STATUS_LABEL } from "../lib/format";
 import { errorText, useAsync } from "../lib/hooks";
 import { navigate } from "../lib/router";
@@ -113,6 +114,36 @@ export function QueuePage() {
     return { total: data.total, needsReview, highFlags, decided };
   }, [data]);
 
+  const telemetryItems: TelemetryReading[] = useMemo(() => {
+    if (!data?.items?.length) return [];
+    return data.items.map((c) => {
+      const isApproved = c.status === "approved";
+      const hasHigh = (c.open_findings.high || 0) > 0;
+      const status: "verified" | "flagged" | "auditing" = isApproved
+        ? "verified"
+        : hasHigh
+        ? "flagged"
+        : "auditing";
+      const topComponent =
+        c.triage_components?.[0]?.label ||
+        (isApproved ? "Approved by regulatory authority" : "Awaiting reviewer audit");
+
+      return {
+        id: c.id,
+        code: c.case_ref,
+        label: c.applicant_ref,
+        val: isApproved
+          ? "Approved · Verified"
+          : hasHigh
+          ? `${c.open_findings.high} High Discrepancies`
+          : `${c.document_count} Documents Ingested`,
+        metric: `Triage: ${c.triage_priority} pts · ${c.institution_ref}`,
+        status,
+        source: topComponent,
+      };
+    });
+  }, [data]);
+
   return (
     <Layout>
       {/* ── Page header with gradient title ── */}
@@ -173,6 +204,11 @@ export function QueuePage() {
             accentColor="var(--ok)"
           />
         </div>
+      )}
+
+      {/* ── 3D Circular Readings Buffer driven by live queue data ── */}
+      {!isApplicant && data && (
+        <CircularReadings3D items={telemetryItems} />
       )}
 
 
