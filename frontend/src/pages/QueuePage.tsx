@@ -121,26 +121,35 @@ function ApplicantQueue() {
         </div>
       ) : data && (
         <>
-          <div className="applicant-cards">
-            {data.items.map((c) => (
-              <button
-                key={c.id}
-                className="applicant-card"
-                onClick={() => navigate(`/cases/${c.id}`)}
-              >
-                <div className="applicant-card-left">
-                  <div className="applicant-card-ref">{c.case_ref}</div>
-                  <div className="applicant-card-inst">{c.institution_ref}</div>
-                  <div className="applicant-card-meta">{c.document_count} document{c.document_count !== 1 ? "s" : ""} · Updated {ago(c.updated_at)}</div>
-                </div>
-                <div className="applicant-card-right">
-                  <StatusBadge status={c.status as CaseStatus} />
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <path d="M9 18l6-6-6-6" />
-                  </svg>
-                </div>
-              </button>
-            ))}
+          <div className="table-wrap">
+            <table className="queue">
+              <thead>
+                <tr>
+                  <th>Application Ref</th>
+                  <th>Institution</th>
+                  <th>Program</th>
+                  <th>Documents</th>
+                  <th>Status</th>
+                  <th>Updated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.items.map((c) => (
+                  <tr key={c.id}>
+                    <td>
+                      <a href={`#/cases/${c.id}`} className="case-link" style={{ fontWeight: 600 }}>
+                        {c.case_ref}
+                      </a>
+                    </td>
+                    <td>{c.institution_ref}</td>
+                    <td className="muted">{c.application_type_label}</td>
+                    <td>{c.document_count} doc{c.document_count !== 1 ? "s" : ""}</td>
+                    <td><StatusBadge status={c.status as CaseStatus} /></td>
+                    <td className="muted">{ago(c.updated_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
           <div className="pagination">
             <span className="muted small">Showing {data.items.length} of {data.total} application(s)</span>

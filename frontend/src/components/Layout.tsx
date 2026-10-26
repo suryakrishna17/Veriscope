@@ -18,21 +18,23 @@ function getNavItems(role: string | undefined): NavItem[] {
   if (role === "applicant") {
     return [
       { href: "#/cases",     label: "My Applications", route: "queue" },
-      { href: "#/cases/new", label: "New Application",  route: "new"   },
+      { href: "#/cases/new", label: "New application", route: "new"   },
     ];
   }
   if (role === "admin") {
     return [
-      { href: "#/cases",     label: "Case Queue",   route: "queue"     },
-      { href: "#/analytics", label: "Analytics",    route: "analytics" },
-      { href: "#/coverage",  label: "APH Coverage", route: "coverage"  },
+      { href: "#/cases",     label: "Case Queue",      route: "queue"     },
+      { href: "#/cases/new", label: "New application", route: "new"       },
+      { href: "#/analytics", label: "Analytics",       route: "analytics" },
+      { href: "#/coverage",  label: "APH Coverage",    route: "coverage"  },
     ];
   }
   // reviewer (default)
   return [
-    { href: "#/cases",     label: "Review Queue", route: "queue"     },
-    { href: "#/analytics", label: "Analytics",    route: "analytics" },
-    { href: "#/coverage",  label: "APH Coverage", route: "coverage"  },
+    { href: "#/cases",     label: "Review Queue",   route: "queue"     },
+    { href: "#/cases/new", label: "New application", route: "new"       },
+    { href: "#/analytics", label: "Analytics",      route: "analytics" },
+    { href: "#/coverage",  label: "APH Coverage",   route: "coverage"  },
   ];
 }
 

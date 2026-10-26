@@ -88,7 +88,7 @@ function ApplicantCaseView({ c, reload, reopenOpen, setReopenOpen }: {
         </div>
       )}
       {c.status === "clarification_requested" && clarification && (
-        <div className="apple-banner apple-banner-warn">
+        <div className="apple-banner apple-banner-warn banner-warn">
           <strong>Additional information requested:</strong> {clarification.note} Upload the requested documents below, then re-run checks.
         </div>
       )}
@@ -188,7 +188,7 @@ function AdminCaseView({ c, reload, running, run, reopenOpen, setReopenOpen }: {
         )}
         <button className="btn btn-ghost" onClick={() => navigate(`/cases/${c.id}/report`)}>
           <IconFileText width="13" height="13" />
-          <span>Case Report</span>
+          <span>Case report</span>
         </button>
       </div>
 
@@ -305,7 +305,7 @@ function ReviewerCaseView({ c, reload, running, run, reopenOpen, setReopenOpen }
           )}
           <button className="btn btn-ghost" onClick={() => navigate(`/cases/${c.id}/report`)}>
             <IconFileText width="13" height="13" />
-            <span>Report</span>
+            <span>Case report</span>
           </button>
         </div>
       </div>
